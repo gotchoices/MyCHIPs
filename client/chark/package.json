@@ -15,7 +15,7 @@
     "develop": "bin/develop",
     "build": "bin/build",
     "test:android": "bin/test-e2e",
-    "postinstall": "sh ios/version_ios.sh && patch-package",
+    "postinstall": "sh ios/version_ios.sh",
     "build:ios": "react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --dev=false --platform='ios'"
   },
   "dependencies": {

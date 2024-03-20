@@ -138,7 +138,7 @@ const qrCode = event.nativeEvent.codeStringValue;
   return (
  hasPermission && (
 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-{isActive ? 
+    {isActive ? 
         <Camera
           style={StyleSheet.absoluteFill}
           cameraType={CameraType.Back}
@@ -148,8 +148,7 @@ const qrCode = event.nativeEvent.codeStringValue;
           showFrame={true} 
           laserColor='blue'
           frameColor='white'
-        />: 
-
+        /> : 
         <Camera
         style={StyleSheet.absoluteFill}
         cameraType={CameraType.Back}
