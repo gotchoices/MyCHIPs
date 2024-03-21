@@ -18,6 +18,7 @@ import FilterIcon from '../../../../assets/svg/ic_filter.svg';
 import useSocket from "../../../hooks/useSocket";
 import { colors } from '../../../config/constants';
 import { fetchTalliesForCertificates } from '../../../redux/certificateTalliesSlice';
+import useMessageText from '../../../hooks/useMessageText';
 
 const ListItem = (props) => {
   return (
@@ -43,6 +44,9 @@ const ListItem = (props) => {
 const Certificates = (props) => {
   const dispatch = useDispatch();
   const { tallies, fetching } = useSelector(state => state.certificateTallies)
+  const { messageText } = useMessageText();
+
+  const charkText = messageText?.chark?.msg;
 
   const { wm } = useSocket();
 
@@ -60,11 +64,11 @@ const Certificates = (props) => {
     <View>
       <View style={styles.header}>
         <Text style={styles.headerMain}>
-          Your Certificate Options
+          {charkText?.certopts?.title}
         </Text>
 
         <Text style={styles.headerDescription}>
-          What information will you share?
+          {charkText?.certshare?.help}
         </Text>
       </View>
 
@@ -72,7 +76,7 @@ const Certificates = (props) => {
         <View>
           <View style={styles.section1}>
             <Text>
-              Certificates From Tally Templates
+              {charkText?.certtpts?.title}
             </Text>
             
             <TouchableWithoutFeedback

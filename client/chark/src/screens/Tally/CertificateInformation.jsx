@@ -35,7 +35,7 @@ const CertificateInformation = (props) => {
       <View style={styles.certInfoWrapper}>
         <View style={styles.certInfo}>
           <HelpText
-            label={certValueText?.part_name?.title ?? 'part_cert_name'}
+            label={certValueText?.name?.title ?? 'part_cert_name'}
             helpText={certValueText?.name?.help?? ''}
             style={styles.certInfoLabel}
           />

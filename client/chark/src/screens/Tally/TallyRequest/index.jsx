@@ -5,6 +5,8 @@ import RequestStart from './RequestStart';
 import Certificates from './Certificates';
 import CustomCertificate from './CustomCertificate';
 
+import useMessageText from '../../../hooks/useMessageText';
+
 const TallyRequest = (props) => {
   const invite = props.route?.params ?? {};
 
@@ -16,6 +18,13 @@ const TallyRequest = (props) => {
     myCertificate: false,
     needCustom: true,
   })
+
+  const { messageText } = useMessageText();
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+
+  const commonText = {
+    invited: talliesMeMessageText?.invited,
+  }
 
   const showCorrespondingView = (view, needCustom = false) => {
     switch(view) {
@@ -77,6 +86,7 @@ const TallyRequest = (props) => {
           name={invite?.chad?.cid}
           agent={invite?.chad?.agent ?? ''}
           navigation={props.navigation}
+          commonText={commonText}
         />
       )}
 
