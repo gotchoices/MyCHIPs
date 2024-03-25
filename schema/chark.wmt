@@ -29,7 +29,6 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {share	{Share}			{Share this item by some external medium}}
   {qr		{QR Code}		{Generate a scannable QR code}}
   {add		{Add}			{Add a new record}}
-  {next		{Next}			{Proceed to the next step}}
   {certopts	{Certificate Options}	{Select what information is contained in a certificate}}
   {certshare	{Certificate Share}	{What personal information will you share}}
   {certtpts	{Template Certificates}	{Select a certificate from an existing tally template}}
