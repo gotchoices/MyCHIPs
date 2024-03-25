@@ -310,7 +310,7 @@ function {mychips.chit_json_c(ch mychips.chits, ta mychips.tallies)} {mychips.ch
       'by',		ch.issuer,
       'type',		ch.chit_type,
       'uuid',		ch.chit_uuid,
-      'date',		ch.chit_date,
+      'date', to_char(ch.chit_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
       'units',		ch.units,
       'ref',		ch.reference,
       'memo',		ch.memo

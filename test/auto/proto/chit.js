@@ -7,11 +7,12 @@
 // User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
 //- 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs, Crypto, libModule, Stringify } = require('../common')
 var log = testLog(__filename)
-const PeerCont = require("../../../lib/peer2peer")
+var crypto = new Crypto(log)
+const PeerCont = require(libModule('peer2peer'))
 var defTally = require('./def-tally')
-var {uSql, save, rest} = require('./def-chit')
+var {uSql, save, rest, sSql} = require('./def-chit')
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
 var interTest = {}			//Pass values from one test to another
 
@@ -19,6 +20,23 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   var serverO, serverS
   var busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
+
+  const getSignature = function(db, user, uuid, done) {	//Make signature for existing chit
+    let sql = sSql('c.json_core, u.user_cmt', user, uuid)	//;log.debug('sql:', sql)
+    db.query(sql, (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)				//;log.debug("row:", row)
+        , key = row.user_cmt				//;log.debug("key:", key)
+        , message = Stringify(row.json_core)		//;log.debug('JSON:', message.slice(0,40))
+
+      assert.ok(row.json_core)
+      crypto.sign(key, message, sign => {
+        let text = Buffer.from(sign).toString('base64url')
+        assert.ok(text)			//;log.debug('sign:', text)
+        interTest.sign = {key, sign, text, uuid}
+        done()
+      })
+    })
+  }
 
   before('Connection 0 to test database', function(done) {	//Emulate originator user
     dbO = new dbClient(dbcO, (chan, data, me) => {
@@ -145,24 +163,25 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   it("Originator modifies/resubmits refused invoice", function(done) {
     let uuid = interTest.chitS.uuid
-      , sign = cidO + ' signature'
-      , sql = uSql('request = %L, signature = %L', 'pend', sign, userO, uuid)
+      , memo = 'A revised memo'
+      , sql = uSql('request = %L, memo = %L', 'pend', memo, userO, uuid)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
 //log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.state, 'A.draft.pend')
+      assert.equal(row.memo, memo)
       _done()
     })
     busS.register('ps', (msg) => {		//log.debug("S user msg:", msg)
       assert.equal(msg.state, 'L.pend')
-      assert.ok(msg.object.sign)
+      assert.equal(msg.object.memo, memo)
       _done()
     })
     busO.register('po', (msg) => {		//log.debug("O user msg:", msg)
       assert.equal(msg.state, 'A.pend')
-      assert.ok(msg.object.sign)
+      assert.equal(msg.object.memo, memo)
       _done()
     })
   })
@@ -173,9 +192,13 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     if (sites > 1) dbS.query(rest('pend'), (e) => {if (e) done(e); _done()})
   })
 
+  it("Generate chit signature", function(done) {
+    getSignature(dbS, userS, interTest.chitS.uuid, done)
+  })
+
   it("Subject accepts/pays Originator's invoice", function(done) {
-    let uuid = interTest.chitS.uuid
-      , sign = cidS + ' signature'
+    let uuid = interTest.sign.uuid
+      , sign = interTest.sign.text
       , sql = uSql('request = %L, signature = %L', 'good', sign, userS, uuid)
       , dc = 3, _done = (x) => {if (!--dc) done()}
 //log.debug("Sql:", dc, sql)
@@ -197,24 +220,52 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     })
   })
 
-  it("Originator sends payment to Subject", function(done) {
+  it("Grab originator's signing key", function(done) {
+    let sql = 'select user_cmt from mychips.users_v where id = $1'
+    dbO.query(sql, [userO], (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)				//;log.debug("row:", row)
+        , key = row.user_cmt				//;log.debug("key:", key)
+        interTest.sign = {key}
+        assert.ok(key)
+        done()
+    })
+  })
+
+  it("Create chit signature independant of DB", function(done) {
     let uuid = mkUuid(cidO, agentO)
-      , seq = interTest.talO.tally_seq
+      , type = 'tran'
       , by = 'stock'
-      , value = 99123
+      , units = 99123
       , ref = {z: 'Partial refund'}
+      , memo = 'Thanks!'
+      , tally = interTest.talO.tally_uuid
+      , date = new Date().toISOString()
+      , core = {by, ref, date, memo, type, uuid, tally, units}		//,x=log.debug("c:", core)
+      , message = Stringify(core)					//,z=log.debug("m:", message)
+      , { key } = interTest.sign
+    crypto.sign(key, message, sign => {
+      let text = Buffer.from(sign).toString('base64url')
+      assert.ok(text)			//;log.debug('sign:', text)
+      interTest.sign = {key, sign, text, core}
+      done()
+    })
+  })
+
+  it("Originator sends payment to Subject", function(done) {
+    let {sign, text, core} = interTest.sign
+      , { type, by, units, ref, memo, uuid, tally, date } = core
+      , seq = interTest.talO.tally_seq
       , request = 'good'
-      , sign = cidO + ' signature'
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, reference, request, signature)
-          values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L) returning *`, userO, seq, uuid, by, value, ref, request, sign)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, reference, memo, request, signature)
+          values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L, %L) returning *`, userO, seq, uuid, by, units, ref, memo, request, text)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
-//log.debug("Sql:", sql)
+log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			//;log.debug("row:", row)
+      let row = getRow(res, 0)			;log.debug("row:", row)
       assert.equal(row.chit_ent, userO)
       assert.equal(row.chit_uuid, uuid)
-      assert.equal(row.units, value)
-      assert.equal(row.net, -value)
+      assert.equal(row.units, units)
+      assert.equal(row.net, -units)
       assert.equal(row.request, request)
       assert.deepStrictEqual(row.reference, ref)
       _done()
@@ -223,7 +274,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.equal(msg.state, 'A.good')
       let obj = msg.object
       assert.deepStrictEqual(obj.ref, ref)
-      assert.equal(obj.units, value)
+      assert.equal(obj.units, units)
       assert.equal(obj.uuid, uuid)
       assert.ok(obj.sign)
       _done()

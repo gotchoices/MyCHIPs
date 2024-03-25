@@ -275,20 +275,20 @@ trigger mychips_tallies_tr_notice {} {
 function {mychips.tally_json(te mychips.tallies)} {mychips.tallies} {
   returns jsonb stable language sql as $$
     select jsonb_build_object(
-       'version',	te.version,
-       'revision',	te.revision,
-       'uuid',		te.tally_uuid,
-       'date',		te.tally_date,
-       'memo',		te.comment,
-       'agree',		te.contract,
-       te.tally_type,	json_build_object(
-         'cert',	te.hold_cert,
-         'terms',	te.hold_terms
-       ),
-       case when te.tally_type = 'stock' then 'foil' else 'stock' end, json_build_object(
-         'cert',	te.part_cert,
-         'terms',	te.part_terms
-       )
+      'version',	te.version,
+      'revision',	te.revision,
+      'uuid',		te.tally_uuid,
+      'date', to_char(te.tally_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+      'memo',		te.comment,
+      'agree',		te.contract,
+      te.tally_type,	json_build_object(
+        'cert',	te.hold_cert,
+        'terms',	te.hold_terms
+      ),
+      case when te.tally_type = 'stock' then 'foil' else 'stock' end, json_build_object(
+        'cert',	te.part_cert,
+        'terms',	te.part_terms
+      )
     )
 $$;} -grant mychips
 

@@ -2890,20 +2890,20 @@ create trigger mychips_tallies_tr_change after insert or update or delete on myc
 create index mychips_tallies_x_tally_date on mychips.tallies (tally_date);
 create function mychips.tally_json(te mychips.tallies) returns jsonb stable language sql as $$
     select jsonb_build_object(
-       'version',	te.version,
-       'revision',	te.revision,
-       'uuid',		te.tally_uuid,
-       'date',		te.tally_date,
-       'memo',		te.comment,
-       'agree',		te.contract,
-       te.tally_type,	json_build_object(
-         'cert',	te.hold_cert,
-         'terms',	te.hold_terms
-       ),
-       case when te.tally_type = 'stock' then 'foil' else 'stock' end, json_build_object(
-         'cert',	te.part_cert,
-         'terms',	te.part_terms
-       )
+      'version',	te.version,
+      'revision',	te.revision,
+      'uuid',		te.tally_uuid,
+      'date', to_char(te.tally_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+      'memo',		te.comment,
+      'agree',		te.contract,
+      te.tally_type,	json_build_object(
+        'cert',	te.hold_cert,
+        'terms',	te.hold_terms
+      ),
+      case when te.tally_type = 'stock' then 'foil' else 'stock' end, json_build_object(
+        'cert',	te.part_cert,
+        'terms',	te.part_terms
+      )
     )
 $$;
 grant execute on function mychips.tally_json(mychips.tallies) to mychips_1;
@@ -3379,7 +3379,7 @@ create function mychips.chit_json_c(ch mychips.chits, ta mychips.tallies) return
       'by',		ch.issuer,
       'type',		ch.chit_type,
       'uuid',		ch.chit_uuid,
-      'date',		ch.chit_date,
+      'date', to_char(ch.chit_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
       'units',		ch.units,
       'ref',		ch.reference,
       'memo',		ch.memo
@@ -10964,12 +10964,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendor_agents','mychips','tallies_v_sum','vendor_agents','f','f'),
   ('mychips','users_v_tallysum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
-  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
-  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -11120,19 +11114,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
-  ('wm','language','col','wm','language','col','f','t'),
-  ('wm','language','fr_help','wm','language','fr_help','f','f'),
-  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
-  ('wm','language','fr_title','wm','language','fr_title','f','f'),
-  ('wm','language','help','wm','table_text','help','t','f'),
-  ('wm','language','language','wm','table_text','language','t','f'),
-  ('wm','language','obj','wm','language','obj','f','f'),
-  ('wm','language','sch','wm','language','sch','f','t'),
-  ('wm','language','sorter','wm','language','sorter','f','f'),
-  ('wm','language','tab','wm','language','tab','f','t'),
-  ('wm','language','tag','wm','language','tag','f','t'),
-  ('wm','language','title','wm','table_text','title','t','f'),
-  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),

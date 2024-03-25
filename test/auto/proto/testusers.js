@@ -1,5 +1,5 @@
 //Setup sample users for tests; run
-//After: dbinit
+//After: ../schema/dbinit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:

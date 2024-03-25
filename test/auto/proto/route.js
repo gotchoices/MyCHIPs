@@ -11,8 +11,8 @@
 //    u2-cid_X:agent0 -> u3-cid_B:agent0 -> Ex-cid_2:agent1   |
 //           ^-----------------------------------------------/
 //
-const PeerCont = require("../../../lib/peer2peer")
-const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, queryJson } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, queryJson, libModule } = require('../common')
+const PeerCont = require(libModule('peer2peer'))
 var log = testLog(__filename)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
 const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')

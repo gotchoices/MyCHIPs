@@ -22,8 +22,9 @@ const RootDir = Path.join(__dirname, '../../')
 const LibDir = Path.join(RootDir, 'lib')
 const Schema = Path.join(LibDir, 'schema.json')
 const SchemaDir = Path.join(LibDir, '../', 'schema')
+const libModule = (m) => Path.join(LibDir, m)
 
-var testLog = function(fname) {		//Initiate a logging service for a mocha test file
+const testLog = function(fname) {	//Initiate a logging service for a mocha test file
     let base = Path.parse(fname).name
       , logName = fname ? 'test-' + base : 'combined.log'
     return Log(logName)
@@ -188,7 +189,7 @@ module.exports={
   DBAdmin, DBHost, DBPort, Log, dbClient, RootDir, LibDir,
   Format, assert, Bus, testLog, Schema, SchemaDir, Crypto, Stringify,
   pgCheck, dockCleanup, dropDB,
-  importCheck, develop, peerTest, queryJson, mkUuid,
+  importCheck, develop, peerTest, queryJson, mkUuid, libModule,
 
   Data: function(file) {
     return Path.join(__dirname, 'data', file)

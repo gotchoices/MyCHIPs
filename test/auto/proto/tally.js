@@ -10,10 +10,10 @@
 //- Test for reusable token, tally is cloned, token still valid
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify, peerTest, markLogs} = require('../common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify, peerTest, markLogs, libModule} = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
-const PeerNoise = require("../../../lib/peernoise")
+const PeerNoise = require(libModule('peernoise'))
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
 var {uSql, sSql, save, rest} = require('./def-tally')

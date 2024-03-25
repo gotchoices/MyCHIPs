@@ -1,11 +1,7 @@
 TODO:
-X- Wylib cleanups
-X-  Dew's call input function, mark as dirty
-X-  Can input/update user file
-X-  Try inputting the same file data twice
-X-  Properly display error message
 
 - Payment testing:
+X-  Generate actual signatures in chit test suite
 -  Check signatures on direct chits in lib/chit.js
 -  Include actual user signature on payment lift request
 -  Agent signs lift: can we use crypto routine from tally.js?
