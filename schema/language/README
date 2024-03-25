@@ -4,7 +4,7 @@ To generate a new language file:
 - Determine the 3-letter ISO code (xyz, for example) for the new language
 - Edit test/mocha/language.js to include the code in the languages array (line 14)
 - Make sure the last two tests are actually enabled in language.js (line 103)
-- Do: cd test/auto/schema; npx mocha dbinit languages (the final test should show failures)
+- Do: cd test/auto/schema; npx mocha dbinit language (the final test should show failures)
 - This should create CSV files in the data dir for any tags missing in the target language
 - Open the newly created CSV file in a spreadsheet
 - Perform the translation, filling in title and help columns for all applicable tags
@@ -16,8 +16,9 @@ To generate a new language file:
 - Create wyseman language files:
     wm-db2wmt -s mychips -l <xyz> >language/<schema>-<xyz>.wmt
 - There are several schemas to consider (wm, wylib, base, mychips, json)
-- Try to rebuild from source "make clean lang" and make sure all tags still present in DB
-- Submit P/R to mychips/wyselib to include your language translation files/updates
+- Try to rebuild from source: "make clean lang" and make sure all tags still present in DB
+- Rebuild schema files: "make schema sql" and then rerun language test above
+- When satisfied, submit P/R to mychips/wyselib with language translation files/updates
 
 The "-s schema" switch to wm-db2wmt will limit the output to those tables/views belonging
 to the specified schema.  If you are translating tables/views that are part of wyselib,

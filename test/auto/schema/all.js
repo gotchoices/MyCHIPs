@@ -2,7 +2,7 @@
 // -----------------------------------------------------------------------------
 //Run all tests in order
 
-require('../schema/dbinit')
+require('./dbinit')
 
 require('./sch-multi.js')
 require('./sch-crypto.js')
