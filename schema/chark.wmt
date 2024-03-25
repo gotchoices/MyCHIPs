@@ -14,10 +14,13 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {keys		{Manage Keys}		{Create, import and export cryptographic keys}}
   {filter	{Filter}		{Settings to control display of records in the list preview}}
   {search	{Search}		{Load records that match a given string}}
+  {selall	{Select All}		{Select all possible items}}
   {more		{More Details}		{Show more information}}
   {less		{Less Details}		{Show less information}}
   {language	{Language}		{What language the app will use}}
+  {next		{Next}			{Proceed to the next step}}
   {cancel	{Cancel}		{Abort the current operation}}
+  {custom	{Custom}		{Customize my settings}}
   {save		{Save}			{Save the current changes}}
   {edit		{Edit}			{Modify the current information}}
   {import	{Import}		{Import the item from an external format}}
