@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import { View, Text, StyleSheet } from 'react-native';
@@ -20,6 +20,10 @@ const TallyEntryModal = (props) => {
   const { messageText } = useMessageText();
 
   const talliesMeText = messageText?.tallies_v_me?.col;
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+  const partLimitText = useMemo(() => {
+    return talliesMeText?.part_terms?.values?.find?.((term) => term.value === 'limit');
+  }, [talliesMeText?.part_terms?.values])
 
   return (
     <View style={{ margin: 20 }}>
@@ -42,12 +46,12 @@ const TallyEntryModal = (props) => {
         </Text>
 
         <Text style={{ color: colors.gray6 }}>
-          {talliesMeText?.tally_start?.title ?? 'wants_to_start_a_tally_with_you'}
+          {talliesMeMessageText?.invited?.help ?? 'wants_to_start_a_tally_with_you'}
         </Text>
 
         <View style={styles.partLimit}>
           <Text style={{ marginRight: 5, color: colors.gray6 }}>
-            part_limit ${negotiationData.data?.limit} 
+            {partLimitText?.title} ${negotiationData.data?.limit} 
           </Text>
           <GreenTickIcon />
         </View>
@@ -64,6 +68,7 @@ const TallyEntryModal = (props) => {
 
       {negotiationData.data?.canAccept && (
         <AcceptButton
+          text={{ accept: talliesMeMessageText?.accept }}
           tally={negotiationData.data}
           postOffer={props.postAccept}
           style={{ marginBottom: 5, borderRadius: 40 }}
@@ -72,6 +77,7 @@ const TallyEntryModal = (props) => {
 
       {negotiationData.data?.canOffer && (
         <OfferButton
+          text={{ accept: talliesMeMessageText?.accept }}
           tally={negotiationData.data}
           style={{ marginBottom: 5, borderRadius: 40, backgroundColor: colors.yellow, borderColor: colors.yellow }}
           postOffer={props.postOffer}

@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 
 import Header from './Header';
-import Avatar from '../../../components/Avatar';
 import Button from '../../../components/Button';
 import CloseIcon from '../../../../assets/svg/ic_close.svg';
 
@@ -19,6 +18,8 @@ const RequestStart = (props) => {
   const _agent = agentLength >= 24 
     ? agent.slice(0, 15) + '...' + agent.slice(agentLength - 4, agentLength)
     : agent;
+
+  const commonText = props?.commonText;
 
   const onClose = () => {
     props.navigation?.navigate('Home');
@@ -42,16 +43,13 @@ const RequestStart = (props) => {
         </Text>
 
         <Text style={styles.description}>
-          Wants to start a Tally
+          {commonText?.invited?.help}
         </Text>
 
-        <Text style={styles.description}>
-          with you
-        </Text>
       </View>
 
       <Button
-        title="Start"
+        title={commonText?.next?.title ?? ''}
         onPress={props.onStart}
       />
 
@@ -92,6 +90,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.gray300,
     marginTop: 5,
+    textAlign: 'center',
   }
 });
 
@@ -101,6 +100,7 @@ RequestStart.propTypes = {
   name: PropTypes.string.isRequired,
   onStart: PropTypes.func.isRequired,
   navigation: PropTypes.any,
+  commonText: PropTypes.object,
 }
 
 export default RequestStart;

@@ -28,6 +28,7 @@ import {
 } from '../../../redux/certificateTalliesSlice';
 import useSocket from '../../../hooks/useSocket';
 import { processTicket } from '../../../services/tally';
+import useMessage from '../../../hooks/useMessageText';
 
 const CustomCertificate = (props) => {
   const tally_ent = props.tally_ent;
@@ -36,6 +37,9 @@ const CustomCertificate = (props) => {
   const { certificateChangeTrigger } = useSelector(state => state.workingTallies);
   const { userChangeTrigger } = useSelector(state => state.profile);
   const { wm } = useSocket();
+  const { messageText } = useMessage();
+  const charkMessageText = messageText?.chark?.msg;
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
 
   const [processingTicket, setProcessingTicket] = useState(false);
 
@@ -234,7 +238,7 @@ const CustomCertificate = (props) => {
             <View style={styles.selectContainer}>
               <HelpText
                 style={styles.select}
-                label={'Select All'}
+                label={charkMessageText?.selall?.title ?? ''}
               />
             </View>
           </TouchableWithoutFeedback>
@@ -259,7 +263,7 @@ const CustomCertificate = (props) => {
       </ScrollView>
       <View style={styles.sendCertificate}>
         <Button
-          title={'Send Certificate'}
+          title={talliesMeMessageText?.disclose?.title ?? ''}
           onPress={sendCertificate}
           disabled={processingTicket}
         />

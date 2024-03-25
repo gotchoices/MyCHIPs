@@ -118,6 +118,7 @@ const TallyPreview = (props) => {
   // Fetch tally text
   const talliesMeText = useTalliesMeText(wm)
   const talliesColText = talliesMeText?.col ?? {};
+  const talliesMeMessageText = talliesMeText?.msg ?? {};
 
   const onShare = () => {
     const hold_limit = tally?.hold_terms?.limit;
@@ -348,6 +349,7 @@ const TallyPreview = (props) => {
       return (
         <>
           <OfferButton
+            text={{ accept: talliesMeMessageText?.offer }}
             tally={tally}
             postOffer={postOffer}
             style={styles.fullActionButton(colors.yellow)}
@@ -367,6 +369,7 @@ const TallyPreview = (props) => {
           />
 
           <AcceptButton
+            text={{ accept: talliesMeMessageText?.accept }}
             tally={tally}
             postAccept={postAccept}
             style={[styles.fullActionButton(colors.blue), { width: '48%' }]}
