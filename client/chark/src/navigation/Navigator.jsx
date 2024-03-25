@@ -147,6 +147,11 @@ function HomeStackScreen() {
         component={FilterTallyScreen}
         options={{ headerShown: true, headerTitle: 'Filters' }}
       />
+      <InviteStack.Screen
+        name="TallyContract"
+        component={TallyContract}
+        options={{ title: "Tally Contract" }}
+      />
     </HomeStack.Navigator>
   );
 }

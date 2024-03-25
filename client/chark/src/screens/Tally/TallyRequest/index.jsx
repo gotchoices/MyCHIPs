@@ -21,9 +21,13 @@ const TallyRequest = (props) => {
 
   const { messageText } = useMessageText();
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+  const talliesMeColText = messageText?.tallies_v_me?.col;
+  const charkMessageText = messageText?.chark?.msg;
 
   const commonText = {
     invited: talliesMeMessageText?.invited,
+    next: charkMessageText?.next,
+    hold_cert: talliesMeColText?.hold_cert,
   }
 
   const showCorrespondingView = (view, needCustom = false) => {

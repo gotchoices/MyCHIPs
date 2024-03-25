@@ -107,6 +107,10 @@ export const getGoodChits = createAsyncThunk('activity/getGoodChits', async (arg
       fields,
       where: {
         left: 'state', oper: 'in', entry: ['A.good', 'L.good'],
+      },
+      order: {
+        field: 'crt_date',
+        asc: false,
       }
     })
 

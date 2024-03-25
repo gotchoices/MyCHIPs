@@ -49,7 +49,7 @@ const RequestStart = (props) => {
       </View>
 
       <Button
-        title="Start"
+        title={commonText?.next?.title ?? ''}
         onPress={props.onStart}
       />
 

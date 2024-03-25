@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
@@ -19,6 +19,7 @@ import useSocket from "../../../hooks/useSocket";
 import { colors } from '../../../config/constants';
 import { fetchTalliesForCertificates } from '../../../redux/certificateTalliesSlice';
 import useMessageText from '../../../hooks/useMessageText';
+import { useUser } from '../../../hooks/useLanguage';
 
 const ListItem = (props) => {
   return (
@@ -32,7 +33,7 @@ const ListItem = (props) => {
           </Text>
 
           <Text style={styles.itemDate}>
-            Created {props.createdAt ? moment(props.createdAt).format('DD/MM/YYYY') : 'N/A'}
+            {props.dateText} {props.createdAt ? moment(props.createdAt).format('DD/MM/YYYY') : 'N/A'}
           </Text>
         </View>
         <KeyIcon />
@@ -47,8 +48,16 @@ const Certificates = (props) => {
   const { messageText } = useMessageText();
 
   const charkText = messageText?.chark?.msg;
+  const talliesMeColText = messageText?.tallies_v_me?.col;
 
   const { wm } = useSocket();
+
+  const usersMeText = useUser(wm);
+  const usersMeCol = usersMeText?.col;
+
+  const dateText = useMemo(() => {
+    return usersMeCol?.cert?.values?.find((cert) => cert.value === 'date')
+  }, [usersMeCol?.cert?.values])
 
   const getCertificates = () => {
     dispatch(
@@ -84,7 +93,7 @@ const Certificates = (props) => {
             >
               <View style={styles.filter}>
                 <FilterIcon />
-                <Text style={{ marginLeft: 5, colors: colors.gray300 }}>Custom</Text>
+                <Text style={{ marginLeft: 5, colors: colors.gray300 }}>{charkText?.custom?.title ?? ''}</Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -106,6 +115,7 @@ const Certificates = (props) => {
                   onPress={() => props.onItemPressed(item.tally_ent, item.tally_seq)}
                   name={item.comment ?? 'Draft'}
                   createdAt={item.crt_date}
+                  dateText={dateText?.title ?? ''}
                 />
               );
             }}
