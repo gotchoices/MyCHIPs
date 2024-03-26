@@ -265,7 +265,7 @@ const arrowText = {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 24,
     marginHorizontal: 40,
     alignItems: "center",
   },
@@ -330,10 +330,12 @@ const styles = StyleSheet.create({
   leftText: {
     ...arrowText,
     marginRight: 50,
+    color: colors.black,
   },
   rightText: {
     ...arrowText,
     marginLeft: 50,
+    color: colors.black,
   },
   leftTopText: {
     marginLeft: -10,
@@ -361,8 +363,9 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   boldText: {
-    fontWeight: "700",
+    color: colors.black,
     fontSize: 15,
+    fontWeight: 'bold',
     textDecorationStyle: "solid",
     textDecorationLine: "underline",
   },

@@ -56,7 +56,7 @@ const screenOptions = {
     color: colors.gray300,
     fontSize: 18,
     fontFamily: "inter",
-    fontWeight: "500",
+    fontWeight: "bold",
   },
 };
 

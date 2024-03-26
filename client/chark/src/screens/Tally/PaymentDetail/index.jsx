@@ -241,6 +241,7 @@ const PaymentDetail = (props) => {
             <View style={styles.row}>
               <Text style={styles.text}>USD</Text>
               <TextInput
+                maxLength={8}
                 style={[styles.amount, { width: inputWidth }]}
                 placeholder="0.00"
                 keyboardType="numeric"
@@ -264,6 +265,7 @@ const PaymentDetail = (props) => {
             <View style={styles.row}>
               <ChitIcon color={colors.black} height={18} width={12} />
               <TextInput
+                maxLength={8}
                 style={[styles.amount, { width: inputWidth }]}
                 placeholder="0.00"
                 keyboardType="numeric"

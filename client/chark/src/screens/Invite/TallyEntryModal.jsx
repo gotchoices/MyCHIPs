@@ -59,7 +59,7 @@ const TallyEntryModal = (props) => {
       
       {props.shouldShowReview &&
       <Button
-        title={talliesMeText?.review?.title ?? 'review'}
+        title={talliesMeMessageText?.review?.title ?? 'review'}
         onPress={() => props.onReview(negotiationData?.data?.tally_seq, negotiationData?.data?.tally_ent)}
         textColor={colors.blue}
         style={{ marginBottom: 5, borderRadius: 40, backgroundColor: colors.white }}
