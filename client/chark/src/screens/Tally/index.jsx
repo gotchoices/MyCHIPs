@@ -250,8 +250,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   footer: {
+    paddingBottom:30,
     backgroundColor: colors.white,
-    height: Dimensions.get("window").height * 0.3,
   },
 });
 
