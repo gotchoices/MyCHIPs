@@ -33,12 +33,14 @@ const HelpText = (props) => {
               <TouchableWithoutFeedback 
                 onPress={() => setIsVisible(true)}
               >
-                <Icon
-                  name="question-circle"
-                  size={13}
-                  color={colors.blue}
-                  style={{ marginLeft: 5 }}
-                />
+                <View style={{ paddingRight: 6, paddingVertical: 4 }}>
+                  <Icon
+                    name="question-circle"
+                    size={15}
+                    color={colors.blue}
+                    style={{ marginLeft: 5 }}
+                  />
+                </View>
               </TouchableWithoutFeedback>
             </Tooltip>
           )
