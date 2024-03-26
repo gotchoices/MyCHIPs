@@ -75,8 +75,9 @@ const Setting = (props) => {
           {personal?.cas_name}
         </Text>
 
+        
         <Button
-          title="edit_profile_text"
+          title={charkText?.profile?.title}
           onPress={onProfilePress}
         />
 

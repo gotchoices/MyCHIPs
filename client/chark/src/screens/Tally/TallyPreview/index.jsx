@@ -362,7 +362,7 @@ const TallyPreview = (props) => {
       return (
         <View style={styles.buttonWrapper}>
           <Button
-            title={talliesColText?.revise?.title ?? 'revise_text'}
+            title={talliesMeMessageText?.revise?.title ?? 'revise_text'}
             onPress={onRevise}
             textColor={colors.white}
             style={[styles.fullActionButton(colors.yellow), { width: '48%' }]}

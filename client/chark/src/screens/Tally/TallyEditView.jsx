@@ -105,7 +105,9 @@ const TallyEditView = (props) => {
           onPress={props.onViewContract}
           style={{ marginBottom: 8 }}
         >
-          <EyeIcon style={{ marginLeft: 8, marginBottom: 8 }}/>
+          <View style={{ paddingVertical: 4, paddingHorizontal: 5 }}>
+            <EyeIcon style={{ marginBottom: 4 }}/>
+          </View>
         </TouchableWithoutFeedback>
 
         </View>

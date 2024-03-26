@@ -1,9 +1,9 @@
 {
   "name": "chark",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "chark": {
-    "versionCode": 20
+    "versionCode": 21
   },
   "scripts": {
     "prebuild:ios": "sh ios/version_ios.sh",

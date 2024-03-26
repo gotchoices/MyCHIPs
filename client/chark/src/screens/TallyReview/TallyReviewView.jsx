@@ -265,7 +265,7 @@ const arrowText = {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 24,
     marginHorizontal: 40,
     alignItems: "center",
   },
