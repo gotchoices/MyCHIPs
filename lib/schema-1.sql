@@ -2893,7 +2893,7 @@ create function mychips.tally_json(te mychips.tallies) returns jsonb stable lang
       'version',	te.version,
       'revision',	te.revision,
       'uuid',		te.tally_uuid,
-      'date', to_char(te.tally_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+      'date', to_char(te.tally_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"'),
       'memo',		te.comment,
       'agree',		te.contract,
       te.tally_type,	json_build_object(
@@ -3379,7 +3379,7 @@ create function mychips.chit_json_c(ch mychips.chits, ta mychips.tallies) return
       'by',		ch.issuer,
       'type',		ch.chit_type,
       'uuid',		ch.chit_uuid,
-      'date', to_char(ch.chit_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+      'date', to_char(ch.chit_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"'),
       'units',		ch.units,
       'ref',		ch.reference,
       'memo',		ch.memo
@@ -7492,7 +7492,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','H.offer.draft','eng','Tally Revised','The other party has marked the tally offer for revision'),
   ('mychips','tallies_v_me','H.offer.offer','eng','Your Offer','You have offerred this tally to the other party'),
   ('mychips','tallies_v_me','invite','eng','Invite to Tally','Create a new invitation to tally for a prospective partner'),
-  ('mychips','tallies_v_me','invited','eng','Wants to Tally','The party has invited you to open a new MyCHIPs tally'),
+  ('mychips','tallies_v_me','invited','eng','Wants to Tally','Invites you to open a new MyCHIPs tally'),
   ('mychips','tallies_v_me','invite.format','eng','Format','Determines which type of invitation is generated'),
   ('mychips','tallies_v_me','invite.format.json','eng','json','Return tally invitation as JSON object'),
   ('mychips','tallies_v_me','invite.format.link','eng','link','Return tally invitation as deep link Uniform Resource Locator'),

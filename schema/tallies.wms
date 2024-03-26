@@ -278,7 +278,7 @@ function {mychips.tally_json(te mychips.tallies)} {mychips.tallies} {
       'version',	te.version,
       'revision',	te.revision,
       'uuid',		te.tally_uuid,
-      'date', to_char(te.tally_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+      'date', to_char(te.tally_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"'),
       'memo',		te.comment,
       'agree',		te.contract,
       te.tally_type,	json_build_object(
