@@ -144,7 +144,7 @@ The *object* property for the tally is defined as follows:
   - **uuid**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier) for this particular tally.
   - **counter**: The number of times the tally was counter-offered during negotiation (default 0).
   - **comment**: Any comments to the tally the parties have agreed to include.
-  - **created**: Date/time the tally was created
+  - **date**: Date/time the tally was created (YYYY-MM-DDTHH:MM:SS.XXXZ)
   - **agree**: A reference to a digital contract containing the general terms and conditions for the tally.  Can be the document resource ID hash, or an object containing:
     - **host**: Web address of Issuer/author guaranteed to have authoritative copy of the contract
     - **source**: Base 64v hash of the contract
@@ -196,7 +196,7 @@ The *object* property for the chit is defined as follows:
   - **tally**: The UUID of the tally this chit belongs to.
   - **issue**: The value 'stock' or 'foil' to indicate which holder issued the chit pledge (or setting).
   - **units**: The number of milli-CHIPs on this chit.  This should always be a positive number.
-  - **date**: Date/time the chit was became/becomes effective.
+  - **date**: Date/time the chit was became/becomes effective (YYYY-MM-DDTHH:MM:SS.XXXZ)
   - **type**: The value 'tran' (transaction), 'set' (setting) or 'lift' (linear or circular)
   - **ref**: A JSON data structure containing invoice, order, or other references material to the transaction.
     For setting chits, this contains the values of the settings:
