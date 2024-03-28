@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   },
   boldText: {
     color: colors.black,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 'bold',
     textDecorationStyle: "solid",
     textDecorationLine: "underline",
