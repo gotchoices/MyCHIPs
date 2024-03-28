@@ -16,7 +16,7 @@ const payLink = 'https://mychips.org/pay'
 const inviteLink = 'https://mychips.org/invite'
 
 const Scanner = (props) => {
-  const { connectSocket, disconnectSocket, wm, ws } = useSocket();
+  const { connectSocket, disconnectSocket, wm, ws, status } = useSocket();
 
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -28,12 +28,30 @@ const Scanner = (props) => {
   // Temporary storage for qr code if username is not included in the ticket
   const [tempQrCode, setTempQrCode] = useState();
 
+
+  const connectionStatus = {
+    connected: 'Connected',
+    disconnect: 'Disconnected',
+    connecting: 'Connecting',
+  };
+
   const onQrAccepted =(event) => {
     const qrCode = event.nativeEvent.codeStringValue;
     if(qrCode) {
        setIsActive(false);
       if(qrCode.startsWith(connectionLink)) {
         const obj = parse(qrCode);
+
+        if(status === connectionStatus.connected){
+      return  Alert.alert('New Ticket found', 'Do you want to connect to a new connect ticket?', [
+      {
+        text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+      },
+      {text: 'OK', onPress: () => connect({ connect: obj })}
+]);
+        }
         connect({ connect: obj });
       } else if(qrCode.startsWith(payLink)) {
         /**
