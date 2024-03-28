@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useId } from 'react';
 import { View, Linking, Modal } from 'react-native'
 import qs from 'query-string';
-import Toast from 'react-native-toast-message';
 import { useSelector } from 'react-redux';
+import Toast from 'react-native-toast-message';
+import { useDispatch } from 'react-redux';
 
 import Tally from '../Tally';
 
@@ -10,23 +11,24 @@ import { parse } from '../../utils/query-string';
 import { getLinkHost } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import { setPersonal } from '../../redux/profileSlice';
+import { createLiftsPay } from '../../services/pay'
 
 import CenteredModal from '../../components/CenteredModal';
 import UpdateCID from '../UpdateCID';
-import { UpdateHoldCert } from '../Tally/TallyPreview/UpdateHoldCert';
 import { useCharkText } from "../../hooks/useLanguage";
 
 const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
 const tallyUri = new Set(['invite', 'mychips.org/invite'])
+const payUri = new Set(['mychips.org/pay'])
 
 const HomeScreen = (props) => {
   const { connectSocket, wm } = useSocket();
-  const { invite } = props.route?.params ?? {};
+  const { invite, tallyInviteUrl, payUrl } = props.route?.params ?? {};
   const { user } = useSelector(state => state.currentUser);
   const { personal } = useSelector(state => state.profile);
+  const dispatch  = useDispatch();
 
   const [visible, setVisible] = useState(false);
-  const [updateCertVisible, setUpdateCertVisible] = useState(false);
   const [tallyProcess, setTallyProcess] = useState(undefined);
 
   // Common text, will be used by multiple screens
@@ -46,10 +48,16 @@ const HomeScreen = (props) => {
   }, [user, personal])
 
   useEffect(() => {
-    if (invite) {
+    if(tallyInviteUrl) {
+      const parsed = parseTallyInvitation(tallyInviteUrl);
+      requestProposedTally(parsed)
+    } else if (invite) {
       requestProposedTally(invite)
+    } else if(payUrl) {
+      const parsed = qs.parseUrl(payUrl);
+      requestPay(parsed.query);
     }
-  }, [invite?.token])
+  }, [tallyInviteUrl, payUrl])
 
   useEffect(() => {
     const handleLink = (url) => {
@@ -61,6 +69,9 @@ const HomeScreen = (props) => {
       } else if (tallyUri.has(host)) {
         const parsed = parseTallyInvitation(url);
         requestProposedTally(parsed)
+      } else if(payUri.has(host)) {
+        const parsed = qs.parseUrl(url);
+        requestPay(parsed.query);
       }
       return;
     }
@@ -78,14 +89,6 @@ const HomeScreen = (props) => {
     };
 
   }, []);
-
-  const onShowUpdateCert = () => {
-    setUpdateCertVisible(true);
-  }
-
-  const onDismissUpdateCert = () => {
-    setUpdateCertVisible(false);
-  }
 
   const showUpdateDialog = () => {
     setVisible(true);
@@ -109,37 +112,26 @@ const HomeScreen = (props) => {
     }, 100)
   }
 
-  function startProcessTally(partCert) {
-    const spec = {
-      view: 'mychips.ticket_process',
-      params: [{ ...tallyProcess, part_cert: partCert }],
+  const requestPay = async (parsed) => {
+    try {
+      Toast.show({
+        type: 'info',
+        text1: 'Making payment for the request'
+      });
+
+      const pay = await createLiftsPay(wm, parsed);
+
+      Toast.show({
+        type: 'info',
+        text1: 'Payment complete'
+      });
+    } catch(err) {
+      Toast.show({
+        type: 'error',
+        text1: err.message,
+      });
     }
-
-    Toast.show({
-      type: 'info',
-      text1: 'Processing tally ticket...',
-    });
-
-    wm.request('_process_tally', 'select', spec, (data, err) => {
-      if (err) {
-        Toast.show({
-          type: 'error',
-          text1: err.message ?? 'Error processing tally ticket.',
-        })
-      } else if (data?.[0]?.ticket_process) {
-        Toast.show({
-          type: 'success',
-          text1: 'Tally ticket processed.'
-        })
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Tally ticket process failed.'
-        })
-      }
-    });
   }
-
 
   return (
     <>
@@ -155,18 +147,6 @@ const HomeScreen = (props) => {
           userId={user?.curr_eid}
           cancel={dismissUpdateDialog}
           success={onSuccess}
-        />
-      </CenteredModal>
-      <CenteredModal
-        isVisible={updateCertVisible}
-        onClose={onDismissUpdateCert}
-      >
-        <UpdateHoldCert
-          onDismiss={onDismissUpdateCert}
-          onUpdateCert={(data) => {
-            onDismissUpdateCert();
-            startProcessTally(data);
-          }}
         />
       </CenteredModal>
     </>

@@ -30,7 +30,14 @@ const linking = {
   prefixes: ["mychips://", "https://mychips.org"],
   getStateFromPath: (path, options) => {
     const parsed = qs.parseUrl(path);
-    const newPath = parsed.url === '/invite' ? '/ticket' : path;
+    //const newPath = parsed.url === '/invite' ? '/ticket' : path;
+    let newPath;
+    if(['/invite', '/pay'].includes(parsed.url)) {
+      newPath = '/ticket';
+    } else {
+      newPath = '/ticket';
+    }
+
     return getStateFromPath(newPath, options);
   },
   config: {

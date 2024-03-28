@@ -49,6 +49,7 @@
           <data android:host="mychips.org" />
           <data android:pathPattern="/ticket" />
           <data android:pathPattern="/invite" />
+          <data android:pathPattern="/pay" />
         </intent-filter>
         
       </activity>
