@@ -1,6 +1,8 @@
 const assert = require('assert');
 
-const { signCheck, local, remote } = require('../../../lib/tally');
+const Tally = require('../../../lib/tally');
+const tally = new Tally()
+const { signCheck } = tally
 
 validTally = {
     "date": "2023-09-26T16:19:21.589681+00:00",
@@ -173,8 +175,8 @@ describe('Tally', () => {
                 assert.strictEqual(valid, true)
                 done()
             }
-            signCheck(validTally, callback, false);
-        });
+            signCheck(validTally, callback)
+        })
 
         it('should return false when foil signature is invalid', (done) => {
             let invalidFoilTally = validTally
@@ -187,8 +189,8 @@ describe('Tally', () => {
                 assert.strictEqual(valid, false)
                 done()
             }
-            signCheck(invalidFoilTally, callback, false);
-        });
+            signCheck(invalidFoilTally, callback)
+        })
 
         it('should return false when stock signature is invalid', (done) => {
             let invalidStockTally = validTally
@@ -201,7 +203,7 @@ describe('Tally', () => {
                 assert.strictEqual(valid, false)
                 done()
             }
-            signCheck(invalidStockTally, callback, false);
-        });
+            signCheck(invalidStockTally, callback)
+        })
     })
 })
