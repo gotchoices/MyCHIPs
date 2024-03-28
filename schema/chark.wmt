@@ -30,6 +30,6 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {qr		{QR Code}		{Generate a scannable QR code}}
   {add		{Add}			{Add a new record}}
   {certopts	{Certificate Options}	{Select what information is contained in a certificate}}
-  {certshare	{Certificate Share}	{What personal information will you share}}
+  {certshare	{Certificate Sharing}	{Decide what personal information will you share with the other party.  You can create a custom certificate or use one from any existing draft tallies you might have.}}
   {certtpts	{Template Certificates}	{Select a certificate from an existing tally template}}
 }
