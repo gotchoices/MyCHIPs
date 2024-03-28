@@ -117,7 +117,6 @@ const TallyPreview = (props) => {
 
   // Fetch tally text
   const talliesMeText = useTalliesMeText(wm)
-  const talliesColText = talliesMeText?.col ?? {};
   const talliesMeMessageText = talliesMeText?.msg ?? {};
 
   const onShare = () => {

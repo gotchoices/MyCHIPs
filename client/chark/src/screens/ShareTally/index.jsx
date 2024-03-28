@@ -8,9 +8,10 @@ import {
   TouchableWithoutFeedback,
   Linking,
 } from 'react-native';
-import Share from 'react-native-share';
+//import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import ViewShot from "react-native-view-shot";
+import Share from '../../components/Share';
 
 import { colors, qrType } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
@@ -31,6 +32,8 @@ const ShareTally = (props) => {
   const tallyObj = invite?.json;
   const linkHtml = invite?.link;
   const tallyUrl = tallyObj?.url;
+
+  const message = `${tallyObj?.title ?? ''} \n\n${tallyObj?.message ?? ''} \n\n${tallyUrl}`;
 
   useEffect(() => {
     const spec = {
@@ -58,126 +61,17 @@ const ShareTally = (props) => {
     });
   }, [tally_id])
 
-  const qrData = useMemo(() => {
-    return JSON.stringify({ invite: tallyObj?.invite ?? {} });
-    //return JSON.stringify({
-      //type: qrType.tally,
-      //ticket: tallyObj?.invite,
-    //});
-  }, [tallyObj?.invite])
-
-  const changeTab = (tab) => {
-    return () => {
-      setActiveTab(tab);
-    }
-  }
-
-  const onShare = () => {
-    let options = {};
-    if (activeTab === 'qr') {
-      viewShotRef.current.capture().then(uri => {
-        options = {
-          title: 'Tally invitation',
-          url: uri,
-        };
-        Share.open(options).then(console.log).catch(console.log);
-      });
-    } else if (activeTab === 'link') {
-      const expires = tallyObj?.ticket?.expires;
-      const date = expires ? `:${new Date(expires).toString()}` : ''
-      const message = `${tallyObj.title} \n\n${tallyUrl} \n\n${tallyObj.message} ${expires ? date : ''}`;
-      options = {
-        title: 'Tally invitation',
-        message,
-      }
-
-      Share.open(options).then(console.log).catch(console.log);
-    }
-  };
-
-  const openExternalLink = (event) => {
-    if (event.url && event.url.includes('mychips.org/tally')) {
-      Linking.openURL(event.url)
-      return false
-    } else {
-      return true
-    }
-  }
-
   if(!invite) {
     return false;
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.tab}>
-        <TouchableWithoutFeedback
-          onPress={changeTab('qr')}
-        >
-          <View style={[styles.tabItem, activeTab === 'qr' ? styles.activeTab : {}]}>
-            <Text style={[styles.tabText, activeTab === 'qr' ? styles.activeText : {}]}>
-              {charkText?.qr?.title}
-            </Text>
-          </View>
-        </TouchableWithoutFeedback>
-
-        <TouchableWithoutFeedback
-          onPress={changeTab('link')}
-        >
-          <View style={[styles.tabItem, activeTab === 'link' ? styles.activeTab : {}]}>
-            <Text style={[styles.tabText, activeTab === 'link' ? styles.activeText : {}]}>
-              {charkText?.link?.title}
-            </Text>
-          </View>
-        </TouchableWithoutFeedback>
-      </View>
-
-      {
-        activeTab === 'qr' && (
-          <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1.0 }}>
-            <View style={styles.qrView}>
-              <QRCode
-                value={qrData}
-                size={200}
-              />
-            </View>
-          </ViewShot>
-        )
-      }
-
-      {
-        activeTab === 'link' && (
-          <WebView
-            originWhitelist={['*']}
-            onShouldStartLoadWithRequest={openExternalLink}
-            source={{
-              html: `
-              <html>
-                <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-                <body>
-                  <div style="display: flex; align-items: center; padding-top: 20">
-                    <div>
-                      ${linkHtml}
-                    </div>
-                  </div>
-                </body>
-              </html>
-            `}}
-          />
-        )
-      }
-
-      <View style={styles.action}>
-        <TouchableOpacity
-          onPress={onShare}
-        >
-          <View style={styles.share}>
-            <Text style={{ color: colors.white, fontWeight: 'bold', fontSize: 16 }}>{charkText?.share?.title}</Text>
-          </View>
-        </TouchableOpacity>
-
-      </View>
-    </View>
+    <Share
+      qrData={tallyUrl}
+      linkHtml={linkHtml}
+      shareTitle="Share Tally"
+      message={message}
+    />
   )
 }
 

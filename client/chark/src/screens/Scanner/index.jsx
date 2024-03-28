@@ -3,6 +3,8 @@ import { StyleSheet, Text, ActivityIndicator, Modal, View, Button, TextInput, Al
 import { Camera, CameraType } from 'react-native-camera-kit';
 import { useScanBarcodes, BarcodeFormat } from 'vision-camera-code-scanner';
 import * as Keychain from 'react-native-keychain';
+import { v4 as uuid } from 'uuid';
+
 
 import { colors, qrType } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
@@ -10,6 +12,8 @@ import { parse } from '../../utils/query-string';
 import { PERMISSIONS, check, request } from 'react-native-permissions';
 
 const connectionLink = 'https://mychips.org/ticket'
+const payLink = 'https://mychips.org/pay'
+const inviteLink = 'https://mychips.org/invite'
 
 const Scanner = (props) => {
   const { connectSocket, disconnectSocket, wm, ws } = useSocket();
@@ -24,21 +28,33 @@ const Scanner = (props) => {
   // Temporary storage for qr code if username is not included in the ticket
   const [tempQrCode, setTempQrCode] = useState();
 
-const onQrAccepted =(event)=>{
-const qrCode = event.nativeEvent.codeStringValue;
+  const onQrAccepted =(event) => {
+    const qrCode = event.nativeEvent.codeStringValue;
     if(qrCode) {
        setIsActive(false);
       if(qrCode.startsWith(connectionLink)) {
         const obj = parse(qrCode);
-      connect({ connect: obj });
+        connect({ connect: obj });
+      } else if(qrCode.startsWith(payLink)) {
+        /**
+          * Using randomString to re-excute the requestPay function
+          * such that if scanned same url can make the payment again
+        */
+        const payUrl = `${qrCode}&randomString=${uuid()}`
+        requestPay(payUrl);
+      } else if(qrCode.startsWith(inviteLink)) {
+        /**
+          * Using randomString to re-excute the tally share function
+          * such that if scanned same url can scan the tally request
+        */
+        const tallyInviteUrl = `${qrCode}&randomString=${uuid()}`
+        requestTally(tallyInviteUrl);
       } else {
         try {
           setIsActive(false);
           const parsedCode = JSON.parse(qrCode);
           console.log("PARSED_CODE ==> ", parsedCode);
-          if(parsedCode?.invite) {
-            requestTally(parsedCode);
-          } else if (parsedCode?.signkey) {
+          if (parsedCode?.signkey) {
             props.navigation.navigate("Settings", {screen: "ImportKey", params: parsedCode});
           } else {
             processConnect(parsedCode);
@@ -47,12 +63,17 @@ const qrCode = event.nativeEvent.codeStringValue;
           console.log(err.message)
         }
       }
-}
-}
+    }
+  }
 
    // Request Tally
-    function requestTally(parsed) {
-      props.navigation.navigate('Home', parsed);
+    function requestTally(tallyInviteUrl) {
+      props.navigation.navigate('Home', { tallyInviteUrl });
+    }
+
+   // Request pay
+    function requestPay(payUrl) {
+      props.navigation.navigate('Home', { payUrl });
     }
 
    // Process the connection
