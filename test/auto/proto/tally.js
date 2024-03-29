@@ -351,7 +351,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       _done()
     })
   })
-/*
+
   if (saveName) it("Save open tallies for later chit test", function(done) {
     let dc = sites, _done = () => {if (!--dc) done()}
     dbO.query(save(saveName), (e) => {if (e) done(e); _done()})

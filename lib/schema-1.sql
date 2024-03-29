@@ -3816,7 +3816,7 @@ create trigger mychips_tokens_v_tr_ins instead of insert on mychips.tokens_v for
 create trigger mychips_tokens_v_tr_upd instead of update on mychips.tokens_v for each row execute procedure mychips.tokens_v_updfunc();
 create trigger mychips_users_v_me_tr_upd instead of update on mychips.users_v_me for each row execute procedure mychips.users_v_me_updfunc();
 create view mychips.chits_v as select 
-    ch.chit_ent, ch.chit_seq, ch.chit_idx, ch.request, ch.signature, ch.units, ch.reference, ch.memo, ch.chit_uuid, ch.chit_type, ch.issuer, ch.crt_by, ch.mod_by, ch.crt_date, ch.mod_date, ch.chit_date, ch.chain_msg, ch.chain_idx, ch.chain_dgst, ch.chain_prev, ch.lift_seq, ch.status, ch.digest
+    ch.chit_ent, ch.chit_seq, ch.chit_idx, ch.chit_date, ch.request, ch.signature, ch.units, ch.reference, ch.memo, ch.chit_uuid, ch.chit_type, ch.issuer, ch.crt_by, ch.mod_by, ch.crt_date, ch.mod_date, ch.chain_msg, ch.chain_idx, ch.chain_dgst, ch.chain_prev, ch.lift_seq, ch.status, ch.digest
   , te.hold_cid,	te.part_cid
   , te.tally_type
   , te.tally_uuid
@@ -4123,14 +4123,14 @@ create function mychips.chits_v_insfunc() returns trigger language plpgsql secur
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.chits_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.chits (chit_ent,chit_seq,request,signature,units,reference,memo,chit_uuid,chit_type,issuer,crt_by,mod_by,crt_date,mod_date) values (new.chit_ent,new.chit_seq,trec.request,trec.signature,trec.units,trec.reference,trec.memo,trec.chit_uuid,trec.chit_type,trec.issuer,session_user,session_user,current_timestamp,current_timestamp) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
+    insert into mychips.chits (chit_ent,chit_seq,chit_date,request,signature,units,reference,memo,chit_uuid,chit_type,issuer,crt_by,mod_by,crt_date,mod_date) values (new.chit_ent,new.chit_seq,trec.chit_date,trec.request,trec.signature,trec.units,trec.reference,trec.memo,trec.chit_uuid,trec.chit_type,trec.issuer,session_user,session_user,current_timestamp,current_timestamp) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
     select into new * from mychips.chits_v where chit_ent = new.chit_ent and chit_seq = new.chit_seq and chit_idx = new.chit_idx;
     return new;
   end;
 $$;
 create function mychips.chits_v_updfunc() returns trigger language plpgsql security definer as $$
   begin
-    update mychips.chits set request = new.request,signature = new.signature,units = new.units,reference = new.reference,memo = new.memo,mod_by = session_user,mod_date = current_timestamp where chit_ent = old.chit_ent and chit_seq = old.chit_seq and chit_idx = old.chit_idx returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
+    update mychips.chits set chit_date = new.chit_date,request = new.request,signature = new.signature,units = new.units,reference = new.reference,memo = new.memo,mod_by = session_user,mod_date = current_timestamp where chit_ent = old.chit_ent and chit_seq = old.chit_seq and chit_idx = old.chit_idx returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
     select into new * from mychips.chits_v where chit_ent = new.chit_ent and chit_seq = new.chit_seq and chit_idx = new.chit_idx;
     return new;
   end;
@@ -4217,7 +4217,7 @@ create function mychips.chit_notify_agent(chit mychips.chits) returns boolean la
         trec	record;
         rrec	record;
     begin
-        select into trec tally_uuid,hold_chad,hold_agent,part_chad from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
+        select into trec tally_uuid,hold_chad,hold_agent,part_chad,hold_cert from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
         if not trec.hold_agent is null then
             channel = 'ma_' || trec.hold_agent;
         end if;
@@ -4234,6 +4234,9 @@ create function mychips.chit_notify_agent(chit mychips.chits) returns boolean la
           'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
+        if chit.request = 'good' then
+          jrec = jrec || jsonb_build_object ('pub', trec.hold_cert->>'public');
+        end if;
 
         perform pg_notify(channel, jrec::text);
         return true;
@@ -5522,14 +5525,14 @@ create function mychips.chits_v_me_insfunc() returns trigger language plpgsql se
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.chits_v_me';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.chits (chit_seq,request,signature,units,reference,memo,chit_uuid,chit_type,issuer,crt_by,mod_by,crt_date,mod_date,chit_ent) values (new.chit_seq,trec.request,trec.signature,trec.units,trec.reference,trec.memo,trec.chit_uuid,trec.chit_type,trec.issuer,session_user,session_user,current_timestamp,current_timestamp,session_user) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
+    insert into mychips.chits (chit_seq,chit_date,request,signature,units,reference,memo,chit_uuid,chit_type,issuer,crt_by,mod_by,crt_date,mod_date,chit_ent) values (new.chit_seq,trec.chit_date,trec.request,trec.signature,trec.units,trec.reference,trec.memo,trec.chit_uuid,trec.chit_type,trec.issuer,session_user,session_user,current_timestamp,current_timestamp,session_user) returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
     select into new * from mychips.chits_v_me where chit_ent = new.chit_ent and chit_seq = new.chit_seq and chit_idx = new.chit_idx;
     return new;
   end;
 $$;
 create function mychips.chits_v_me_updfunc() returns trigger language plpgsql security definer as $$
   begin
-    update mychips.chits set request = new.request,signature = new.signature,units = new.units,reference = new.reference,memo = new.memo,mod_by = session_user,mod_date = current_timestamp where chit_ent = old.chit_ent and chit_seq = old.chit_seq and chit_idx = old.chit_idx returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
+    update mychips.chits set chit_date = new.chit_date,request = new.request,signature = new.signature,units = new.units,reference = new.reference,memo = new.memo,mod_by = session_user,mod_date = current_timestamp where chit_ent = old.chit_ent and chit_seq = old.chit_seq and chit_idx = old.chit_idx returning chit_ent,chit_seq,chit_idx into new.chit_ent, new.chit_seq, new.chit_idx;
     select into new * from mychips.chits_v_me where chit_ent = new.chit_ent and chit_seq = new.chit_seq and chit_idx = new.chit_idx;
     return new;
   end;
@@ -7379,7 +7382,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','add','eng','Add','Add a new record'),
   ('mychips','chark','cancel','eng','Cancel','Abort the current operation'),
   ('mychips','chark','certopts','eng','Certificate Options','Select what information is contained in a certificate'),
-  ('mychips','chark','certshare','eng','Certificate Share','What personal information will you share'),
+  ('mychips','chark','certshare','eng','Certificate Sharing','Decide what personal information will you share with the other party.  You can create a custom certificate or use one from any existing draft tallies you might have.'),
   ('mychips','chark','certtpts','eng','Template Certificates','Select a certificate from an existing tally template'),
   ('mychips','chark','custom','eng','Custom','Customize my settings'),
   ('mychips','chark','edit','eng','Edit','Modify the current information'),
@@ -10964,12 +10967,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendor_agents','mychips','tallies_v_sum','vendor_agents','f','f'),
   ('mychips','users_v_tallysum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
-  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
-  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -11120,19 +11117,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
-  ('wm','language','col','wm','language','col','f','t'),
-  ('wm','language','fr_help','wm','language','fr_help','f','f'),
-  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
-  ('wm','language','fr_title','wm','language','fr_title','f','f'),
-  ('wm','language','help','wm','table_text','help','t','f'),
-  ('wm','language','language','wm','table_text','language','t','f'),
-  ('wm','language','obj','wm','language','obj','f','f'),
-  ('wm','language','sch','wm','language','sch','f','t'),
-  ('wm','language','sorter','wm','language','sorter','f','f'),
-  ('wm','language','tab','wm','language','tab','f','t'),
-  ('wm','language','tag','wm','language','tag','f','t'),
-  ('wm','language','title','wm','table_text','title','t','f'),
-  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),

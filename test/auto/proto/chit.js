@@ -26,7 +26,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     db.query(sql, (err, res) => { if (err) done(err)
       let row = getRow(res, 0)				//;log.debug("row:", row)
         , key = row.user_cmt				//;log.debug("key:", key)
-        , message = Stringify(row.json_core)		//;log.debug('JSON:', message.slice(0,40))
+        , message = Stringify(row.json_core)		//;log.debug('MS:', message)
 
       assert.ok(row.json_core)
       crypto.sign(key, message, sign => {
@@ -240,10 +240,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       , memo = 'Thanks!'
       , tally = interTest.talO.tally_uuid
       , date = new Date().toISOString()
-      , core = {by, ref, date, memo, type, uuid, tally, units}		//,x=log.debug("c:", core)
-      , message = Stringify(core)					//,z=log.debug("m:", message)
       , { key } = interTest.sign
-    crypto.sign(key, message, sign => {
+      , core = {by, date, memo, ref, tally, type, uuid, units}	//;log.debug("c:", core)
+    crypto.sign(key, core, sign => {
       let text = Buffer.from(sign).toString('base64url')
       assert.ok(text)			//;log.debug('sign:', text)
       interTest.sign = {key, sign, text, core}
@@ -253,15 +252,15 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   it("Originator sends payment to Subject", function(done) {
     let {sign, text, core} = interTest.sign
-      , { type, by, units, ref, memo, uuid, tally, date } = core
+      , { by, date, memo, ref, tally, type, uuid, units } = core
       , seq = interTest.talO.tally_seq
       , request = 'good'
-      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, reference, memo, request, signature)
-          values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L, %L) returning *`, userO, seq, uuid, by, units, ref, memo, request, text)
+      , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_date, chit_type, issuer, units, reference, memo, request, signature)
+          values (%L, %s, %L, %L, 'tran', %L, %s, %L, %L, %L, %L) returning *`, userO, seq, uuid, date, by, units, ref, memo, request, text)
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
-log.debug("Sql:", sql)
+//log.debug("Sql:", sql)
     dbO.query(sql, (e, res) => {if (e) done(e)
-      let row = getRow(res, 0)			;log.debug("row:", row)
+      let row = getRow(res, 0)			//;log.debug("row:", row)
       assert.equal(row.chit_ent, userO)
       assert.equal(row.chit_uuid, uuid)
       assert.equal(row.units, units)

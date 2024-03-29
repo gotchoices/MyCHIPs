@@ -16,9 +16,9 @@ require config.tcl trigview.tcl
 
 namespace eval chits {
     def chits_pk	{chit_ent chit_seq chit_idx}
-    def chits_v_up	{request signature units reference memo}
+    def chits_v_up	{chit_date request signature units reference memo}
     def chits_v_in	[concat chit_ent chit_seq $chits_v_up chit_uuid chit_type issuer]
-    def chits_se	[concat chit_ent chit_seq chit_idx $chits_v_up chit_uuid chit_type issuer $glob::stampfn chit_date chain_msg chain_idx chain_dgst chain_prev lift_seq status digest]
+    def chits_se	[concat $chits_pk $chits_v_up chit_uuid chit_type issuer $glob::stampfn chain_msg chain_idx chain_dgst chain_prev lift_seq status digest]
     def chits_v_me_in	[lremove $chits_v_in chit_ent]
 }
 
@@ -240,7 +240,7 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
         trec	record;			-- Talley
         rrec	record;			-- Retries
     begin
-        select into trec tally_uuid,hold_chad,hold_agent,part_chad from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
+        select into trec tally_uuid,hold_chad,hold_agent,part_chad,hold_cert from mychips.tallies_v where tally_ent = chit.chit_ent and tally_seq = chit.chit_seq;
         if not trec.hold_agent is null then
             channel = 'ma_' || trec.hold_agent;
         end if;
@@ -257,6 +257,9 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
           'from',	trec.hold_chad,
           'object',	(select json from mychips.chits_v where chit_ent = chit.chit_ent and chit_seq = chit.chit_seq and chit_idx = chit.chit_idx)
         );
+        if chit.request = 'good' then
+          jrec = jrec || jsonb_build_object ('pub', trec.hold_cert->>'public');
+        end if;
 --raise notice 'Chit notice:% R:% O:% P:% C:% U:%', channel, chit.request, chit.chit_ent, trec.part_chad->>'cid', chit.chit_uuid, chit.units;
         perform pg_notify(channel, jrec::text);
         return true;

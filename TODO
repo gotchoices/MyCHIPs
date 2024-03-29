@@ -2,7 +2,12 @@ TODO:
 
 - Payment testing:
 X-  Generate actual signatures in chit test suite
--  Check signatures on direct chits in lib/chit.js
+X-  Check signatures on direct chits in lib/chit.js
+X-   Where to get user's key?
+X-   Local async provides signing key
+X-   For remote, query DB (no caching for now)
+-  Test across separate DB's
+-   
 -  Include actual user signature on payment lift request
 -  Agent signs lift: can we use crypto routine from tally.js?
 -  agent evaluate's payor's authorization signature
