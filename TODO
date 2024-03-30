@@ -6,7 +6,7 @@ X-  Check signatures on direct chits in lib/chit.js
 X-   Where to get user's key?
 X-   Local async provides signing key
 X-   For remote, query DB (no caching for now)
--  Test across separate DB's
+X-  Test across separate DB's (tests still failing)
 -   
 -  Include actual user signature on payment lift request
 -  Agent signs lift: can we use crypto routine from tally.js?
@@ -33,7 +33,6 @@ X-   For remote, query DB (no caching for now)
 - Chit consensus
 X- App is signing chits
 - Validate chits in lib/chit.js
-- Simulation still works
 - Commit/merge to master
 -  Make tests for setting tally trading variables
 -  Variables register correctly on both ends of the tally
