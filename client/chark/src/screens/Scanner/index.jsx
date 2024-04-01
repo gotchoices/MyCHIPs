@@ -61,10 +61,10 @@ const Scanner = props => {
         const obj = parse(qrCode);
 
         if (status === connectionStatus.connected) {
-          return showAlert(obj);
+          showAlert(obj);
+        } else {
+          connect({connect: obj});
         }
-
-        connect({connect: obj});
       } else if (qrCode.startsWith(payLink)) {
         /**
          * Using randomString to re-excute the requestPay function
