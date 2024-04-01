@@ -42,7 +42,7 @@ const CustomCertificateSelection = (props) => {
             label={certText?.place?.title ?? ''}
             helpText={certText?.place?.help ?? ''}
           />
-          
+
           {place.ids.map((id, index) => (
             <CustomCertificateItem 
               key={index}

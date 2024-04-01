@@ -7,19 +7,18 @@ import { request } from './request';
  * @param {Object} args.payload
  */
 export const createLiftsPay = (wm, payload) => {
-  console.log(payload, 'FROM PAYLOAD')
   const {
     memo,
     ref, 
     chad,
-    units,
+    units = 0,
   } = payload;
 
   const [cid, agent] = chad?.split(":");
   const sign = 'Signature';
 
   const auth = { memo, ref, sign };
-  const _units = parseInt(units);
+  const _units = parseInt(units) * 1000;
   const find = { cid, agent }
 
   const spec = {
