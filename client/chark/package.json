@@ -3,7 +3,7 @@
   "version": "0.1.6",
   "private": true,
   "chark": {
-    "versionCode": 25
+    "versionCode": 26
   },
   "scripts": {
     "prebuild:ios": "sh ios/version_ios.sh",

@@ -86,7 +86,7 @@ const TallyReviewView = props => {
     if (tallyType === 'stock') {
       return props.holdCert?.chad?.cid
         ? props.holdCert?.chad.cid + '...'
-        : props.partCert?.chad?.cid + '...';
+        : props.partCert?.chad?.cid + '...'
     }
 
     return props.partCert?.chad?.cid
