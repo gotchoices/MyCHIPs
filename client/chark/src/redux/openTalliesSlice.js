@@ -46,7 +46,7 @@ export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies',
       partnerDigestByTallies,
     };
   } catch(err) {
-    console.log({ err })
+    console.log('FETCH OPEN TALLIES>>>', { err })
     throw err;
   }
 })

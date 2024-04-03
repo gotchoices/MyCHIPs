@@ -44,11 +44,10 @@ const ListItem = (props) => {
 
 const Certificates = (props) => {
   const dispatch = useDispatch();
-  const { tallies, fetching } = useSelector(state => state.certificateTallies)
+  const { tallies, fetching, fromStartToCertSelection } = useSelector(state => state.certificateTallies)
   const { messageText } = useMessageText();
 
   const charkText = messageText?.chark?.msg;
-  const talliesMeColText = messageText?.tallies_v_me?.col;
 
   const { wm } = useSocket();
 
@@ -69,11 +68,17 @@ const Certificates = (props) => {
     getCertificates();
   }, [wm, fetchTalliesForCertificates, dispatch])
 
+  useEffect(() => {
+    if(!fetching && fromStartToCertSelection) {
+      props.onCustomPressed();
+    }
+  }, [fetching, fromStartToCertSelection])
+
   return (
     <View>
       <View style={styles.header}>
         <Text style={styles.headerMain}>
-          {charkText?.certopts?.title}
+          {charkText?.certshare?.title}
         </Text>
 
         <Text style={styles.headerDescription}>
@@ -149,6 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
     color: colors.gray300,
+    textAlign: 'center',
   },
   section1: {
     marginBottom: 10,

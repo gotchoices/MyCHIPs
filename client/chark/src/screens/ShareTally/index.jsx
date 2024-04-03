@@ -1,33 +1,19 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { WebView } from 'react-native-webview';
+import React, { useState, useEffect } from 'react';
 import {
-  Text,
-  View,
   StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  Linking,
 } from 'react-native';
-//import Share from 'react-native-share';
-import QRCode from 'react-native-qrcode-svg';
-import ViewShot from "react-native-view-shot";
 import Share from '../../components/Share';
 
-import { colors, qrType } from '../../config/constants';
+import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import { request } from '../../services/request';
 import { random } from '../../utils/common';
-import useMessageText from '../../hooks/useMessageText';
 
 const ShareTally = (props) => {
   const tally_id = props.route?.params?.tally_id;
-  const viewShotRef = useRef();
   const { wm } = useSocket();
-  const { messageText } = useMessageText();
-  const charkText = messageText?.chark?.msg;
 
   const [invite, setInvite] = useState();
-  const [activeTab, setActiveTab] = useState('qr');
 
   const tallyObj = invite?.json;
   const linkHtml = invite?.link;

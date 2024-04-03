@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import { 
   View,
+  Text,
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -40,6 +41,7 @@ const CustomCertificate = (props) => {
   const { messageText } = useMessage();
   const charkMessageText = messageText?.chark?.msg;
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+  const { fromStartToCertSelection } = useSelector(state => state.certificateTallies)
 
   const [processingTicket, setProcessingTicket] = useState(false);
 
@@ -213,7 +215,7 @@ const CustomCertificate = (props) => {
   if(fetchingSingle) {
     return (
       <View style={styles.container}>
-        <Header headerText="My Custom Certificate">
+        <Header headerText={charkMessageText?.certopts?.title}>
           <BackIcon onPress={onBack} />
         </Header>
 
@@ -226,10 +228,16 @@ const CustomCertificate = (props) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <Header headerText="My Custom Certificate">
+      <ScrollView style={{ marginHorizontal: 2 }}>
+        <Header headerText={charkMessageText?.certopts?.title}>
           <BackIcon onPress={onBack} />
         </Header>
+
+        {fromStartToCertSelection && (
+          <Text style={styles.headerDescription}>
+            {charkMessageText?.certshare?.help}
+          </Text>
+        )}
         
         <View style={styles.content}>
           <TouchableWithoutFeedback
@@ -285,20 +293,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 30,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  headerIcon: {
-    position: 'absolute',
-    left: 0,
-    top: -3,
-  },
-  headerText: {
-    fontFamily: 'inter',
-    fontSize: 18,
-    fontWeight: '500',
-    color: colors.black,
+  headerDescription: {
+    ...font,
+    fontSize: 12,
+    fontWeight: '400',
+    color: colors.gray300,
+    marginTop: 8,
+    textAlign: 'center',
   },
   selectContainer: {
     flexDirection: 'row',

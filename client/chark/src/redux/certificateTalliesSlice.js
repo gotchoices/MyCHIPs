@@ -5,9 +5,14 @@ import { fetchTallies } from '../services/tally';
 import { getUserCert } from '../services/user';
 
 const initialState = {
-  fetching: false,
+  /** 
+  * Initially true, as need to check if the user has draft tallies or not
+  * If not we display the custom certification options
+  */
+  fetching: false, 
   fetchingSingle: false,
   certificate: undefined,
+  fromStartToCertSelection: false,
   place: {
     byId: {},
     ids: [],
@@ -251,7 +256,16 @@ export const certificateTalliesSlice = createSlice({
       if('selected' in state.birth) {
         state.birth.selected = true;
       }
-    }
+    },
+
+    /**
+    * Fetching to true and fromStartToCertSelection to false
+    * to check for the draft tallies and navigate to custom certificate directly
+    */
+    startRequest: (state, action) => {
+      state.fetching = true;
+      state.fromStartToCertSelection = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -261,6 +275,9 @@ export const certificateTalliesSlice = createSlice({
       .addCase(fetchTalliesForCertificates.fulfilled, (state, action) => {
         state.tallies = action.payload;
         state.fetching = false;
+        if(!action.payload.length) {
+          state.fromStartToCertSelection = true;
+        }
       })
       .addCase(fetchTalliesForCertificates.rejected, (state) => {
         state.fetching = false;
@@ -293,4 +310,5 @@ export const {
   setState,
   selectAllCert,
   setFile,
+  startRequest,
 } = certificateTalliesSlice.actions;

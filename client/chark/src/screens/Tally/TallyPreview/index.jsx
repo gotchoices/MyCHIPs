@@ -286,7 +286,6 @@ const TallyPreview = (props) => {
     initialFields.partLimit != partTerms?.limit;
 
 
-  console.log(holdTerms?.limit, partTerms.limit, initialFields, 'initial')
   if (loading) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -348,7 +347,7 @@ const TallyPreview = (props) => {
       return (
         <>
           <OfferButton
-            text={{ accept: talliesMeMessageText?.offer }}
+            text={{ offer: talliesMeMessageText?.offer }}
             tally={tally}
             postOffer={postOffer}
             style={styles.fullActionButton(colors.yellow)}

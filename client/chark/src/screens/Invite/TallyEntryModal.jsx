@@ -77,7 +77,7 @@ const TallyEntryModal = (props) => {
 
       {negotiationData.data?.canOffer && (
         <OfferButton
-          text={{ accept: talliesMeMessageText?.accept }}
+          text={{ offer: talliesMeMessageText?.offer }}
           tally={negotiationData.data}
           style={{ marginBottom: 5, borderRadius: 40, backgroundColor: colors.yellow, borderColor: colors.yellow }}
           postOffer={props.postOffer}

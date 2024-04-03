@@ -83,7 +83,10 @@ const SocketProvider = ({ children }) => {
           onDisplayNotification(data, dataDict);
           const payload = notificationTriggerPayload(data);
           if(data?.target === 'tally') {
-            dispatch(setHasNotification(true));
+            if(hasActivityData(payload)) {
+              dispatch(setHasNotification(true));
+            }
+
             setTallyNegotiation(payload);
           } else if(data?.target === 'chit') {
             dispatch(setHasNotification(true));
@@ -277,5 +280,19 @@ function notificationTriggerPayload(data) {
         break;
   }
 }
+
+/**
+  * Check to see if the activity icon needs a notification state
+  */
+function hasActivityData(payload) {
+  if(
+    payload.state === 'H.offer' ||
+    payload.reason === 'open'
+  ) {
+    return false;
+  }
+
+  return true;
+} 
 
 export default SocketProvider;

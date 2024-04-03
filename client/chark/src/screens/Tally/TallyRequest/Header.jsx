@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   headerText: {
     ...font,
     fontSize: 18,
-    color: colors.black,
+    color: colors.gray300
   },
 });
 

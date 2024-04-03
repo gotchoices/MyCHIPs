@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useDispatch } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 
 import RequestStart from './RequestStart';
@@ -6,9 +7,11 @@ import Certificates from './Certificates';
 import CustomCertificate from './CustomCertificate';
 
 import useMessageText from '../../../hooks/useMessageText';
+import { startRequest } from '../../../redux/certificateTalliesSlice';
 
 const TallyRequest = (props) => {
   const invite = props.route?.params ?? {};
+  const dispatch = useDispatch();
 
   const [tallyInfo, setTallyInfo] = useState(undefined);
   const [visibility, setVisibility] = useState({
@@ -65,6 +68,7 @@ const TallyRequest = (props) => {
   }
 
   const onStart = () => {
+    dispatch(startRequest());
     showCorrespondingView('certificateOptions');
   }
 
