@@ -72,52 +72,50 @@ const TallyReviewView = props => {
 
   const getStockText = () => {
     if (tallyType === 'stock') {
-      return props.holdCert?.chad?.cid
-        ? props.holdCert.chad.cid + '...'
-        : props.partCert?.chad?.cid + '...';
-    }
-
-    return props.partCert?.chad?.cid
-      ? props.partCert.chad.cid + '...'
-      : props.holdCert?.chad?.cid + '...';
-  };
-
-  const getFoilText = () => {
-    if (tallyType === 'stock') {
       return props.partCert?.chad?.cid
-        ? props.partCert.chad.cid + '...'
+        ? props.partCert?.chad.cid + '...'
         : props.holdCert?.chad?.cid + '...';
     }
 
     return props.holdCert?.chad?.cid
-      ? props.holdCert.chad.cid + '...'
+      ? props.holdCert?.chad.cid + '...'
       : props.partCert?.chad?.cid + '...';
+  };
+
+  const getFoilText = () => {
+    if (tallyType === 'stock') {
+      return props.holdCert?.chad?.cid
+        ? props.holdCert?.chad.cid + '...'
+        : props.partCert?.chad?.cid + '...';
+    }
+
+    return props.partCert?.chad?.cid
+      ? props.partCert?.chad.cid + '...'
+      : props.holdCert?.chad?.cid + '...';
   };
 
   const getFoilCID = () => {
     if (tallyType === 'stock') {
       return props.partCert?.chad?.cid
-        ? props.partCert.chad.cid + ":" + props.partCert.chad.agent
-        : props.holdCert?.chad?.cid + ":" + props.holdCert?.chad.agent;
+        ? props.partCert.chad.cid + ':' + props.partCert.chad.agent
+        : props.holdCert?.chad?.cid + ':' + props.holdCert?.chad.agent;
     }
 
     return props.holdCert?.chad?.cid
       ? props.holdCert.chad.cid + props.holdCert?.chad.agent
-      : props.partCert?.chad?.cid +  + props.partCert.chad.agent
-
-
+      : props.partCert?.chad?.cid + props.partCert.chad.agent;
   };
 
   const getStockCID = () => {
     if (tallyType === 'stock') {
       return props.holdCert?.chad?.cid
         ? props.holdCert.chad.cid + props.holdCert?.chad.agent
-        : props.partCert?.chad?.cid  + props.partCert.chad.agent
+        : props.partCert?.chad?.cid + props.partCert.chad.agent;
     }
 
     return props.partCert?.chad?.cid
       ? props.partCert.chad.cid + props.partCert.chad.agent
-      : props.holdCert?.chad?.cid + props.holdCert?.chad.agent
+      : props.holdCert?.chad?.cid + props.holdCert?.chad.agent;
   };
 
   const onBlurLimit = () => {
@@ -129,8 +127,6 @@ const TallyReviewView = props => {
       props.onPartTermsChange('limit')(partLimit);
     }
   };
-
-
 
   return (
     <View style={styles.main}>
