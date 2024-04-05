@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from 'react';
 import {
   View,
   TextInput,
   StyleSheet,
   TouchableOpacity,
   Text,
-} from "react-native";
-import { useSelector } from "react-redux";
+} from 'react-native';
+import {useSelector} from 'react-redux';
 
-import Avatar from "../../components/Avatar";
-import { colors } from "../../config/constants";
-import HelpText from "../../components/HelpText";
-import useMessageText from "../../hooks/useMessageText";
+import Avatar from '../../components/Avatar';
+import {colors} from '../../config/constants';
+import HelpText from '../../components/HelpText';
+import useMessageText from '../../hooks/useMessageText';
 
 import {
   SwapIcon,
@@ -19,11 +19,11 @@ import {
   DownArrowIcon,
   LeftArrowIcon,
   RightArrowIcon,
-} from "../../components/SvgAssets/SvgAssets";
-import { round } from "../../utils/common";
+} from '../../components/SvgAssets/SvgAssets';
+import {round} from '../../utils/common';
 
-const TallyReviewView = (props) => {
-  const { imagesByDigest } = useSelector((state) => state.avatar);
+const TallyReviewView = props => {
+  const {imagesByDigest} = useSelector(state => state.avatar);
   const partDigest = props.partCert?.file?.[0]?.digest;
   const holdDigest = props.holdCert?.file?.[0]?.digest;
   const tallyType = props.tallyType;
@@ -34,14 +34,14 @@ const TallyReviewView = (props) => {
   const holdLimit = props?.holdTerms?.limit;
   const partLimit = props?.partTerms?.limit;
 
-  const { messageText } = useMessageText();
+  const {messageText} = useMessageText();
   const talliesMessageText = messageText?.tallies_v_me?.msg;
 
-  const checkValidInput = (textValue) => {
+  const checkValidInput = textValue => {
     return textValue && /^[0-9]*(\.[0-9]{0,3})?$/.test(textValue);
   };
 
-  const getValidAmount = (amount) => {
+  const getValidAmount = amount => {
     if (parseFloat(amount) > 0) {
       return amount;
     }
@@ -49,7 +49,7 @@ const TallyReviewView = (props) => {
     return 1.0;
   };
 
-  const calculateAmount = (value) => {
+  const calculateAmount = value => {
     const amount = getValidAmount(value);
 
     if (amount && checkValidInput(amount)) {
@@ -60,10 +60,10 @@ const TallyReviewView = (props) => {
   };
 
   const onSwitchClick = () => {
-    props?.setTallyType?.((prev) => {
+    props?.setTallyType?.(prev => {
       const switchTally = {
-        foil: "stock",
-        stock: "foil",
+        foil: 'stock',
+        stock: 'foil',
       };
 
       return switchTally[prev];
@@ -71,48 +71,62 @@ const TallyReviewView = (props) => {
   };
 
   const getStockText = () => {
+    if (tallyType === 'stock') {
+      return props.partCert?.chad?.cid
+        ? props.partCert?.chad.cid + '...'
+        : props.holdCert?.chad?.cid + '...';
+    }
+
     return props.holdCert?.chad?.cid
-      ? props.holdCert.chad.cid + "..."
-      : props.partCert?.chad?.cid + "...";
+      ? props.holdCert?.chad.cid + '...'
+      : props.partCert?.chad?.cid + '...';
   };
 
   const getFoilText = () => {
-    return props.partCert?.chad?.cid
-      ? props.partCert.chad.cid + "..."
-      : props.holdCert?.chad?.cid + "...";
-  };
-
-  const getStockCID = () => {
-    if (props.holdCert?.chad?.cid) {
-      return (
-        props.holdCert.chad.cid + ":" + props.holdCert?.chad?.agent
-      );
+    if (tallyType === 'stock') {
+      return props.holdCert?.chad?.cid
+        ? props.holdCert?.chad.cid + '...'
+        : props.partCert?.chad?.cid + '...'
     }
 
-    return (
-      props.partCert?.chad?.cid + ":" + props.partCert?.chad?.agent
-    );
+    return props.partCert?.chad?.cid
+      ? props.partCert?.chad.cid + '...'
+      : props.holdCert?.chad?.cid + '...';
   };
 
   const getFoilCID = () => {
-    if (props.partCert?.chad?.cid) {
-      return (
-        props.partCert?.chad?.cid + ":" + props.partCert?.chad?.agent
-      );
+    if (tallyType === 'stock') {
+      return props.partCert?.chad?.cid
+        ? props.partCert.chad.cid + ':' + props.partCert.chad.agent
+        : props.holdCert?.chad?.cid + ':' + props.holdCert?.chad.agent;
     }
 
-    return props.holdCert.chad.cid + ":" + props.holdCert.chad.agent;
+    return props.holdCert?.chad?.cid
+      ? props.holdCert.chad.cid + props.holdCert?.chad.agent
+      : props.partCert?.chad?.cid + props.partCert.chad.agent;
+  };
+
+  const getStockCID = () => {
+    if (tallyType === 'stock') {
+      return props.holdCert?.chad?.cid
+        ? props.holdCert.chad.cid + props.holdCert?.chad.agent
+        : props.partCert?.chad?.cid + props.partCert.chad.agent;
+    }
+
+    return props.partCert?.chad?.cid
+      ? props.partCert.chad.cid + props.partCert.chad.agent
+      : props.holdCert?.chad?.cid + props.holdCert?.chad.agent;
   };
 
   const onBlurLimit = () => {
-    if(holdLimit && holdLimit.indexOf('.') >= 0) {
-      props.onHoldTermsChange("limit")(round(holdLimit, 3))
+    if (holdLimit && holdLimit.indexOf('.') >= 0) {
+      props.onHoldTermsChange('limit')(round(holdLimit, 3));
     }
 
-    if(partLimit && partLimit.indexOf('.') >= 0) {
-      props.onPartTermsChange("limit")(partLimit);
+    if (partLimit && partLimit.indexOf('.') >= 0) {
+      props.onPartTermsChange('limit')(partLimit);
     }
-  }
+  };
 
   return (
     <View style={styles.main}>
@@ -120,7 +134,7 @@ const TallyReviewView = (props) => {
         <View style={styles.rowWrapper}>
           <View style={styles.leftIcon}>
             <HelpText
-              label={talliesMessageText?.risk?.title ?? "risk_title"}
+              label={talliesMessageText?.risk?.title ?? 'risk_title'}
               style={[styles.leftText, styles.leftTopText]}
             />
             <DownArrowIcon />
@@ -128,23 +142,23 @@ const TallyReviewView = (props) => {
 
           <View style={styles.topCenterWrapper}>
             <HelpText
-              helpText={getStockCID()}
-              label={tallyType === "foil" ? "Foil" : "Stock"}
+              helpText={getFoilCID()}
+              label="Foil"
               style={styles.headerText}
             />
 
-            {tallyType === "foil" ? (
+            {tallyType === 'foil' ? (
               holdImage ? (
                 <View style={styles.circle}>
                   <Avatar style={styles.circle} avatar={holdImage} />
                 </View>
               ) : (
-                <Text style={styles.boldText}>{getStockText()}</Text>
+                <Text style={styles.boldText}>{getFoilText()}</Text>
               )
             ) : partImage ? (
               <View style={styles.circle}>
                 <Avatar style={styles.circle} avatar={partImage} />
-             </View>
+              </View>
             ) : (
               <Text style={styles.boldText}>{getStockText()}</Text>
             )}
@@ -152,7 +166,7 @@ const TallyReviewView = (props) => {
 
           <View style={styles.rightIcon}>
             <HelpText
-              label={talliesMessageText?.credit?.title ?? "credit_title"}
+              label={talliesMessageText?.credit?.title ?? 'credit_title'}
               style={[styles.rightText, styles.rightTopText]}
             />
             <LeftArrowIcon />
@@ -164,38 +178,33 @@ const TallyReviewView = (props) => {
         <View style={styles.rowWrapper}>
           <TextInput
             maxLength={9}
-            placeholder={props.net ?? ""}
+            placeholder={props.net ?? ''}
             editable={canEdit}
-            value={tallyType === "foil" ? holdLimit : partLimit}
+            value={tallyType === 'foil' ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
             onBlur={onBlurLimit}
-            onChangeText={(text) => {
-              tallyType === "foil"
-                ? props.onHoldTermsChange("limit")(text)
-                : props.onPartTermsChange("limit")(text);
-
+            onChangeText={text => {
+              tallyType === 'foil'
+                ? props.onHoldTermsChange('limit')(text)
+                : props.onPartTermsChange('limit')(text);
             }}
           />
 
-          <HelpText
-            helpText="help"
-            label="Limit"
-            style={styles.midText}
-          />
+          <HelpText helpText="help" label="Limit" style={styles.midText} />
 
           <TextInput
             maxLength={9}
             editable={canEdit}
-            placeholder={props.amount ?? ""}
-            value={tallyType === "stock" ? holdLimit : partLimit}
+            placeholder={props.amount ?? ''}
+            value={tallyType === 'stock' ? holdLimit : partLimit}
             keyboardType="numeric"
             style={styles.input}
             onBlur={onBlurLimit}
-            onChangeText={(text) => {
-              tallyType === "stock"
-                ? props.onHoldTermsChange("limit")(text)
-                : props.onPartTermsChange("limit")(text);
+            onChangeText={text => {
+              tallyType === 'stock'
+                ? props.onHoldTermsChange('limit')(text)
+                : props.onPartTermsChange('limit')(text);
             }}
           />
         </View>
@@ -206,25 +215,25 @@ const TallyReviewView = (props) => {
           <View style={styles.leftIcon}>
             <RightArrowIcon />
             <HelpText
-              label={talliesMessageText?.credit?.title ?? "credit_title"}
+              label={talliesMessageText?.credit?.title ?? 'credit_title'}
               style={[styles.leftText, styles.leftBottomText]}
             />
           </View>
 
           <View style={styles.bottomCenterWrapper}>
             <HelpText
-              helpText={getFoilCID()}
-              label={tallyType === "foil" ? "Stock" : "Foil"}
+              helpText={getStockCID()}
+              label="Stock"
               style={styles.headerText}
             />
 
-            {tallyType === "stock" ? (
+            {tallyType === 'stock' ? (
               holdImage ? (
                 <View style={styles.circle}>
                   <Avatar style={styles.circle} avatar={holdImage} />
                 </View>
               ) : (
-                <Text style={styles.boldText}>{getFoilText()}</Text>
+                <Text style={styles.boldText}>{getStockText()}</Text>
               )
             ) : partImage ? (
               <View style={styles.circle}>
@@ -238,7 +247,7 @@ const TallyReviewView = (props) => {
           <View style={styles.rightIcon}>
             <UpArrowIcon />
             <HelpText
-              label={talliesMessageText?.risk?.title ?? "risk_title"}
+              label={talliesMessageText?.risk?.title ?? 'risk_title'}
               style={[styles.rightText, styles.rightBottomText]}
             />
           </View>
@@ -257,9 +266,9 @@ const TallyReviewView = (props) => {
 };
 
 const arrowText = {
-  color: "black",
+  color: 'black',
   fontSize: 12,
-  fontWeight: "500",
+  fontWeight: '500',
 };
 
 const styles = StyleSheet.create({
@@ -267,7 +276,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 24,
     marginHorizontal: 40,
-    alignItems: "center",
+    alignItems: 'center',
   },
   circle: {
     height: 70,
@@ -277,37 +286,37 @@ const styles = StyleSheet.create({
   },
   headerText: {
     paddingTop: 10,
-    fontWeight: "400",
-    textAlign: "center",
+    fontWeight: '400',
+    textAlign: 'center',
     color: colors.dimgray,
   },
   midText: {
-    fontWeight: "400",
-    textAlign: "center",
+    fontWeight: '400',
+    textAlign: 'center',
     color: colors.dimgray,
   },
   bottomCenterWrapper: {
     height: 100,
     marginBottom: -25,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   topCenterWrapper: {
     height: 100,
     marginTop: -75,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rowWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   midView: {
     marginRight: 40,
   },
   input: {
-    width: "33%",
+    width: '33%',
     //height: 24,
     padding: 10,
     borderRadius: 5,
@@ -316,16 +325,16 @@ const styles = StyleSheet.create({
     borderColor: colors.dimgray,
   },
   leftIcon: {
-    width: "30%",
+    width: '30%',
     marginLeft: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rightIcon: {
-    width: "30%",
+    width: '30%',
     marginRight: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   leftText: {
     ...arrowText,
@@ -340,39 +349,39 @@ const styles = StyleSheet.create({
   leftTopText: {
     marginLeft: -10,
     marginBottom: -20,
-    width: "55%",
+    width: '55%',
   },
   leftBottomText: {
     marginLeft: -10,
     marginTop: -20,
-    width: "80%",
+    width: '80%',
   },
   rightTopText: {
     marginRight: -25,
     marginBottom: -20,
-    width: "80%",
+    width: '80%',
   },
   rightBottomText: {
     marginRight: -25,
     marginTop: -18,
-    width: "55%",
+    width: '55%',
   },
   absoluteView: {
     top: 0,
     right: -20,
-    position: "absolute",
+    position: 'absolute',
   },
   boldText: {
     color: colors.black,
     fontSize: 16,
     fontWeight: 'bold',
-    textDecorationStyle: "solid",
-    textDecorationLine: "underline",
+    textDecorationStyle: 'solid',
+    textDecorationLine: 'underline',
   },
   wrapper: {
     height: 100,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
