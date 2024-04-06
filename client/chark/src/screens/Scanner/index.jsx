@@ -60,7 +60,7 @@ const Scanner = props => {
       if (qrCode.startsWith(connectionLink)) {
         const obj = parse(qrCode);
 
-        if (status === connectionStatus.connected) {
+        if (status !== connectionStatus.disconnect) {
           showAlert(obj);
         } else {
           connect({connect: obj});
