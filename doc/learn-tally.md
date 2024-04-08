@@ -773,67 +773,10 @@ this should probably be done by:
 This way, trading partners will necessarily be involved in the process of moving to a
 new signature key.
 
-### Tally Exchange Format
-A MyCHIPs server may store tallies, chits and other objects in any format that makes
-the most sense.  But when communicating with other compliant servers, it should send
-the tally in the following format, shown as JSON:
-```
-tally: {
-  version: 1,
-  uuid: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
-  date: <Begin date of contract>,
-  memo: <Additional Comments>,
-  stock: {
-    cert: <CHIP Certificate>,
-    terms: <Credit Terms>
-  }
-  foil: {
-    cert: <CHIP Certificate>,
-    terms: <Credit Terms>
-  }
-  agree: <Hash of selected agreement>,
-  sign: {
-    foil: <Foil Holder Signature>,
-    stock: <Stock Holder Signature>,
-    digest: <Hash of the rest of the tally>
-  },
-}
-```
-The tally contract ("agree" property) can also contain a json object as follows (for cases where the host is not mychips.org):
-```
-agree: {
-  host: "example.com",
-  source: "BqQZqh3xUtye3JnAKhwdMrCMHem3vX67gV3UevGBr4pE"
-}
-```
-A tally may contain any number of sequential chits.
-Chits are transmitted in the following format:
-```
-chit: {
-  by: <issuer>,				//stock or foil
-  date: <creation date/time>,
-  type: "tran",				//or "lift"
-  uuid: "2d5d4167-dcdf-5743-861c-e6ae1e62bbb8",
-  tally: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
-  units: 432123,			//milli-CHIPs
-  ref: <External invoice number or other reference or comment>,
-  memo: <Human readable comments>,
-  digest: <Hash of the rest of the chit>,
-  sign: <Pledgor's signature>
-}
-```
-Any time a tally or chit is transmitted externally, the date property should be formatted 
-according to ISO 8601 including a time zone, showing exactly 3 digits of fractional seconds,
-and expressed in UTC time as follows:
-```
-   2023-12-04T16:50:34.707Z
-```
-This will assure that digital hashes and signatures can be produced in a predictable way.
-
-To sign a tally or chit, an application can produce a json object according as shown, but omitting the 'digest' and 'sign' properties.
-Null values should also be omitted from the object.
-Then it is serialized using a deterministic algorithm compatible with the "json-stable-stringify" node.js package.
-The serialized string is hashed using SHA-256 and the resulting hash is signed using the user's private key.
+### External Tally Format
+Tallies and chits are transmitted in a standardized format shown for
+[tallies here](learn-message.md#standard-tally-record) and
+[chits here](learn-message.md#standard-chit-record).
 
 ### Pathways
 The admin tool includes a network visualization tool that shows all users local

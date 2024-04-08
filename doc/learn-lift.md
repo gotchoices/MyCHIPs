@@ -336,33 +336,10 @@ Lift records also have a set of defined status/requests as follows:
 ### The Lift Record
 Linear, or payment lifts must be digitally signed by the payor.
 This authorizes the agent to perform the lift on the user's behalf.
-The record to be signed consists of the following properties:
-```
-lift: {
-  uuid: "9e61301c-86aa-5835-abcd-25adf13eaf3c",
-  find: {
-    cid: <optional CHIP ID of payment recipient>
-    agent: <recipient Agent address>,
-    host: <optional agent host address>,
-    port: <optional agent host port>
-  }.
-  date: <Lift initiation date/time>,
-  units: <value of lift>,
-  memo: <Human-readable text message from payor>,
-  ref: <JSON invoice or transaction reference>,
-}
-```
-All lift records (and their associated chits) are signed by agents as they are passed along the lift route.
-The agent signs a record consisting of these properties:
-```
-relay: {
-  uuid: "9e61301c-86aa-5835-abcd-25adf13eaf3c",
-  date: <Lift initiation date/time>,
-  life: <How manys seconds before the lift expires>,
-  play: <Path, routing, margin, payment information, encoded for agents' eyes only>,
-}
-```
-Each of these records can be presented along with a further property *sign* that contains one or more signatures of authorized users or agents.
+
+Lift records (and their associated chits) are also signed by agents as they are passed along the lift route.
+
+These record formats are shown [here](learn-message.md#standard-lift-record).
 
 The *play* property contains routing information derived from the route discovery phase.
 This information may be encrypted in such a way that it can only be interpreted by agents along the way.

@@ -92,7 +92,7 @@ no direct indication from the state code.
 However, the DB view should provide a boolean "action" field indicating the record is in one of those states.
 
 ### Message Format
-Messages from one agent to another peer agent are sent over [noise protocol](learn-noise.md#noise-protocol-implementation)
+Messages from one agent to another peer agent are sent over [noise protocol](learn-noise.md#noise-protocol-implementation).
 
 Messages are currently encoded as JSON structures.  Future implementations might move to a 
 more compressed binary form (or at least a form where properties are much more abbreviated.)
@@ -102,7 +102,7 @@ testing/validation phases.
 Messages destined for another user's agent will typically have the following basic properties:
 - **target**: What kind of object (subsystem) the message applies to.  For example, tally, chit, route, lift.
 - **action**: A code representing what step or function is being requested or communicated via the packet.
-  This may well be the name of state that is being suggested as the next step in a negotiation.
+  This may well be the name of the state that is being suggested as the next step in a negotiation.
 - **object**: The contents of the object (tally, chit, route, lift) itself.
 - **try**: An integer starting at 1 indicating how many times the sender has tried to send this message.
 - **last**: A timestamp for when the message was generated.
@@ -425,14 +425,15 @@ The associated data formats are as follows:
   Web URI:'https://HOST:HTTP_PORT/user.html?&port=WS_PORT&token=TOKEN$%user=USER'  
   LINK: 'https://mychips.org/ticket?host=HOST%port=PORT%user=USER%token=TOKEN'  
   JSON:  
-  ```
+```
   {ticket: {
     host: HOST,
     port: WS_PORT,
     user: USER,
     token: TOKEN,
     expires: EXPIRATION_DATE
-  }}```
+  }}
+```
 
 - *Tally Invitation:* Issued from one user to another  
   LINK: 'https://mychips.org/invite?token=TOKEN&chad={cid:w,agent:x,host:y,port:z}'  
@@ -514,6 +515,99 @@ The associated data formats are as follows:
   {tally: {
     // See data example in test/mocha/tally.json
   }}
+```
+
+### Cryptographic Record Signatures
+A MyCHIPs server may store tallies, chits and other objects in any format that makes
+the most sense.  But when communicating with other compliant servers, it must send
+the tally in these standard formats.
+
+Any included date property should be formatted according to ISO 8601, according to
+UTC time zone, and showing exactly 3 digits of fractional seconds as follows:
+```
+   2023-12-04T16:50:34.707Z
+```
+This will assure that digital hashes and signatures can be produced in a predictable way.
+Null values should also be omitted from the object.
+
+In order to sign a record, the signature property is first removed then, the rest of 
+the record is serialized with its properties in alphabetical order (compatible with this
+[library](https://www.npmjs.com/package/json-stable-stringify),
+and then the resulting string is hashed and signed using the user's signing key.
+
+Examples of this can be found in the [test library](../test/auto/proto/tally.js).
+
+### Standard Tally Record
+```
+tally: {
+  version: 1,
+  uuid: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
+  date: <Begin date of contract>,
+  memo: <Additional Comments>,
+  stock: {
+    cert: <CHIP Certificate>,
+    terms: <Credit Terms>
+  }
+  foil: {
+    cert: <CHIP Certificate>,
+    terms: <Credit Terms>
+  }
+  agree: <Hash of selected agreement>,
+  sign: {
+    foil: <Foil Holder Signature>,
+    stock: <Stock Holder Signature>,
+  },
+}
+```
+The tally contract ("agree" property) can also contain a json object as follows (for cases where the host is not mychips.org):
+```
+agree: {
+  host: "example.com",
+  source: "BqQZqh3xUtye3JnAKhwdMrCMHem3vX67gV3UevGBr4pE"
+}
+```
+
+### Standard Chit Record
+```
+chit: {
+  by: <issuer>,				//stock or foil
+  date: <creation date/time>,
+  type: "tran",				//or "lift"
+  uuid: "2d5d4167-dcdf-5743-861c-e6ae1e62bbb8",
+  tally: "9e61301c-86aa-5835-9ea1-25adf13eaf3c",
+  units: 432123,			//milli-CHIPs
+  ref: <External invoice number or other reference or comment>,
+  memo: <Human readable comments>,
+  sign: <Pledgor's signature>
+}
+```
+
+### Standard Lift Record
+For linear lifts, an initial payment lift record is signed by the paying user as follows:
+```
+lift: {
+  uuid: "9e61301c-86aa-5835-abcd-25adf13eaf3c",
+  find: {
+    cid: <optional CHIP ID of payment recipient>
+    agent: <recipient Agent address>,
+    host: <optional agent host address>,
+    port: <optional agent host port>
+  }.
+  date: <Lift initiation date/time>,
+  units: <value of lift>,
+  memo: <Human-readable text message from payor>,
+  ref: <JSON invoice or transaction reference>,
+}
+```
+
+Agents along the lift pathway will also sign a record as follows:
+```
+relay: {
+  uuid: "9e61301c-86aa-5835-abcd-25adf13eaf3c",
+  date: <Lift initiation date/time>,
+  life: <How manys seconds before the lift expires>,
+  play: <Path, routing, margin, payment information, encoded for agents' eyes only>,
+}
 ```
 
 ### JSON Records in Context
