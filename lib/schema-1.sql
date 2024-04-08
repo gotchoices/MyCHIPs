@@ -3212,13 +3212,13 @@ create function mychips.lift_chitcheck(lf mychips.lifts) returns mychips.lifts l
 $$;
 create function mychips.lift_json(lf mychips.lifts) returns jsonb stable language sql as $$
     select jsonb_build_object(
-       'lift',		lf.lift_uuid
-     , 'date',		lf.lift_date
-     , 'life',		lf.life
-     , 'units',		lf.units
-     , 'find',		lf.find
-     , 'org',		lf.origin
-     , 'ref',		lf.referee
+       'lift',	lf.lift_uuid
+     , 'date',	to_char(lf.lift_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"')
+     , 'life',	lf.life
+     , 'units',	lf.units
+     , 'find',	lf.find
+     , 'org',	lf.origin
+     , 'ref',	lf.referee
     )
 $$;
 grant execute on function mychips.lift_json(mychips.lifts) to mychips_1;
@@ -3375,14 +3375,14 @@ create function mychips.chit_digest(ent text, seq int, index int) returns bytea 
 $$;
 create function mychips.chit_json_c(ch mychips.chits, ta mychips.tallies) returns jsonb stable language sql as $$
     select jsonb_strip_nulls(jsonb_build_object(
-      'tally',		ta.tally_uuid,
-      'by',		ch.issuer,
-      'type',		ch.chit_type,
-      'uuid',		ch.chit_uuid,
+      'tally',	ta.tally_uuid,
+      'by',	ch.issuer,
+      'type',	ch.chit_type,
+      'uuid',	ch.chit_uuid,
       'date', to_char(ch.chit_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"'),
-      'units',		ch.units,
-      'ref',		ch.reference,
-      'memo',		ch.memo
+      'units',	ch.units,
+      'ref',	ch.reference,
+      'memo',	ch.memo
     ))
 $$;
 grant execute on function mychips.chit_json_c(mychips.chits,mychips.tallies) to mychips_1;

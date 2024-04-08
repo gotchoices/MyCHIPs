@@ -270,13 +270,13 @@ trigger mychips_lifts_tr_notice {} {
 function {mychips.lift_json(lf mychips.lifts)} {mychips.lifts} {
   returns jsonb stable language sql as $$
     select jsonb_build_object(
-       'lift',		lf.lift_uuid
-     , 'date',		lf.lift_date
-     , 'life',		lf.life
-     , 'units',		lf.units
-     , 'find',		lf.find
-     , 'org',		lf.origin
-     , 'ref',		lf.referee
+       'lift',	lf.lift_uuid
+     , 'date',	to_char(lf.lift_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"')
+     , 'life',	lf.life
+     , 'units',	lf.units
+     , 'find',	lf.find
+     , 'org',	lf.origin
+     , 'ref',	lf.referee
     )
 $$;} -grant mychips
 

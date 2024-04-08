@@ -309,14 +309,14 @@ $$;} -grant mychips
 function {mychips.chit_json_c(ch mychips.chits, ta mychips.tallies)} {mychips.chits mychips.tallies} {
   returns jsonb stable language sql as $$
     select jsonb_strip_nulls(jsonb_build_object(
-      'tally',		ta.tally_uuid,
-      'by',		ch.issuer,
-      'type',		ch.chit_type,
-      'uuid',		ch.chit_uuid,
+      'tally',	ta.tally_uuid,
+      'by',	ch.issuer,
+      'type',	ch.chit_type,
+      'uuid',	ch.chit_uuid,
       'date', to_char(ch.chit_date AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.FF3"Z"'),
-      'units',		ch.units,
-      'ref',		ch.reference,
-      'memo',		ch.memo
+      'units',	ch.units,
+      'ref',	ch.reference,
+      'memo',	ch.memo
     ))
 $$;} -grant mychips
 

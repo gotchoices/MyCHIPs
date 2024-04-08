@@ -1,19 +1,18 @@
 TODO:
 
 - Payment testing:
-X-  Generate actual signatures in chit test suite
-X-  Check signatures on direct chits in lib/chit.js
-X-   Where to get user's key?
-X-   Local async provides signing key
-X-   For remote, query DB (no caching for now)
-X-  Test across separate DB's (tests still failing)
 -   
--  Include actual user signature on payment lift request
--  Agent signs lift: can we use crypto routine from tally.js?
--  agent evaluate's payor's authorization signature
--  agent signs the lift payment record
+X-  Test: tally signatures pass agent check
+X-  Test: chit signatures pass agent check
+X-  Include user signature on payment lift request
+X-   Calculate signature, include in payor_auth
+X-   Specify lift date and lift uuid in test suite (is this getting written?)
+-   Make separate json_u, json_a fields in DB for user and agent to sign
+-   Agent (lift.js) evaluates payor's authorization signature
+-   Should we be caching peer public keys? (probably not)
+-   Agent also signs lift record (need a way to sign with noise key)
 -   
-- Integrate with app:
+- Integrate distributed payments with app:
 -  Scan invoice, build draft.route payment record, find=payee chad
 -  User is notified
 -  Wait for async completion/failure

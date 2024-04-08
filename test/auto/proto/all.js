@@ -14,7 +14,9 @@ require('./tally.js')
 require('./chit.js')
 require('./chain.js')
 
+require('./net1.js')
 require('./sch-path.js')
+require('./net2.js')
 //require('./sch-route.js')	//Obsolete
 //require('./route.js')		//Obsolete
 

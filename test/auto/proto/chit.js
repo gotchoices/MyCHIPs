@@ -8,11 +8,11 @@
 //TODO:
 //- 
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs, Crypto, libModule, Stringify } = require('../common')
-var log = testLog(__filename)
-var crypto = new Crypto(log)
+const log = testLog(__filename)
+const crypto = new Crypto(log)
 const PeerCont = require(libModule('peer2peer'))
-var defTally = require('./def-tally')
-var {uSql, save, rest, sSql} = require('./def-chit')
+const defTally = require('./def-tally')
+const {uSql, save, rest, sSql} = require('./def-chit')
 const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
 var interTest = {}			//Pass values from one test to another
 

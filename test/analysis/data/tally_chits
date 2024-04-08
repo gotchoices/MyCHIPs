@@ -8,4 +8,4 @@ fi
 ent="$1"
 seq="$2"
 
-echo select chit_ent,chit_seq,chit_idx,units from mychips.chits_v where chit_ent = \'$ent\' and chit_seq = $seq ;
+echo select chit_ent,chit_seq,chit_idx,units,state from mychips.chits_v where chit_ent = \'$ent\' and chit_seq = $seq ;

@@ -1,5 +1,5 @@
 {
- "hash": "1anWpPIVk59fWCmVyUasXruySVQvMVzQnON5deWnUmQ=",
+ "hash": "Pp2GSqk2R8+sfhLbTSzoo+qzP6p9zROhMtKplauzakk=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -4800,7 +4800,7 @@
     "function:mychips.lift_json(mychips.lifts)|mychips|1|execute"
    ],
    "col_data": [],
-   "create": "eJxVzkEOgyAQBdC1nmIWJmpieoEexoAOdswUWgYWvX1BCbWz+vxHGBaPKiCYaJdAzsLzszzoJTcmE+ZdnB3Y/JUygscQvRXIrEGC0ozAym5RbQjyZlACXddCGkHGJZxXZx2J19npPVXDwWn6/Go/NQ2bc2uMtJ44Qb+m310xnyum5oK/PloKUuDIVQzZtUCOtXd+K7XztJGt4NEUSAk9nkvGtuvuXxZ5XN4=",
+   "create": "eJxVjjFvwjAUhOfyK56iSE4kYCid6FQVEAwpA+lQlshxnoORa7d+9sC/x8Gqpd50+u75zsIh9wgyGOGVNfB9Exf1Q0utpO+uZE2l5T9INTj0wRmCKe6BPO81guZmDHxEoF8NnKAsZxBFqFH4dNr1Qemhs/01ouoRR7Gplc2ftEyjIaghZXNgQ/xczLztxIW76u9mwvDWQntotnA+fmyBfbbvLD74ilo0zWKzKdpiv39+WTeH9em03O1WxblgdW6OPZhXMeNglKfEHzYHUpkh8cllbN2YqHVqVCZzhzLxaNBhGqhnZfl6BwubbM0=",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1svJTCuJzyrOz9NAFinWtAYAfmQV1w=="
   },
   {
@@ -5052,7 +5052,7 @@
     "function:mychips.chit_json_c(mychips.chits,mychips.tallies)|mychips|1|execute"
    ],
    "col_data": [],
-   "create": "eJxVULFuwjAQneErTlGkJFJgaDvBVBUQDGkH0qEsluMcxMhxUp895O/rhBDKDdbde+/u+U4Y5Bbh7LSwstFQd6KSLS39a9mVGs1ELKonmFKwfEIsV0oiJWDQOqMJ+qYCyPJCISiuL45fEOhXAScIwzn4IFQo7E3KyBrZMu2UoviGFE6qkjXF1YvioQEg6o26KJ3NLB9MO+acLNM7XQycqJaSyKGZcNu1ODLDTn09kf2E/+TTxNIfJvK7NkxU3MR3TQ/Dew75IdvC6etzC9F3/uGF0Y+PRZYtNpsgD/b7l7dVdlgdj8vd7jU4BVHysNX+iqPvkE+MwfOI+wwNavH4bI11M5J9OsBJMg/D9R/T24gY",
+   "create": "eJxVUD1vgzAQnZtfcUJIgEQytJ3SqWoSJQPtEDo0i2XMJTgyhvrsgX9fGxTS3GCd34ef74RBbhHOTgsrOw3tIBrZ08qfll2p00ykonmAKQfLZ8RypSRSBgatM5ogmCogyyuFoLi+OH5BoF8FnCCOF+CLUKGwk5SRNbJn2ilF6YRUTqqaddXVi9LRAJCEoCHJnywfMwfmnKzzG1sFSjQrSeTQzLAdepyIcaBwnbng/8c9PFf7pSR+zo6Jhpv0pgkwvJdQHootnL4+t5B8lx9emPz4WhbFcrOJymi/f35dF4f18bja7V6iU5Rk91TtNzjFju1MGDxPsG/QoBb3n7bYdhMXuhHNskUcv/0BDjuH2Q==",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1gOSJfFZxfl58ckayGLFOjBeSWJOTmZqsaY1AE19HNA="
   },
   {

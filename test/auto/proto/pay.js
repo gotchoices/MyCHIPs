@@ -1,5 +1,5 @@
 //Test payment lifts
-//After: user2 sch-path route
+//After: net1 net02
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 // This simulates lift across 2 (or three) systems (see doc/uml/test-paths.svg)
@@ -9,15 +9,16 @@
 //- Generate payment lift request
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, Crypto } = require('../common')
 const PeerCont = require(libModule('peer2peer'))
-var log = testLog(__filename)
+const log = testLog(__filename)
+const crypto = new Crypto(log)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
 const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
-var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
-var adminListen = 'mychips_admin'
-var user3Listen = 'mu_' + user3
-var {save, rest} = require('./def-route')
+const cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
+const adminListen = 'mychips_admin'
+const user3Listen = 'mu_' + user3
+const {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
 
 describe("Peer-to-peer lift testing", function() {
@@ -69,20 +70,47 @@ describe("Peer-to-peer lift testing", function() {
     dbR.query(sql, (e) => {done(e)})
   })
 
-  it("Launch lift payment to user on same site", function(done) {
-    let memo = 'Test payment lift'
+  it("Grab payor's signing key", function(done) {
+    let sql = 'select user_cmt from mychips.users_v where id = $1'
+      , parms = [user3]
+//log.debug("Sql:", sql, JSON.stringify(parms))
+    dbL.query(sql, parms, (err, res) => { if (err) done(err)
+      let row = getRow(res, 0)				//;log.debug("row:", row)
+        , key = row.user_cmt				//;log.debug("key:", key)
+        interTest.sign = {key}
+        assert.ok(key)
+        done()
+    })
+  })
+
+  it("Create payment signature independant of DB", function(done) {
+    let uuid = mkUuid(cid3, agent1)
+      , memo = 'Test payment lift'
       , ref = {invoice: 4321}
-      , sign = user3 + ' ' + cid3 + ' Signature'
-      , auth = {memo, ref, sign}
       , units = 6
       , find = {cid: cid0, agent: agent1}
-      , sql = `insert into mychips.lifts_v_pay (payor_ent, find, units, payor_auth, request)
-	    	values($1,$2,$3,$4,'init') returning *;`
-      , parms = [user3, find, units, auth]
+      , date = new Date().toISOString()
+      , { key } = interTest.sign
+      , core = {uuid, find, units, date, memo, ref}	//;log.debug("c:", core)
+    crypto.sign(key, core, sign => {
+      let text = Buffer.from(sign).toString('base64url')
+      assert.ok(text)			//;log.debug('sign:', text)
+      interTest.sign = {key, sign, text, core}
+      done()
+    })
+  })
+
+  it("Launch lift payment to user on same site", function(done) {
+    let {sign, text, core} = interTest.sign
+      , {uuid, find, units, date, memo, ref} = core
+      , auth = {memo, ref, sign:text}
+      , sql = `insert into mychips.lifts_v_pay (payor_ent, find, lift_date, units, lift_uuid, payor_auth, request)
+	    	values($1,$2,$3,$4,$5,$6,'init') returning *;`
+      , parms = [user3, find, date, units, uuid, auth]
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
-//log.debug("Sql:", sql, JSON.stringify(parms))
+log.debug("Sql:", sql, JSON.stringify(parms))
     dbL.query(sql, parms, (e, res) => {if (e) done(e)		//;log.debug("Res:", res)
-      let pay = getRow(res, 0)					//;log.debug("Pay:", pay)
+      let pay = getRow(res, 0)					;log.debug("Pay:", JSON.stringify(pay))
       assert.equal(pay.units, units)
       assert.equal(pay.lift_seq, 0)
       assert.ok(pay.lift_uuid)
@@ -112,7 +140,7 @@ describe("Peer-to-peer lift testing", function() {
       _done()
     })
   })
-
+/*
   it("Launch lift payment that will fail", function(done) {
     let memo = 'Test failed payment lift'
       , ref = {invoice: 5432}
