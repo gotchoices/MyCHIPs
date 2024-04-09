@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
   View,
   TextInput,
@@ -29,35 +29,26 @@ const TallyReviewView = props => {
   const tallyType = props.tallyType;
   const partImage = imagesByDigest[partDigest];
   const holdImage = imagesByDigest[holdDigest];
+
   const canEdit = props.canEdit ?? true;
+
+  const holdCIDAgent = props.holdCert?.chad?.cid
+    ? props.holdCert?.chad?.cid + ':' + props.holdCert?.chad?.agent 
+    : '';
+
+  const partCIDAgent = props.partCert?.chad?.cid
+    ? props.partCert?.chad?.cid + ':' + props.partCert?.chad?.agent
+    : '';
+
+
+  const holdText = props.holdCert?.chad?.cid + '...';
+  const partText = props.partCert?.chad?.cid ?? ''+ '...';
 
   const holdLimit = props?.holdTerms?.limit;
   const partLimit = props?.partTerms?.limit;
 
   const {messageText} = useMessageText();
   const talliesMessageText = messageText?.tallies_v_me?.msg;
-
-  const checkValidInput = textValue => {
-    return textValue && /^[0-9]*(\.[0-9]{0,3})?$/.test(textValue);
-  };
-
-  const getValidAmount = amount => {
-    if (parseFloat(amount) > 0) {
-      return amount;
-    }
-
-    return 1.0;
-  };
-
-  const calculateAmount = value => {
-    const amount = getValidAmount(value);
-
-    if (amount && checkValidInput(amount)) {
-      return amount;
-    }
-
-    return round(amount, 3);
-  };
 
   const onSwitchClick = () => {
     props?.setTallyType?.(prev => {
@@ -70,54 +61,6 @@ const TallyReviewView = props => {
     });
   };
 
-  const getStockText = () => {
-    if (tallyType === 'stock') {
-      return props.partCert?.chad?.cid
-        ? props.partCert?.chad.cid + '...'
-        : props.holdCert?.chad?.cid + '...';
-    }
-
-    return props.holdCert?.chad?.cid
-      ? props.holdCert?.chad.cid + '...'
-      : props.partCert?.chad?.cid + '...';
-  };
-
-  const getFoilText = () => {
-    if (tallyType === 'stock') {
-      return props.holdCert?.chad?.cid
-        ? props.holdCert?.chad.cid + '...'
-        : props.partCert?.chad?.cid + '...'
-    }
-
-    return props.partCert?.chad?.cid
-      ? props.partCert?.chad.cid + '...'
-      : props.holdCert?.chad?.cid + '...';
-  };
-
-  const getFoilCID = () => {
-    if (tallyType === 'stock') {
-      return props.partCert?.chad?.cid
-        ? props.partCert.chad.cid + ':' + props.partCert.chad.agent
-        : props.holdCert?.chad?.cid + ':' + props.holdCert?.chad.agent;
-    }
-
-    return props.holdCert?.chad?.cid
-      ? props.holdCert.chad.cid + props.holdCert?.chad.agent
-      : props.partCert?.chad?.cid + props.partCert.chad.agent;
-  };
-
-  const getStockCID = () => {
-    if (tallyType === 'stock') {
-      return props.holdCert?.chad?.cid
-        ? props.holdCert.chad.cid + props.holdCert?.chad.agent
-        : props.partCert?.chad?.cid + props.partCert.chad.agent;
-    }
-
-    return props.partCert?.chad?.cid
-      ? props.partCert.chad.cid + props.partCert.chad.agent
-      : props.holdCert?.chad?.cid + props.holdCert?.chad.agent;
-  };
-
   const onBlurLimit = () => {
     if (holdLimit && holdLimit.indexOf('.') >= 0) {
       props.onHoldTermsChange('limit')(round(holdLimit, 3));
@@ -127,6 +70,7 @@ const TallyReviewView = props => {
       props.onPartTermsChange('limit')(partLimit);
     }
   };
+
 
   return (
     <View style={styles.main}>
@@ -142,7 +86,7 @@ const TallyReviewView = props => {
 
           <View style={styles.topCenterWrapper}>
             <HelpText
-              helpText={getFoilCID()}
+              helpText={tallyType === 'foil' ? holdCIDAgent : partCIDAgent}
               label="Foil"
               style={styles.headerText}
             />
@@ -153,14 +97,14 @@ const TallyReviewView = props => {
                   <Avatar style={styles.circle} avatar={holdImage} />
                 </View>
               ) : (
-                <Text style={styles.boldText}>{getFoilText()}</Text>
+                <Text style={styles.boldText}>{holdText}</Text>
               )
             ) : partImage ? (
               <View style={styles.circle}>
                 <Avatar style={styles.circle} avatar={partImage} />
               </View>
             ) : (
-              <Text style={styles.boldText}>{getStockText()}</Text>
+              <Text style={styles.boldText}>{partText}</Text>
             )}
           </View>
 
@@ -222,7 +166,7 @@ const TallyReviewView = props => {
 
           <View style={styles.bottomCenterWrapper}>
             <HelpText
-              helpText={getStockCID()}
+              helpText={tallyType === 'stock' ? holdCIDAgent : partCIDAgent}
               label="Stock"
               style={styles.headerText}
             />
@@ -233,14 +177,14 @@ const TallyReviewView = props => {
                   <Avatar style={styles.circle} avatar={holdImage} />
                 </View>
               ) : (
-                <Text style={styles.boldText}>{getStockText()}</Text>
+                <Text style={styles.boldText}>{holdText}</Text>
               )
             ) : partImage ? (
               <View style={styles.circle}>
                 <Avatar style={styles.circle} avatar={partImage} />
               </View>
             ) : (
-              <Text style={styles.boldText}>{getFoilText()}</Text>
+              <Text style={styles.boldText}>{partText}</Text>
             )}
           </View>
 
