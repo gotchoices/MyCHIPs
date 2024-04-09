@@ -44,7 +44,7 @@
     "react-native-camera-kit": "^13.0.0",
     "react-native-crypto-js": "^1.0.0",
     "react-native-device-info": "^10.11.0",
-    "react-native-document-picker": "^9.0.1",
+    "react-native-document-picker": "^9.1.1",
     "react-native-fs": "^2.20.0",
     "react-native-get-random-values": "^1.10.0",
     "react-native-image-crop-picker": "^0.38.1",

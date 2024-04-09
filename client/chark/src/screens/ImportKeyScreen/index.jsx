@@ -29,23 +29,33 @@ const ImportKeyScreen = (props) => {
     }
   }, [params])
 
-  const onImportKey = () => {
-    DocumentPicker.pick(
-      {
-        type: [DocumentPicker.types.allFiles],
-        mode: 'open',
+
+    const onImportKey = async () => {
+      try {
+        DocumentPicker.pick({
+          type: [DocumentPicker.types.allFiles],
+          mode: 'open',
+          requestLongTermAccess: false,
+        })
+          .then(results => {
+            const result = results[0];
+            if (result.uri) {
+              readContent(result.uri);
+            } else {
+              Alert.alert('Error', 'Failed to select file');
+            }
+          })
+          .catch(err => {
+            if (DocumentPicker.isCancel(err)) {
+              Alert.alert('Error', 'Failed to select file');
+            }
+          });
+      } catch (err) {
+        if (DocumentPicker.isCancel(err)) {
+          Alert.alert('Error', 'Failed to select file');
+        }
       }
-    ).then((results) => {
-      const result = results[0];
-      if (result.uri) {
-        readContent(result.uri);
-      } else {
-        Alert.alert('Error', 'Failed to select file');
-      }
-    }).catch((err) => {
-      Alert.alert("Error", `${err.error}`);
-    });
-  };
+    };
 
   const readContent = async (fileUri) => {
     try {
