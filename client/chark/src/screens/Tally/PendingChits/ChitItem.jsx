@@ -91,7 +91,7 @@ const ChitItem = (props) => {
             </View>
 
             <Text style={styles.currency}>
-              {convertedNet}
+            {props.currencyCode} {convertedNet} 
             </Text>
           </View>
         </View>
