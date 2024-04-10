@@ -83,6 +83,7 @@ const PayModal = (props) => {
       digest: partCert?.file?.[0]?.digest,
       date: props?.tally?.tally_date,
       net: props?.tally?.net,
+      net_pc: props?.tally?.net_pc,
       cid: partCert?.chad?.cid,
     });
   };

@@ -8,12 +8,16 @@ import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
 import { formatDate } from "../../../../utils/format-date";
 import Avatar from "../../../../components/Avatar";
+import useMessageText from "../../../../hooks/useMessageText";
 
 const ChistHistoryHeader = (props) => {
-  const { part_name, cid, date, net, wm, avatar, totalBalance } = props.args ?? {};
+  const { part_name, cid, date, net, wm, avatar, net_pc } = props.args ?? {};
   const { preferredCurrency } = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
+
+  const { messageText } = useMessageText();
+  const chitMeText = messageText?.chits_v_me?.col;
 
   useEffect(() => {
     if (currencyCode) {
@@ -34,6 +38,10 @@ const ChistHistoryHeader = (props) => {
     return 0;
   }, [net, conversionRate])
 
+  const pendingText = useMemo(() => {
+    return chitMeText?.status?.values?.find(s => s.value === 'pend');
+  }, [chitMeText?.status?.values])
+
   const isNetNegative = net < 0;
 
   return <View>
@@ -41,14 +49,23 @@ const ChistHistoryHeader = (props) => {
       <View style={styles.row}>
         <View style={{ alignItems: 'flex-start' }}>
           <Text style={[styles.label, { fontWeight: 'bold' }]}>Balance</Text>
-          <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 8 }]}>
+
+          <Text style={{ marginTop: 8 }}>
+            {pendingText?.title ?? ''} {net_pc}
+          </Text>
+
+          <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 4 }]}>
+
             <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
+
             <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net  ?? 0) / 1000, 3)}</Text>
           </View>
+
           {!!conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
         </View>
         <Text style={styles.label}>{formatDate(date)}</Text>
       </View >
+
       <View style={[styles.row, { marginTop: 12 }]}>
         <Avatar
           style={styles.profileImage}
