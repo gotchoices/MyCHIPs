@@ -1,48 +1,72 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import React, {useState} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
+import {View, Text, StyleSheet} from 'react-native';
 
 import Button from '../../components/Button';
 import CenteredModal from '../../components/CenteredModal';
 import ExportModal from '../Setting/GenerateKey/ExportModal';
 import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
 
-import { colors } from '../../config/constants';
-import { keyServices } from '../../config/constants';
-import { retrieveKey } from '../../utils/keychain-store';
-import { setPrivateKey } from '../../redux/profileSlice';
+import {colors} from '../../config/constants';
+import {keyServices} from '../../config/constants';
+import {retrieveKey} from '../../utils/keychain-store';
+import {setPrivateKey} from '../../redux/profileSlice';
 
-const Export = (props) => {
+import ReactNativeBiometrics from 'react-native-biometrics';
+
+const Export = props => {
   const dispatch = useDispatch();
   const [passphrase, setPassphrase] = useState(undefined);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [passphraseModal, setPassphraseModal] = useState(false);
 
-  const { privateKey } = useSelector(state => state.profile)
+  const {privateKey} = useSelector(state => state.profile);
 
   const getKey = async () => {
+    const rnBiometrics = new ReactNativeBiometrics();
+
+    rnBiometrics.isSensorAvailable().then(result => {
+      const {available, error} = result;
+      if (available) {
+        return rnBiometrics
+          .simplePrompt({
+            promptMessage: 'Confirm biomets to generate key',
+          })
+          .then(() => {
+            return exportKey();
+          })
+          .catch(err => {
+            alert('Biometrics failed');
+          });
+      }
+
+      return exportKey();
+    });
+  };
+
+  const exportKey = async () => {
     try {
       let key = privateKey;
-      if(!key) {
+      if (!key) {
         priKey = await retrieveKey(keyServices.privateKey);
         key = priKey.password;
         dispatch(setPrivateKey(key));
       }
-      if(!key) {
-        Alert.alert("Export Key", "Seems like you have no saved keys.")
+      if (!key) {
+        Alert.alert('Export Key', 'Seems like you have no saved keys.');
       }
 
       setPassphraseModal(true);
-    } catch (err) {
-    }
+    } catch (err) {}
   };
 
   return (
     <>
-      <View style={{ marginTop: 30 }}>
+      <View style={{marginTop: 30}}>
         <Text style={styles.exportText}>{props.exportText}</Text>
         <Text style={styles.exportDescription}>
-          Generating a new key can be a destructive action. Remember to save your current active key by exporting it to a safe place.
+          Generating a new key can be a destructive action. Remember to save
+          your current active key by exporting it to a safe place.
         </Text>
 
         <Button
@@ -54,13 +78,12 @@ const Export = (props) => {
 
       <CenteredModal
         isVisible={showKeyModal}
-        onClose={() => setShowKeyModal(false)}
-      >
+        onClose={() => setShowKeyModal(false)}>
         <ExportModal
           privateKey={privateKey}
           cancel={() => {
             setPassphrase(undefined);
-            setShowKeyModal(false)
+            setShowKeyModal(false);
           }}
           passphrase={passphrase}
         />
@@ -69,12 +92,11 @@ const Export = (props) => {
       <CenteredModal
         isVisible={passphraseModal}
         onClose={() => {
-          setPassphraseModal(false)
-        }}
-      >
+          setPassphraseModal(false);
+        }}>
         <PassphraseModal
           action="export"
-          onPassphraseConfirmed={(passphrase) => {
+          onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
             setShowKeyModal(true);
@@ -85,8 +107,8 @@ const Export = (props) => {
         />
       </CenteredModal>
     </>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   exportText: {
@@ -106,7 +128,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     width: '50%',
     height: 30,
-  }
+  },
 });
 
 export default Export;
