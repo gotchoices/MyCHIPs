@@ -451,7 +451,7 @@ const TallyInvite = (props) => {
             </TouchableOpacity>
           </View>
           <CustomTextInput
-            placeholder="search_text"
+            placeholder={charkText?.search?.title ?? ''}
             value={searchValue}
             onChangeText={setSearchValue}
             leadingIcon={<SearchIcon size={16} />}

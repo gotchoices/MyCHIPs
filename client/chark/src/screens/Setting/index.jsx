@@ -4,27 +4,18 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 
 import { colors } from '../../config/constants';
-import { languageMap } from '../../utils/language';
 import useSocket from '../../hooks/useSocket';
 import { useExchange } from '../../hooks/useLanguage';
 
 import Language from './Language';
 import CenteredModal from '../../components/CenteredModal';
 import Button from '../../components/Button';
-import GenerateKey from './GenerateKey';
 import HelpText from '../../components/HelpText';
 
 import Currency from './Currency';
-import ExportKey from './GenerateKey/ExportKey';
 import Avatar from '../../components/Avatar';
 import useMessageText from '../../hooks/useMessageText';
-
-const deviceLanguage =
-  Platform.OS === 'ios'
-    ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0]
-    : NativeModules.I18nManager.localeIdentifier;
-
-const lang = `${languageMap[deviceLanguage]?.name ?? ''} (${deviceLanguage})`;
+import useTitle from '../../hooks/useTitle';
 
 const Setting = (props) => {
   const [isLangModalVisible, setIsLangModalVisible] = useState(false);
@@ -41,6 +32,8 @@ const Setting = (props) => {
   const onProfilePress = () => {
     props.navigation.navigate('Profile');
   }
+
+  useTitle(props.navigation, charkText?.settings?.title)
 
   useEffect(() => {
     if(charkText?.setting?.title) {

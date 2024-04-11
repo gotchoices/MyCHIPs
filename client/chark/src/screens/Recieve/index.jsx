@@ -19,6 +19,7 @@ import { round } from "../../utils/common";
 import { receiveChit } from '../../services/chit';
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { useTallyText } from "../../hooks/useLanguage";
+import { showError } from '../../utils/error';
 
 const Receive = (props) => {
   const [memo, setMemo] = useState("");
@@ -115,7 +116,7 @@ const Receive = (props) => {
         link,
       });
     } catch(err) {
-      console.log({err})
+      showError(err);
     } finally {
       setDisabled(false);
     }

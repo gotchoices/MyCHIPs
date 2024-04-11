@@ -8,6 +8,8 @@ import { setFilter } from "../../redux/profileSlice";
 import useSocket from "../../hooks/useSocket";
 import { useTalliesMeText } from "../../hooks/useLanguage";
 import { SelectedIcon, UnSelectedIcon } from "../../components/SvgAssets/SvgAssets";
+import useMessageText from "../../hooks/useMessageText";
+import useTitle from '../../hooks/useTitle';
 
 const FilterItem = ({ args, onSelected, title }) => {
   const onPress = () => {
@@ -27,9 +29,14 @@ const FilterScreen = (props) => {
   const navigation = props.navigation;
   const dispatch = useDispatch();
   const { wm } = useSocket();
+  const { messageText } = useMessageText();
+
   const talliesText = useTalliesMeText(wm);
   const talliesMeText = talliesText?.col;
   const talliesMeessageText = talliesText?.msg;
+  const charkMsgText = messageText?.chark?.msg;
+
+  useTitle(props.navigation, charkMsgText?.filter?.title)
 
   const hasFilterChanged = useMemo(() => {
     const isOfferSelected = filter?.offer?.selected === true;

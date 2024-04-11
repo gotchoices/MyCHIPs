@@ -13,17 +13,26 @@ import { insertChit } from '../../../services/chit';
 import { parse } from '../../../utils/query-string';
 import { createSignature } from '../../../utils/message-signature';
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
+import { showError } from '../../../utils/error';
+import useMessageText from '../../../hooks/useMessageText';
+import useTitle from '../../../hooks/useTitle';
 
 const TradingVariables = (props) => {
   const { tally_seq, tally_ent, chad, tally_type, tally_uuid } = props.route?.params ?? {};
   const { wm } = useSocket();
   const dispatch = useDispatch();
 
+  const { messageText } = useMessageText();
+  const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+
   const [trade, setTrade] = useState('');
 
   const showCreateSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(true));
   }
+
+  // Title
+  useTitle(props.navigation, talliesMeMessageText?.trade?.title);
 
   useEffect(() => {
     fetchTradingVariables(wm, { tally_seq }).then((data) => {
@@ -60,17 +69,18 @@ const TradingVariables = (props) => {
       const payload = {
         signature,
         reference,
+        chit_type: 'set',
         chit_ent: tally_ent,
         chit_seq: tally_seq,
         units: null,
         issuer: tally_type,
       };
 
-      insertChit(wm, payload).then(() => {
-        Toast.show({
-          type: 'success',
-          text1: 'Settings applied successfully'
-        })
+      return insertChit(wm, payload)
+    }).then(() => {
+      Toast.show({
+        type: 'success',
+        text1: 'Settings applied successfully'
       })
     }).catch((err) => {
       const { isKeyAvailable } = err;
@@ -82,10 +92,7 @@ const TradingVariables = (props) => {
         );
       }
 
-      return Toast.show({
-        type: 'error',
-        text1: err.message,
-      })
+      return showError(err)
     });
 
     return false;
@@ -94,8 +101,8 @@ const TradingVariables = (props) => {
   return (
     <View style={styles.container}>
       <WebView
-        originWhitelist={["*"]}
         startInLoadingState
+        originWhitelist={["*"]}
         onShouldStartLoadWithRequest={applySettings}
         source={{ uri: trade }}
         injectedJavaScript={`

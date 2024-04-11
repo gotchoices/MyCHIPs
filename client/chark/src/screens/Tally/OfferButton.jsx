@@ -13,6 +13,7 @@ import { colors } from '../../config/constants';
 import { createSignature } from '../../utils/message-signature';
 import { offerTally } from '../../services/tally';
 import { setShowCreateSignatureModal } from '../../redux/profileSlice';
+import { showError } from '../../utils/error';
 
 const OfferButton = (props) => {
   const tally = props.tally;
@@ -49,7 +50,7 @@ const OfferButton = (props) => {
       if (isKeyAvailable === false) {
         showCreateSignatureModal();
       } else {
-        Alert.alert("Error", message || err);
+        showError(err);
       }
     } finally {
       setOffering(false);

@@ -6,12 +6,16 @@ import { fetchChitHistory, updateChitState } from "../../../services/tally";
 import Button from "../../../components/Button";
 import { round } from "../../../utils/common";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import useMessageText from '../../../hooks/useMessageText';
 
 const ChitDetail = (props) => {
   const { chit_ent, chit_idx, chit_seq, chit_uuid } = props.route.params;
   const { wm } = useSocket();
   const [chit, setChit] = useState(undefined);
   const [loading, setLoading] = useState(true);
+
+  const { messageText } = useMessageText();
+  const chitsMeText = messageText?.chits_v_me?.col;
 
   const totalChitNet = useMemo(() => {
     const net = chit?.net;
@@ -145,16 +149,15 @@ const ChitDetail = (props) => {
         />
       }
     >
-      <Text style={styles.text}>CHIT UUID: {chit_uuid}</Text>
-      <Text style={styles.text}>SIGNATURE: {chit?.signature}</Text>
-      <Text style={styles.text}>CLEAN: {chit?.clean?.toString()}</Text>
-      <Text style={styles.text}>NET: {totalChitNet}</Text>
-      <Text style={styles.text}>REFERENCE: {chit?.reference}</Text>
-      <Text style={styles.text}>MEMO: {chit?.memo}</Text>
-      <Text style={styles.text}>REQUEST: {chit?.request ?? 'None'}</Text>
-      <Text style={styles.text}>STATUS: {chit?.status}</Text>
-      <Text style={styles.text}>STATE: {chit?.state}</Text>
-      <Text style={styles.text}>ACTION: {chit?.action?.toString() ?? 'None'}</Text>
+      <Text style={styles.text}>{chitsMeText?.chit_uuid?.title ?? ''}: {chit_uuid}</Text>
+      <Text style={styles.text}>{chitsMeText?.signature?.title ?? ''}: {chit?.signature}</Text>
+      <Text style={styles.text}>{chitsMeText?.clean?.title ?? ''}: {chit?.clean?.toString()}</Text>
+      <Text style={styles.text}>{chitsMeText?.net?.title ?? ''}: {totalChitNet}</Text>
+      <Text style={styles.text}>{chitsMeText?.reference?.title ?? ''}: {chit?.reference}</Text>
+      <Text style={styles.text}>{chitsMeText?.memo?.title ?? ''}: {chit?.memo}</Text>
+      <Text style={styles.text}>{chitsMeText?.request?.title ?? ''}: {chit?.request ?? 'None'}</Text>
+      <Text style={styles.text}>{chitsMeText?.status?.title ?? ''}: {chit?.status}</Text>
+      <Text style={styles.text}>{chitsMeText?.state?.title ?? ''}: {chit?.state}</Text>
 
     </ScrollView>
     {chit?.action ? <View style={styles.row}>

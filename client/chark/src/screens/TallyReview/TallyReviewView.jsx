@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   TextInput,
@@ -49,6 +49,14 @@ const TallyReviewView = props => {
 
   const {messageText} = useMessageText();
   const talliesMessageText = messageText?.tallies_v_me?.msg;
+  const talliesMeText = messageText?.tallies_v_me?.col;
+
+  const tallyTypeText = useMemo(() => {
+    return talliesMeText?.tally_type?.values?.reduce((acc, current) => {
+      acc[current.value] = current;
+      return acc;
+    }, {})
+  })
 
   const onSwitchClick = () => {
     props?.setTallyType?.(prev => {
@@ -87,7 +95,7 @@ const TallyReviewView = props => {
           <View style={styles.topCenterWrapper}>
             <HelpText
               helpText={tallyType === 'foil' ? holdCIDAgent : partCIDAgent}
-              label="Foil"
+              label={tallyTypeText?.foil?.title ?? ''}
               style={styles.headerText}
             />
 
@@ -167,7 +175,7 @@ const TallyReviewView = props => {
           <View style={styles.bottomCenterWrapper}>
             <HelpText
               helpText={tallyType === 'stock' ? holdCIDAgent : partCIDAgent}
-              label="Stock"
+              label={tallyTypeText?.stock?.title ?? ''}
               style={styles.headerText}
             />
 
