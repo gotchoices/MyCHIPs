@@ -1,37 +1,31 @@
-import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import React, {useState} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
+import {View, Text, StyleSheet, Alert} from 'react-native';
 
-import Button from "../../components/Button";
-import SigningKeyWarning from "../../components/SigningKeyWarning";
-import BottomSheetModal from "../../components/BottomSheetModal";
+import Button from '../../components/Button';
+import SigningKeyWarning from '../../components/SigningKeyWarning';
+import BottomSheetModal from '../../components/BottomSheetModal';
 
-import useSocket from "../../hooks/useSocket";
-import { colors, KeyConfig } from "../../config/constants";
-import { updatePublicKey } from "../../services/profile";
-import {
-  storePrivateKey,
-  storePublicKey,
-} from "../../utils/keychain-store";
-import {
-  setPrivateKey,
-  setPublicKey,
-} from "../../redux/profileSlice";
-import CenteredModal from "../../components/CenteredModal";
-import ExportModal from "../Setting/GenerateKey/ExportModal";
-import SuccessContent from "../../components/SuccessContent";
-import PassphraseModal from "../Setting/GenerateKey/PassphraseModal";
+import useSocket from '../../hooks/useSocket';
+import {colors, KeyConfig} from '../../config/constants';
+import {updatePublicKey} from '../../services/profile';
+import {storePrivateKey, storePublicKey} from '../../utils/keychain-store';
+import {setPrivateKey, setPublicKey} from '../../redux/profileSlice';
+import CenteredModal from '../../components/CenteredModal';
+import ExportModal from '../Setting/GenerateKey/ExportModal';
+import SuccessContent from '../../components/SuccessContent';
+import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
+
+import ReactNativeBiometrics from 'react-native-biometrics';
 
 const GenerateKey = () => {
   const subtle = window.crypto.subtle;
   const dispatch = useDispatch();
 
-  const { wm } = useSocket();
-  const { user } = useSelector((state) => state.currentUser);
+  const {wm} = useSocket();
+  const {user} = useSelector(state => state.currentUser);
 
-  const [showGenerateWarning, setShowGenerateWarning] = useState(
-    false
-  );
+  const [showGenerateWarning, setShowGenerateWarning] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -39,7 +33,7 @@ const GenerateKey = () => {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [passphraseModal, setPassphraseModal] = useState(false);
 
-  const { privateKey } = useSelector((state) => state.profile);
+  const {privateKey} = useSelector(state => state.profile);
 
   const user_ent = user?.curr_eid;
 
@@ -52,21 +46,37 @@ const GenerateKey = () => {
   };
 
   const onAccept = async () => {
+    const rnBiometrics = new ReactNativeBiometrics();
+
+    rnBiometrics.isSensorAvailable().then(result => {
+      const {available, error} = result;
+      if (available) {
+        return rnBiometrics
+          .simplePrompt({
+            promptMessage: 'Confirm biomets to generate key',
+          })
+          .then(() => {
+            return generateKey();
+          })
+          .catch(err => {
+            alert('Biometrics failed');
+          });
+      }
+
+      return generateKey();
+    });
+  };
+
+  const generateKey = async () => {
     try {
       setGenerating(true);
       const keyPair = await subtle.generateKey(KeyConfig, true, [
-        "sign",
-        "verify",
+        'sign',
+        'verify',
       ]);
 
-      const publicKey = await subtle.exportKey(
-        "jwk",
-        keyPair.publicKey
-      );
-      const privateKey = await subtle.exportKey(
-        "jwk",
-        keyPair.privateKey
-      );
+      const publicKey = await subtle.exportKey('jwk', keyPair.publicKey);
+      const privateKey = await subtle.exportKey('jwk', keyPair.privateKey);
 
       await updatePublicKey(wm, {
         public_key: publicKey,
@@ -86,7 +96,7 @@ const GenerateKey = () => {
       dispatch(setPrivateKey(strPrivateKey));
       setShowSuccess(true);
     } catch (err) {
-      Alert.alert("Error", err.message);
+      Alert.alert('Error', err.message);
     } finally {
       setGenerating(false);
     }
@@ -94,16 +104,15 @@ const GenerateKey = () => {
 
   return (
     <>
-      <View style={{ marginTop: 30 }}>
+      <View style={{marginTop: 30}}>
         <Text style={styles.generate}>generate_text</Text>
         <Text style={styles.description}>
-          Generating a new key can be a destructive action. Remember
-          to save your current active key by exporting it to a safe
-          place.
+          Generating a new key can be a destructive action. Remember to save
+          your current active key by exporting it to a safe place.
         </Text>
 
         <Button
-          style={{ marginTop: 16, width: "50%", height: 30 }}
+          style={{marginTop: 16, width: '50%', height: 30}}
           title="generate_text"
           onPress={onGenerateClick}
         />
@@ -111,8 +120,7 @@ const GenerateKey = () => {
 
       <BottomSheetModal
         isVisible={showGenerateWarning}
-        onClose={onGenerateCancel}
-      >
+        onClose={onGenerateCancel}>
         <SigningKeyWarning
           loading={false}
           onAccept={() => {
@@ -131,8 +139,7 @@ const GenerateKey = () => {
 
       <CenteredModal
         isVisible={showKeyModal}
-        onClose={() => setShowKeyModal(false)}
-      >
+        onClose={() => setShowKeyModal(false)}>
         <ExportModal
           action="generate"
           privateKey={privateKey}
@@ -140,10 +147,10 @@ const GenerateKey = () => {
             setPassphrase(undefined);
             setShowKeyModal(false);
           }}
-          onKeyAction={()=>{
+          onKeyAction={() => {
             setShowKeyModal(false);
-            onAccept()}
-          }
+            onAccept();
+          }}
           passphrase={passphrase}
         />
       </CenteredModal>
@@ -152,13 +159,12 @@ const GenerateKey = () => {
         isVisible={passphraseModal}
         onClose={() => {
           setPassphraseModal(false);
-        }}
-      >
+        }}>
         <PassphraseModal
           action="generate"
-          title='Please export your current key before generating a new one.'
-          subTitle='Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key.'
-          onPassphraseConfirmed={(passphrase) => {
+          title="Please export your current key before generating a new one."
+          subTitle="Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key."
+          onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
             setShowKeyModal(true);
@@ -168,23 +174,18 @@ const GenerateKey = () => {
           }}
           onWithoutExport={() => {
             setPassphraseModal(false);
-            onAccept()
+            onAccept();
           }}
         />
       </CenteredModal>
 
       <BottomSheetModal
         isVisible={showSuccess}
-        onClose={() => setShowSuccess(false)}
-      >
+        onClose={() => setShowSuccess(false)}>
         <SuccessContent
           message="New key has been generated"
-          onDone={() => 
-            setShowSuccess(false)
-          }
-          onDismiss={() => 
-            setShowSuccess(false)
-          }
+          onDone={() => setShowSuccess(false)}
+          onDismiss={() => setShowSuccess(false)}
         />
       </BottomSheetModal>
     </>
@@ -195,13 +196,13 @@ const styles = StyleSheet.create({
   generate: {
     color: colors.black,
     fontSize: 15,
-    fontFamily: "inter",
-    fontWeight: "500",
+    fontFamily: 'inter',
+    fontWeight: '500',
   },
   description: {
     color: colors.gray300,
-    fontWeight: "500",
-    fontFamily: "inter",
+    fontWeight: '500',
+    fontFamily: 'inter',
     fontSize: 12,
     lineHeight: 13,
   },

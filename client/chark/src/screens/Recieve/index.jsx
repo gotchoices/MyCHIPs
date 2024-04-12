@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -20,24 +20,25 @@ import { receiveChit } from '../../services/chit';
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { useTallyText } from "../../hooks/useLanguage";
 import { showError } from '../../utils/error';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
-const Receive = (props) => {
-  const [memo, setMemo] = useState("");
-  const [chit, setChit] = useState("");
+const Receive = props => {
+  const [memo, setMemo] = useState('');
+  const [chit, setChit] = useState('');
   const [usd, setUSD] = useState();
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [inputWidth, setInputWidth] = useState(80);
 
-  const [isSwitched, setIsSwitched] = useState(false); 
- 
-  const ref = useRef("");
-  const { wm } = useSocket();
+  const [isSwitched, setIsSwitched] = useState(false);
 
-  const { request, comment } = useTallyText(wm);
+  const ref = useRef('');
+  const {wm} = useSocket();
 
-  const { preferredCurrency } = useSelector((state) => state.profile);
+  const {request, comment} = useTallyText(wm);
+
+  const {preferredCurrency} = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
 
@@ -45,11 +46,11 @@ const Receive = (props) => {
     if (currencyCode) {
       setLoading(true);
       getCurrency(wm, currencyCode)
-        .then((data) => {
+        .then(data => {
           setConversionRate(parseFloat(data?.rate ?? 1));
         })
-        .catch((err) => {
-          console.log("EXCEPTION ==> ", err);
+        .catch(err => {
+          console.log('EXCEPTION ==> ', err);
         })
         .finally(() => {
           setLoading(false);
@@ -57,7 +58,7 @@ const Receive = (props) => {
     }
   }, [currencyCode]);
 
-  const totalNetDollar = (text) => {
+  const totalNetDollar = text => {
     const convertedChit = parseInt(text);
     if (conversionRate && convertedChit) {
       const total = convertedChit * conversionRate;
@@ -69,7 +70,7 @@ const Receive = (props) => {
     setUSD(0);
   };
 
-  const totalChit = (text) => {
+  const totalChit = text => {
     const convertedUSD = parseInt(text);
     if (conversionRate && convertedUSD) {
       const total = convertedUSD / conversionRate;
@@ -84,14 +85,14 @@ const Receive = (props) => {
   const onReceive = async () => {
     const net = round((chit ?? 0) * 1000, 0);
 
-    if (net< 0) {
+    if (net < 0) {
       return Toast.show({
         type: 'error',
         text1: "Can't input negative chit.",
       });
     }
 
-    if (net== 0) {
+    if (net == 0) {
       return Toast.show({
         type: 'error',
         text1: 'Please provide an amount',
@@ -106,7 +107,7 @@ const Receive = (props) => {
         ref: {},
         units: chit,
         format: ['json', 'link'],
-      })
+      });
 
       const json = invoice?.[0];
       const link = invoice?.[1];
@@ -123,65 +124,66 @@ const Receive = (props) => {
   };
 
   /**
-    * @param {string} type - chit or usd
-    */
-  const onAmountChange = (type) => {
+   * @param {string} type - chit or usd
+   */
+  const onAmountChange = type => {
     /**
-      * @param {string} text - amount
-      */
-    return (text) => {
+     * @param {string} text - amount
+     */
+    return text => {
       const regex = /(\..*){2,}/;
-      if(regex.test(text)) {
+      if (regex.test(text)) {
         return;
       }
 
       const textLength = text.length;
-      setInputWidth(Math.max(Math.ceil(textLength * 20), 80))
+      setInputWidth(Math.max(Math.ceil(textLength * 20), 80));
 
-      if(type === 'chit') {
+      if (type === 'chit') {
         setChit(text);
         totalNetDollar(text);
-      } else if(type === 'usd') {
+      } else if (type === 'usd') {
         setUSD(text);
         totalChit(text);
       }
-    }
-  }
+    };
+  };
 
   const checkChipDecimalPlace = () => {
     let newValue = '';
-    if(chit) {
+    if (chit) {
       const [precision, decimalPlace] = chit.split('.');
-      if(decimalPlace) {
+      if (decimalPlace) {
         const decimalLength = decimalPlace.length;
         const remainingLength = Math.max(3 - decimalLength, 0);
         newValue = chit + Array(remainingLength).fill('0').join('');
-        setChit(newValue)
+        setChit(newValue);
       } else {
-        newValue = precision + '.000'
+        newValue = precision + '.000';
         setChit(newValue);
       }
     }
 
-    if(newValue) {
-      setInputWidth(Math.max(Math.ceil(newValue.length * 20), 80))
+    if (newValue) {
+      setInputWidth(Math.max(Math.ceil(newValue.length * 20), 80));
     }
-  }
+  };
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} />
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size={'large'} />
       </View>
     );
   }
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={styles.container}
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={styles.contentContainer}
-    >
+      enableOnAndroid
+      extraHeight={150}
+      extraScrollHeight={50}
+      contentContainerStyle={styles.contentContainer}>
       <View style={styles.centerWrapper}>
         {isSwitched ? (
           <>
@@ -189,7 +191,7 @@ const Receive = (props) => {
               <Text style={styles.text}>USD</Text>
               <TextInput
                 maxLength={8}
-                style={[styles.amount, { width: inputWidth }]}
+                style={[styles.amount, {width: inputWidth}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={usd}
@@ -199,9 +201,10 @@ const Receive = (props) => {
             </View>
 
             {currencyCode && chit ? (
-              <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
+              <View
+                style={[styles.row, {alignSelf: 'flex-end', marginRight: 20}]}>
                 <ChitIcon color={colors.black} height={18} width={12} />
-                <Text style={[styles.text, { marginLeft: 10 }]}>{chit}</Text>
+                <Text style={[styles.text, {marginLeft: 10}]}>{chit}</Text>
               </View>
             ) : (
               <></>
@@ -213,7 +216,7 @@ const Receive = (props) => {
               <ChitIcon color={colors.black} height={18} width={12} />
               <TextInput
                 maxLength={8}
-                style={[styles.amount, { width: inputWidth }]}
+                style={[styles.amount, {width: inputWidth}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={chit}
@@ -223,7 +226,8 @@ const Receive = (props) => {
             </View>
 
             {currencyCode && usd ? (
-               <View style={[styles.row,{alignSelf:'flex-end',marginRight:0}]}>
+              <View
+                style={[styles.row, {alignSelf: 'flex-end', marginRight: 0}]}>
                 <Text style={styles.text}>
                   {usd} {currencyCode}
                 </Text>
@@ -238,8 +242,7 @@ const Receive = (props) => {
       {currencyCode ? (
         <TouchableOpacity
           style={styles.icon}
-          onPress={() => setIsSwitched(!isSwitched)}
-        >
+          onPress={() => setIsSwitched(!isSwitched)}>
           <SwapIcon />
         </TouchableOpacity>
       ) : (
@@ -248,8 +251,7 @@ const Receive = (props) => {
 
       <TouchableOpacity
         style={styles.input}
-        onPress={() => ref.current.focus()}
-      >
+        onPress={() => ref.current.focus()}>
         <TextInput
           ref={ref}
           placeholder={comment?.title ?? 'Comment'}
@@ -258,11 +260,9 @@ const Receive = (props) => {
         />
       </TouchableOpacity>
 
-
       {/* <TouchableOpacity onPress={addReference}>
         <Text style={styles.link}>Add Reference</Text>
       </TouchableOpacity> */}
-
 
       <View style={styles.buttonView}>
         <Button
@@ -272,7 +272,7 @@ const Receive = (props) => {
           disabled={disabled}
         />
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -286,14 +286,14 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     fontSize: 26,
     paddingVertical: 20,
-    fontWeight: "500",
-    fontFamily: "inter",
+    fontWeight: '500',
+    fontFamily: 'inter',
     color: colors.black,
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   input: {
     height: 100,
@@ -309,44 +309,44 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 45,
-    width: "100%",
+    width: '100%',
     borderRadius: 40,
     marginBottom: 20,
-    borderColor: "blue",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "blue",
+    borderColor: 'blue',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'blue',
   },
   centerWrapper: {
     marginBottom: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonView: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
   },
   row: {
-    width:220,
-    paddingRight:20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent:'center'
+    width: 220,
+    paddingRight: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
-    fontWeight: "500",
+    fontWeight: '500',
     color: colors.gray300,
   },
   icon: {
-    position: "absolute",
+    position: 'absolute',
     right: 60,
     top: 40,
   },
   link: {
     color: colors.blue,
-    alignSelf: "flex-end",
-    textDecorationStyle: "solid",
-    textDecorationLine: "underline",
+    alignSelf: 'flex-end',
+    textDecorationStyle: 'solid',
+    textDecorationLine: 'underline',
   },
 });
 

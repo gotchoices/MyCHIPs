@@ -21,6 +21,7 @@ const Activity = (props) => {
   const charkText = messageText?.chark?.msg;
 
   const [conversionRate, setConversionRate] = useState(0);
+  
 
   const { preferredCurrency } = useSelector((state) => state.profile);
   const { imagesByDigest } = useSelector((state) => state.avatar);
@@ -123,6 +124,7 @@ const Activity = (props) => {
           avatar={avatar}
           postAccept={postChitAction}
           postReject={postChitAction}
+          currencyCode={currencyCode}
         />
       )
     }

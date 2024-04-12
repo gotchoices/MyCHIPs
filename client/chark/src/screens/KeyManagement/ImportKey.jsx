@@ -22,6 +22,8 @@ import {
 import {updatePublicKey} from '../../services/profile';
 import useSocket from '../../hooks/useSocket';
 
+import ReactNativeBiometrics from 'react-native-biometrics';
+
 const ImportKey = props => {
   const [showImportWarning, setShowImportWarning] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -52,6 +54,28 @@ const ImportKey = props => {
   };
 
   const onImportKey = async () => {
+    const rnBiometrics = new ReactNativeBiometrics();
+
+    rnBiometrics.isSensorAvailable().then(result => {
+      const {available, error} = result;
+      if (available) {
+        return rnBiometrics
+          .simplePrompt({
+            promptMessage: 'Confirm biomets to generate key',
+          })
+          .then(() => {
+            return importKeys();
+          })
+          .catch(err => {
+            alert('Biometrics failed');
+          });
+      }
+
+      return importKeys();
+    });
+  };
+
+  const importKeys = async () => {
     try {
       DocumentPicker.pick({
         type: [DocumentPicker.types.allFiles],

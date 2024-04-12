@@ -24,6 +24,7 @@ const PendingChits = (props) => {
   const { fetching, chits } = useSelector(state => state.chit)
   const { tally_uuid, partName, description, conversionRate } = props.route?.params ?? {};
   const { imagesByDigest } = useSelector((state) => state.avatar);
+  const { preferredCurrency } = useSelector((state) => state.profile);
   const { partnerDigestByTallies } = useSelector(state => state.openTallies)
 
   // Register chits texts
@@ -59,6 +60,7 @@ const PendingChits = (props) => {
             navigation={props.navigation}
             conversionRate={conversionRate}
             avatar={avatar}
+            currencyCode={preferredCurrency.code}
           />
         </View>
       </TouchableWithoutFeedback>

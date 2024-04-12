@@ -28,7 +28,7 @@ const PendingChitDetail = (props) => {
 
   const { preferredCurrency } = useSelector((state) => state.profile);
   const { conversionRate } = useSelector((state) => state.chipCurrency);
-  const net_pc = (chit.net_pc ?? 0) / 1000;
+  const net_pc = (chit.net ?? 0) / 1000;
   let convertedNet = 0;
 
   if(conversionRate) {
