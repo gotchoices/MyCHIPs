@@ -12,10 +12,12 @@ import { getLinkHost } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import { setPersonal } from '../../redux/profileSlice';
 import { createLiftsPay } from '../../services/pay'
+import useTitle from '../../hooks/useTitle'
 
 import CenteredModal from '../../components/CenteredModal';
 import UpdateCID from '../UpdateCID';
 import { useCharkText } from "../../hooks/useLanguage";
+import { showError } from "../../utils/error";
 
 const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
 const tallyUri = new Set(['invite', 'mychips.org/invite'])
@@ -32,7 +34,10 @@ const HomeScreen = (props) => {
   const [tallyProcess, setTallyProcess] = useState(undefined);
 
   // Common text, will be used by multiple screens
-  useCharkText(wm);
+  const charkText = useCharkText(wm);
+  const charkMsgText = charkText?.msg;
+
+  useTitle(props.navigation, charkMsgText?.mychips?.title ?? 'Hello')
 
   const connect = (ticket) => {
     connectSocket(ticket);
@@ -126,10 +131,7 @@ const HomeScreen = (props) => {
         text1: 'Payment complete'
       });
     } catch(err) {
-      Toast.show({
-        type: 'error',
-        text1: err.message,
-      });
+      showError(err)
     }
   }
 

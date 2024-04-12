@@ -8,17 +8,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Keyboard,
-} from 'react-native';
-import {useSelector} from 'react-redux';
-import {ChitIcon, SwapIcon} from '../../components/SvgAssets/SvgAssets';
-import Button from '../../components/Button';
-import {colors} from '../../config/constants';
-import {getCurrency} from '../../services/user';
-import useSocket from '../../hooks/useSocket';
-import {round} from '../../utils/common';
-import {receiveChit} from '../../services/chit';
-import {Toast} from 'react-native-toast-message/lib/src/Toast';
-import {useTallyText} from '../../hooks/useLanguage';
+} from "react-native";
+import { useSelector } from "react-redux";
+import { ChitIcon, SwapIcon } from "../../components/SvgAssets/SvgAssets";
+import Button from "../../components/Button";
+import { colors } from "../../config/constants";
+import { getCurrency } from "../../services/user";
+import useSocket from "../../hooks/useSocket";
+import { round } from "../../utils/common";
+import { receiveChit } from '../../services/chit';
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { useTallyText } from "../../hooks/useLanguage";
+import { showError } from '../../utils/error';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 const Receive = props => {
@@ -115,8 +116,8 @@ const Receive = props => {
         json,
         link,
       });
-    } catch (err) {
-      console.log({err});
+    } catch(err) {
+      showError(err);
     } finally {
       setDisabled(false);
     }
