@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSelector } from 'react-redux';
 import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOpacity, RefreshControl } from "react-native";
+
 import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
@@ -19,10 +20,6 @@ const ChitHistory = (props) => {
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const avatar = imagesByDigest?.[digest];
 
-  const totalBalance = chits?.reduce((accumulator, currentValue) => {
-    return accumulator + currentValue?.net;
-  }, 0);
-
   useEffect(() => {
     _fetchChitHistory();
   }, [tally_uuid])
@@ -32,21 +29,31 @@ const ChitHistory = (props) => {
     fetchChitHistory(
       wm,
       {
-        fields: ['part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx', 'action'],
+        fields: [
+          'part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 
+          'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx', 'action'
+        ],
         where: {
           tally_uuid: tally_uuid,
         },
-        order: ['chain_idx', 'chit_date']
+        order: [
+          {
+            field: 'action',
+            asc: false,
+          },
+          {
+            field: 'crt_date',
+            asc: false,
+          },
+        ]
       }
     ).then(data => {
       if (data?.length) {
-        console.log(data?.map(d => d.state))
         let runningBalance = 0;
         const chitsWithRunningBalance = data.map((item) => {
           runningBalance += item.net;
           return { ...item, runningBalance };
         });
-        console.log("FINALCHITS ==> ", JSON.stringify(chitsWithRunningBalance));
         setChits(chitsWithRunningBalance);
       }
     }).catch(ex => {
@@ -97,7 +104,7 @@ const ChitHistory = (props) => {
             </View>
           </View>
 
-          <Text style={{ color: 'black', marginTop: 4 }}>Reference: {item.reference ?? 'not added'} </Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>Reference: {JSON.stringify(item.reference) ?? 'not added'} </Text>
           <Text style={{ color: 'black', marginTop: 4 }}>Memo: {item.memo ?? 'not added'}</Text>
           <Text style={{ color: 'black', marginTop: 4 }}>State: {item.state}</Text>
           <Text style={{ color: 'black', marginTop: 4 }}>Action: {item.action?.toString()}</Text>
@@ -138,7 +145,6 @@ const ChitHistory = (props) => {
             ...props.route?.params,
             wm,
             avatar,
-            totalBalance
           }}
         />
       }

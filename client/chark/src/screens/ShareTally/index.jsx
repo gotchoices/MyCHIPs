@@ -37,6 +37,7 @@ const ShareTally = (props) => {
     request(wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
       const json = data?.[0];
       const link = data?.[1];
+      console.log(link, 'link')
 
       setInvite({
         json,

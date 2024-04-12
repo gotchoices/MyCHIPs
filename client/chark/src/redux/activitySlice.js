@@ -85,7 +85,9 @@ export const getChits = createAsyncThunk('activity/getChits', async (args) => {
 
     const data = await fetchChits(args.wm, {
       fields,
-      where: ['action true']
+      where: {
+        status: 'pend'
+      },
     })
 
     return data;
