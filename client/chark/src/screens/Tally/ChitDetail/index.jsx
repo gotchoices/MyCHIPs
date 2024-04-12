@@ -7,6 +7,7 @@ import Button from "../../../components/Button";
 import { round } from "../../../utils/common";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import useMessageText from '../../../hooks/useMessageText';
+import useTitle from '../../../hooks/useTitle';
 
 const ChitDetail = (props) => {
   const { chit_ent, chit_idx, chit_seq, chit_uuid } = props.route.params;
@@ -16,6 +17,9 @@ const ChitDetail = (props) => {
 
   const { messageText } = useMessageText();
   const chitsMeText = messageText?.chits_v_me?.col;
+  const chitsMeMessageText = messageText?.chits_v_me?.msg;
+
+  useTitle(props.navigation, chitsMeMessageText?.detail?.title)
 
   const totalChitNet = useMemo(() => {
     const net = chit?.net;

@@ -47,7 +47,7 @@ const TallyReviewView = props => {
   const holdLimit = props?.holdTerms?.limit;
   const partLimit = props?.partTerms?.limit;
 
-  const {messageText} = useMessageText();
+  const { messageText } = useMessageText();
   const talliesMessageText = messageText?.tallies_v_me?.msg;
   const talliesMeText = messageText?.tallies_v_me?.col;
 
@@ -57,6 +57,10 @@ const TallyReviewView = props => {
       return acc;
     }, {})
   })
+
+  const limitText = useMemo(() => {
+    return talliesMeText?.hold_terms?.values?.find((term) => term.value === 'limit')
+  }, [talliesMeText?.hold_terms?.values])
 
   const onSwitchClick = () => {
     props?.setTallyType?.(prev => {
@@ -143,7 +147,7 @@ const TallyReviewView = props => {
             }}
           />
 
-          <HelpText helpText="help" label="Limit" style={styles.midText} />
+          <HelpText helpText="help" label={limitText?.title ?? ''} style={styles.midText} />
 
           <TextInput
             maxLength={9}
@@ -265,10 +269,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   midView: {
-    marginRight: 40,
+    marginRight: 60,
   },
   input: {
-    width: '33%',
+    width: '30%',
     //height: 24,
     padding: 10,
     borderRadius: 5,
