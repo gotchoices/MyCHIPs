@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -8,52 +8,51 @@ import {
   Alert,
   TouchableOpacity,
   Keyboard,
-} from "react-native";
-import { useSelector } from "react-redux";
+} from 'react-native';
+import {useSelector} from 'react-redux';
 
-import { colors } from "../../../config/constants";
-import Button from "../../../components/Button";
-import { getCurrency } from "../../../services/user";
-import useSocket from "../../../hooks/useSocket";
-import { round } from "../../../utils/common";
-import { insertChit, updateChitDetails } from "../../../services/tally";
-import { useChitsMeText } from "../../../hooks/useLanguage";
-import useMessageText from "../../../hooks/useMessageText";
-import HelpText from "../../../components/HelpText";
-import { Toast } from "react-native-toast-message/lib/src/Toast";
+import {colors} from '../../../config/constants';
+import Button from '../../../components/Button';
+import {getCurrency} from '../../../services/user';
+import useSocket from '../../../hooks/useSocket';
+import {round} from '../../../utils/common';
+import {insertChit, updateChitDetails} from '../../../services/tally';
+import {useChitsMeText} from '../../../hooks/useLanguage';
+import useMessageText from '../../../hooks/useMessageText';
+import HelpText from '../../../components/HelpText';
+import {Toast} from 'react-native-toast-message/lib/src/Toast';
 
-import { ChitIcon, SwapIcon } from "../../../components/SvgAssets/SvgAssets";
-import BottomSheetModal from "../../../components/BottomSheetModal";
-import SuccessModal from "../Success";
+import {ChitIcon, SwapIcon} from '../../../components/SvgAssets/SvgAssets';
+import BottomSheetModal from '../../../components/BottomSheetModal';
+import SuccessModal from '../Success';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
-const RequestDetail = (props) => {
-  const { tally_uuid, chit_seq, tally_type, editDetails } = props.route?.params;
-  const { wm } = useSocket();
-  const { preferredCurrency } = useSelector((state) => state.profile);
+const RequestDetail = props => {
+  const {tally_uuid, chit_seq, tally_type, editDetails} = props.route?.params;
+  const {wm} = useSocket();
+  const {preferredCurrency} = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
   const editNetValue = Math.abs?.(editDetails?.net);
 
-  const [memo, setMemo] = useState(editDetails?.memo ?? "");
+  const [memo, setMemo] = useState(editDetails?.memo ?? '');
   const [reference, setReference] = useState({});
   const [chit, setChit] = useState(
-    editNetValue ? editNetValue?.toString() : ""
+    editNetValue ? editNetValue?.toString() : '',
   );
   const [usd, setUSD] = useState();
-
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
 
   const [isSwitched, setIsSwitched] = useState(false);
 
-  const [showSuccess, setShowSuccess] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const ref = useRef("");
-
+  const ref = useRef('');
 
   useChitsMeText(wm);
-  const { messageText } = useMessageText();
+  const {messageText} = useMessageText();
 
   const referenceText = messageText?.col?.chits_v_me?.reference;
   const memoText = messageText?.col?.chits_v_me?.memo;
@@ -63,11 +62,11 @@ const RequestDetail = (props) => {
     if (currencyCode) {
       setLoading(true);
       getCurrency(wm, currencyCode)
-        .then((data) => {
+        .then(data => {
           setConversionRate(parseFloat(data?.rate ?? 0));
         })
-        .catch((err) => {
-          console.log("EXCEPTION ==> ", err);
+        .catch(err => {
+          console.log('EXCEPTION ==> ', err);
         })
         .finally(() => {
           setLoading(false);
@@ -75,8 +74,7 @@ const RequestDetail = (props) => {
     }
   }, [currencyCode]);
 
-
-  const totalNetDollar = (text) => {
+  const totalNetDollar = text => {
     const convertedChit = parseInt(text);
     if (conversionRate && convertedChit) {
       const total = convertedChit * conversionRate;
@@ -88,7 +86,7 @@ const RequestDetail = (props) => {
     setUSD(0);
   };
 
-  const totalChit = (text) => {
+  const totalChit = text => {
     const convertedUSD = parseInt(text);
     if (conversionRate && convertedUSD) {
       const total = convertedUSD / conversionRate;
@@ -110,7 +108,7 @@ const RequestDetail = (props) => {
       });
     }
 
-    if(net == 0) {
+    if (net == 0) {
       return Toast.show({
         type: 'error',
         text1: 'Please provide an amount',
@@ -122,24 +120,24 @@ const RequestDetail = (props) => {
     const payload = {
       reference: JSON.stringify(reference),
       memo: memo,
-      status: "open",
-      signature: "Signature",
-      request: "pend",
-      issuer: tally_type === "stock" ? "foil" : "stock",
+      status: 'open',
+      signature: 'Signature',
+      request: 'pend',
+      issuer: tally_type === 'stock' ? 'foil' : 'stock',
       units: net,
       tally_uuid,
       chit_seq,
     };
-    console.log("LOG_DATA ==> ", JSON.stringify(payload));
+    console.log('LOG_DATA ==> ', JSON.stringify(payload));
 
     insertChit(wm, payload)
-      .then((result) => {
-        console.log("RESULT ==> ", result);
-        setShowSuccess(true)
+      .then(result => {
+        console.log('RESULT ==> ', result);
+        setShowSuccess(true);
       })
-      .catch((err) => {
-        console.log("ERROR ==> ", err);
-        Alert.alert("Error", JSON.stringify(err));
+      .catch(err => {
+        console.log('ERROR ==> ', err);
+        Alert.alert('Error', JSON.stringify(err));
       })
       .finally(() => {
         setDisabled(false);
@@ -175,29 +173,30 @@ const RequestDetail = (props) => {
       chit_seq: editDetails?.chit_seq,
       chit_uuid: editDetails?.chit_uuid,
     })
-      .then((data) => {
+      .then(data => {
         Toast.show({
-          type: "success",
-          text1: "Chit request refused successfully",
+          type: 'success',
+          text1: 'Chit request refused successfully',
         });
         props.navigation.goBack();
       })
-      .catch((ex) => {
-        console.log("ERROR ==> ", ex);
+      .catch(ex => {
+        console.log('ERROR ==> ', ex);
         Toast.show({
-          type: "error",
-          text1: "Failed to refuse chit please try again.",
+          type: 'error',
+          text1: 'Failed to refuse chit please try again.',
         });
       });
   };
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={styles.container}
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={styles.contentContainer}
-    >
-       <View style={styles.centerWrapper}>
+      enableOnAndroid
+      extraHeight={150}
+      extraScrollHeight={30}
+      contentContainerStyle={styles.contentContainer}>
+      <View style={styles.centerWrapper}>
         {isSwitched ? (
           <>
             <View style={styles.row}>
@@ -207,7 +206,7 @@ const RequestDetail = (props) => {
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={usd}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setUSD(text);
                   totalChit(text);
                 }}
@@ -215,9 +214,10 @@ const RequestDetail = (props) => {
             </View>
 
             {currencyCode && chit ? (
-              <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
+              <View
+                style={[styles.row, {alignSelf: 'flex-end', marginRight: 20}]}>
                 <ChitIcon color={colors.black} height={18} width={12} />
-                <Text style={[styles.text,{marginLeft:10}]}>{chit}</Text>
+                <Text style={[styles.text, {marginLeft: 10}]}>{chit}</Text>
               </View>
             ) : (
               <></>
@@ -232,7 +232,7 @@ const RequestDetail = (props) => {
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={chit}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setChit(text);
                   totalNetDollar(text);
                 }}
@@ -240,7 +240,8 @@ const RequestDetail = (props) => {
             </View>
 
             {currencyCode && usd ? (
-                <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
+              <View
+                style={[styles.row, {alignSelf: 'flex-end', marginRight: 20}]}>
                 <Text style={styles.text}>
                   {usd} {currencyCode}
                 </Text>
@@ -255,19 +256,16 @@ const RequestDetail = (props) => {
       {currencyCode ? (
         <TouchableOpacity
           style={styles.icon}
-          onPress={() => setIsSwitched(!isSwitched)}
-        >
+          onPress={() => setIsSwitched(!isSwitched)}>
           <SwapIcon />
         </TouchableOpacity>
       ) : (
         <></>
       )}
 
-
       <TouchableOpacity
         style={styles.input}
-        onPress={() => ref.current.focus()}
-      >
+        onPress={() => ref.current.focus()}>
         <TextInput
           ref={ref}
           placeholder="Message"
@@ -285,26 +283,24 @@ const RequestDetail = (props) => {
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
-          title= {editDetails ? "Edit" : "Request"}
+          title={editDetails ? 'Edit' : 'Request'}
           onPress={onMakePayment}
           disabled={disabled}
         />
       </View>
 
-
       <BottomSheetModal
         isVisible={showSuccess}
-        onClose={() => setShowSuccess(false)}
-      >
+        onClose={() => setShowSuccess(false)}>
         <SuccessModal
           onClose={() => {
             props.navigation.goBack();
 
-            setShowSuccess(false)
+            setShowSuccess(false);
           }}
         />
       </BottomSheetModal>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -320,14 +316,14 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     fontSize: 26,
     paddingVertical: 20,
-    fontWeight: "500",
-    fontFamily: "inter",
+    fontWeight: '500',
+    fontFamily: 'inter',
     color: colors.black,
   },
   contentContainer: {
     flex: 1,
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   input: {
     height: 100,
@@ -343,40 +339,40 @@ const styles = StyleSheet.create({
   },
   button: {
     borderColor: colors.blue,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.blue,
   },
   centerWrapper: {
     marginBottom: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonView: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
   },
   row: {
-    width:200,
-    paddingRight:20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent:'center'
+    width: 200,
+    paddingRight: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
-    fontWeight: "500",
+    fontWeight: '500',
     color: colors.gray300,
   },
   icon: {
-    position: "absolute",
+    position: 'absolute',
     right: 60,
     top: 40,
   },
   link: {
     color: colors.blue,
-    alignSelf: "flex-end",
-    textDecorationStyle: "solid",
-    textDecorationLine: "underline",
+    alignSelf: 'flex-end',
+    textDecorationStyle: 'solid',
+    textDecorationLine: 'underline',
   },
 });
 
