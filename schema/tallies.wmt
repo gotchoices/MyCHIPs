@@ -6,8 +6,8 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {tally_seq	{Tally Sequence}	{A unique number among all tallies owned by this entity}}
   {tally_uuid	{Tally UUID}		{A globally unique identifier for this tally}}
   {tally_type	{Tally Type}		{Determines if this entity is typically the creditor (stock) or the debtor (foil) for this tally} {
-    {stock	{Stock}			{The entity this tally belongs to is typically the creditor on transactions}}
-    {foil	{Foil}			{The entity this tally belongs to is typically the debtor on transactions}}
+    {stock	{Stock}			{The entity this tally belongs to is typically the seller/creditor on transactions}}
+    {foil	{Foil}			{The entity this tally belongs to is typically the buyer/debtor on transactions}}
   }}
   {tally_date	{Tally Date}		{The date and time this tally was initiated between the parties}}
   {version	{Version}		{A number indicating the format standard this tally adheres to}}
@@ -110,7 +110,7 @@ tabtext mychips.tallies_v {Tallies}	{Standard view containing an entry for each 
   }}
   {action	{Action}		{Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.}}
   {liftable	{Liftable}		{Indicates if the tally is eligible to participate in lifts}}
-  {net		{Signed Units}		{Total milliCHIP value on the tally, as summed from current chits}}
+  {net		{Tally Total}		{Total milliCHIP value on the tally, as summed from current chits}}
   {chits	{Chits}			{The total number of chit transactions recorded on the tally}}
   {latest	{Last Chit}		{The date of the latest chit on the tally}}
   {json_core	{JSON Core}		{A JSON representation of the parts of the tally that will be digitally hashed and signed}}
@@ -138,18 +138,24 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {TMK		{Bad Key Number}	{The tally invitation must be called for exactly one tally}}
   {TIN		{Tally Invitation}	{Follow link to consider tally}}
   {TIL		{Good Until}		{Invitation expires after this time}}
+  {detail	{Tally Details}		{Show all information about the tally}}
   {close	{Close Tally}		{Request that the current tally be closed once its balance reaches zero}}
   {P.draft.valid {Tally Inquiry}	{Someone has responded to your tally invitation, including its own identifying certificate data}}
   {H.offer.offer {Your Offer}		{You have offerred this tally to the other party}}
   {P.offer.offer {Tally Offer}		{This tally is offered to you by the other party}}
   {H.offer.draft {Tally Revised}	{The other party has marked the tally offer for revision}}
   {P.draft.draft {You Revised}		{You have marked the tally offer for revision}}
+  {open.open	{Tally Opened}		{The tally has been accepted by both parties and is ready for transactions}}
   {disclose	{Send Certificate}	{Disclose my certificate information to the other partner}}
   {offer	{Offer Tally}		{Propose the tally to the partner}}
   {review	{Review Tally}		{Review the proposed tally}}
   {accept	{Accept Tally}		{Agree to the proposed tally}}
   {revise	{Revise Tally}		{Revise the proposed tally}}
   {reject	{Reject Tally}		{Refuse the proposed tally}}
+  {requested	{Tally Requested}	{You have disclosed certificate information and requested to tally}}
+  {accepted	{Tally Accepted}	{The tally has been accepted by the partner}}
+  {rejected	{Tally Rejected}	{The tally has been rejected by the partner}}
+  {noterms	{No Tally Terms}	{Please specify credit terms before sharing the tally}}
   {sort		{Tally Order}		{Control the order in which tallies are listed}}
   {credit	{Credit}		{Trust is extended for this amount}}
   {risk		{Risk}			{A loss may be incurred for this amount}}
@@ -158,8 +164,7 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {sort.abal	{Negative to Positive}	{Show biggest liabilities at the top, biggest assets at the bottom}}
   {sort.mbal	{Largest to Smallest}	{Show biggest totals (asset or liability) at the top}}
   {sort.dname	{Alphabetical}		{Sort alphabetically by partner name}}
-  {open.open	{Tally Opened}		{The tally has been accepted by both parties and is ready for transactions}}
-  {invited	{Wants to Tally}	{Invites you to open a new MyCHIPs tally}}
+  {invited	{Wants to Tally}	{Requests you to offer a new MyCHIPs tally}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
     {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}
     {invite.format	{Format}	{Determines which type of invitation is generated}}

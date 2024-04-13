@@ -73,9 +73,12 @@ tabtext mychips.chits_v {Chits}		{Standard view containing an entry for each chi
 
 tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies of the current user} {
 } -messages {
+  {detail	{Chit Details}		{Show all information about the chit}}
   {pending	{Pending Chits}		{Chits that are proposed but not yet approved}}
   {asset	{Asset}			{A chit issued by your partner to pay you}}
   {liability	{Liability}		{A chit issued by you to pay your partner}}
+  {dirpmt	{Direct Payment}	{A payment issued by you to pay your tally partner}}
+  {dirreq	{Direct Request}	{A payment requested by you from your tally partner}}
 }
 
 tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {

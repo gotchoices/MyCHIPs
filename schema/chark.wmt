@@ -23,6 +23,8 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {custom	{Custom}		{Customize my settings}}
   {save		{Save}			{Save the current changes}}
   {edit		{Edit}			{Modify the current information}}
+  {updated	{Updated}		{Changes have been written to the database}}
+  {deleted	{Deleted}		{The item has been deleted from the database}}
   {import	{Import}		{Import the item from an external format}}
   {export	{Export}		{Export the item to an external format}}
   {link		{Link}			{Generate a deep link for this function}}
