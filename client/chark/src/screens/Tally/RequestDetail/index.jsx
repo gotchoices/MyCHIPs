@@ -21,6 +21,7 @@ import {useChitsMeText} from '../../../hooks/useLanguage';
 import useMessageText from '../../../hooks/useMessageText';
 import HelpText from '../../../components/HelpText';
 import {Toast} from 'react-native-toast-message/lib/src/Toast';
+import useTitle from '../../../hooks/useTitle';
 
 import {ChitIcon, SwapIcon} from '../../../components/SvgAssets/SvgAssets';
 import BottomSheetModal from '../../../components/BottomSheetModal';
@@ -51,12 +52,9 @@ const RequestDetail = props => {
 
   const ref = useRef('');
 
-  useChitsMeText(wm);
-  const {messageText} = useMessageText();
+  const chitsText = useChitsMeText(wm);
 
-  const referenceText = messageText?.col?.chits_v_me?.reference;
-  const memoText = messageText?.col?.chits_v_me?.memo;
-  const netText = messageText?.col?.chits_v_me?.net;
+  useTitle(props.navigation, chitsText?.msg?.dirreq?.title)
 
   useEffect(() => {
     if (currencyCode) {

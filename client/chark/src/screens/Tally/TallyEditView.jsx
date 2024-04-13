@@ -38,6 +38,7 @@ const TallyEditView = (props) => {
   const hasHoldCert = !!tally?.hold_cert;
 
   const talliesMeText = messageText?.tallies_v_me?.col;
+  const charkMsgText = messageText?.chark?.msg;
   const certText = messageText?.users_v_me?.col?.cert;
 
   const partName= Object.values((tally.part_cert?.name ?? {})).join(' ')
@@ -150,7 +151,7 @@ const TallyEditView = (props) => {
             name={holdName}
             chipAddress={holdChipAddress}
             email={holdEmail}
-            onViewDetails={onViewCertificate({ title: 'My Certificate', cert: tally?.hold_cert ?? {} } )}
+            onViewDetails={onViewCertificate({ title: charkMsgText?.certopts?.title, cert: tally?.hold_cert ?? {} } )}
             certText={certText ?? {}}
           />
         )}
