@@ -5,7 +5,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 import {
   fetchTallies,
@@ -13,8 +13,8 @@ import {
 } from "../../../services/tally";
 import useSocket from "../../../hooks/useSocket";
 import { colors } from "../../../config/constants";
-import { useTalliesMeText, useTallyText } from "../../../hooks/useLanguage";
-import useMessageText from "../../../hooks/useMessageText";
+import { useTalliesMeText } from "../../../hooks/useLanguage";
+import useTitle from '../../../hooks/useTitle';
 
 import CustomText from "../../../components/CustomText";
 import TallyEditView from '../TallyEditView';
@@ -27,9 +27,14 @@ const EditOpenTally = (props) => {
   const [tally, setTally] = useState();
   const [tallyContracts, setTallyContracts] = useState([]);
 
+  const talliesMeText = useTalliesMeText(wm);
+  const talliesMeMsgText = talliesMeText?.msg;
+  const statusValues = talliesMeText?.col?.status?.values;
+  const openText = useMemo(() => {
+    return statusValues?.find(s => s.value === 'open');
+  }, [statusValues])
 
-  useTalliesMeText(wm);
-  const { messageText } = useMessageText();
+  useTitle(props.navigation, openText ? `${talliesMeMsgText?.detail?.title ?? ''} - ${openText?.title} `: null)
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {

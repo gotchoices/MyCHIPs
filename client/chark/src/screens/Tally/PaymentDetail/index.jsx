@@ -25,6 +25,7 @@ import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
 import { useChitsMeText } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
+import useTitle from '../../../hooks/useTitle';
 
 import { createSignature } from "../../../utils/message-signature";
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
@@ -57,7 +58,7 @@ const PaymentDetail = (props) => {
 
   const ref = useRef("");
 
-  useChitsMeText(wm);
+  const chitsText = useChitsMeText(wm);
   const { messageText } = useMessageText();
 
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
@@ -65,6 +66,8 @@ const PaymentDetail = (props) => {
   const showCreateSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(true));
   }
+
+  useTitle(props.navigation, chitsText?.msg?.dirpmt?.title)
 
   useEffect(() => {
     if (currencyCode) {
@@ -305,7 +308,7 @@ const PaymentDetail = (props) => {
       >
         <TextInput
           ref={ref}
-          placeholder="Message"
+          placeholder={chitsText?.col?.memo?.title}
           value={memo}
           onChangeText={setMemo}
         />
