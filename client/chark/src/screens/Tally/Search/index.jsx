@@ -18,6 +18,7 @@ const Search = (props) => {
         <TextInput
           style={styles.searchInput}
           placeholder={charkText?.search?.title ?? ''}
+          onChangeText={(text)=>props.searchInput(text)}
         />
       </View>
     </View>

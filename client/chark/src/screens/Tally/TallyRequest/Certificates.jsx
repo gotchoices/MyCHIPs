@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import { useSelector, useDispatch } from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {
   View,
   Text,
@@ -11,75 +11,91 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-import Search from '../Search'
+import Search from '../Search';
 import KeyIcon from '../../../../assets/svg/ic_key.svg';
 import FilterIcon from '../../../../assets/svg/ic_filter.svg';
 
-import useSocket from "../../../hooks/useSocket";
-import { colors } from '../../../config/constants';
-import { fetchTalliesForCertificates } from '../../../redux/certificateTalliesSlice';
+import useSocket from '../../../hooks/useSocket';
+import {colors} from '../../../config/constants';
+import {fetchTalliesForCertificates} from '../../../redux/certificateTalliesSlice';
 import useMessageText from '../../../hooks/useMessageText';
-import { useUser } from '../../../hooks/useLanguage';
+import {useUser} from '../../../hooks/useLanguage';
+import {getTallyName} from '../../../utils/user';
 
-const ListItem = (props) => {
+const ListItem = props => {
   return (
-    <TouchableWithoutFeedback
-      onPress={props.onPress}
-    >
+    <TouchableWithoutFeedback onPress={props.onPress}>
       <View style={styles.item}>
         <View>
-          <Text style={styles.itemName}>
-            {props.name}
-          </Text>
+          <Text style={styles.itemName}>{props.name}</Text>
 
           <Text style={styles.itemDate}>
-            {props.dateText} {props.createdAt ? moment(props.createdAt).format('DD/MM/YYYY') : 'N/A'}
+            {props.dateText}{' '}
+            {props.createdAt
+              ? moment(props.createdAt).format('DD/MM/YYYY')
+              : 'N/A'}
           </Text>
         </View>
         <KeyIcon />
       </View>
     </TouchableWithoutFeedback>
-  )
-}
+  );
+};
 
-const Certificates = (props) => {
+const Certificates = props => {
   const dispatch = useDispatch();
-  const { tallies, fetching, fromStartToCertSelection } = useSelector(state => state.certificateTallies)
-  const { messageText } = useMessageText();
+  const {tallies, fetching, fromStartToCertSelection} = useSelector(
+    state => state.certificateTallies,
+  );
+  const {messageText} = useMessageText();
+
+  const [searchedTallies, setSearchedTallies] = useState(tallies);
+
+  const [searchText, setSearchText] = useState('');
 
   const charkText = messageText?.chark?.msg;
 
-  const { wm } = useSocket();
+  const {wm} = useSocket();
 
   const usersMeText = useUser(wm);
   const usersMeCol = usersMeText?.col;
 
   const dateText = useMemo(() => {
-    return usersMeCol?.cert?.values?.find((cert) => cert.value === 'date')
-  }, [usersMeCol?.cert?.values])
+    return usersMeCol?.cert?.values?.find(cert => cert.value === 'date');
+  }, [usersMeCol?.cert?.values]);
 
   const getCertificates = () => {
-    dispatch(
-      fetchTalliesForCertificates({ wm })
-    );
-  }
+    dispatch(fetchTalliesForCertificates({wm}));
+  };
 
   useEffect(() => {
     getCertificates();
-  }, [wm, fetchTalliesForCertificates, dispatch])
+  }, [wm, fetchTalliesForCertificates, dispatch]);
 
   useEffect(() => {
-    if(!fetching && fromStartToCertSelection) {
+    if (searchText.length >= 2) {
+      const newTallies = tallies.filter(tally => {
+        return tally.comment.toLowerCase().startsWith(searchText.toLowerCase());
+      });
+
+      if (newTallies) {
+        return setSearchedTallies(newTallies);
+      }
+    }
+
+    return setSearchedTallies(tallies);
+  }, [searchText]);
+
+  useEffect(() => {
+    if (!fetching && fromStartToCertSelection) {
       props.onCustomPressed();
     }
-  }, [fetching, fromStartToCertSelection])
+  }, [fetching, fromStartToCertSelection]);
 
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.headerMain}>
-          {charkText?.certshare?.title}
-        </Text>
+        <Text style={styles.headerMain}>{charkText?.certshare?.title}</Text>
 
         <Text style={styles.headerDescription}>
           {charkText?.certshare?.help}
@@ -89,35 +105,35 @@ const Certificates = (props) => {
       <View style={styles.content}>
         <View>
           <View style={styles.section1}>
-            <Text>
-              {charkText?.certtpts?.title}
-            </Text>
-            
-            <TouchableWithoutFeedback
-              onPress={props.onCustomPressed}
-            >
+            <Text>{charkText?.certtpts?.title}</Text>
+
+            <TouchableWithoutFeedback onPress={props.onCustomPressed}>
               <View style={styles.filter}>
                 <FilterIcon />
-                <Text style={{ marginLeft: 5, colors: colors.gray300 }}>{charkText?.custom?.title ?? ''}</Text>
+                <Text style={{marginLeft: 5, colors: colors.gray300}}>
+                  {charkText?.custom?.title ?? ''}
+                </Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
 
-          <Search />
+          <Search searchInput={text => setSearchText(text)} />
 
           <FlatList
-            data={tallies}
-            keyExtractor={(item) => `${item.tally_ent}-${item.tally_seq}`}
+            data={searchedTallies}
+            keyExtractor={item => `${item.tally_ent}-${item.tally_seq}`}
             refreshControl={
               <RefreshControl
                 refreshing={fetching}
                 onRefresh={getCertificates}
               />
             }
-            renderItem={({ item,index }) => {
+            renderItem={({item, index}) => {
               return (
                 <ListItem
-                  onPress={() => props.onItemPressed(item.tally_ent, item.tally_seq)}
+                  onPress={() =>
+                    props.onItemPressed(item.tally_ent, item.tally_seq)
+                  }
                   name={item.comment ?? 'Draft'}
                   createdAt={item.crt_date}
                   dateText={dateText?.title ?? ''}
@@ -125,23 +141,22 @@ const Certificates = (props) => {
               );
             }}
           />
-
         </View>
       </View>
     </View>
-  )
-}
+  );
+};
 
 const font = {
   fontFamily: 'inter',
   fontWeight: '500',
-}
+};
 
 const styles = StyleSheet.create({
   container: {},
   header: {
     alignItems: 'center',
-    marginBottom: 50
+    marginBottom: 50,
   },
   headerMain: {
     ...font,
@@ -181,18 +196,18 @@ const styles = StyleSheet.create({
     ...font,
     color: colors.black,
     fontSize: 16,
-    fontWeight: '400'
+    fontWeight: '400',
   },
   itemDate: {
     ...font,
     fontWeight: '400',
     color: colors.gray300,
-  }
-})
+  },
+});
 
 Certificates.propTypes = {
   onCustomPressed: PropTypes.func.isRequired,
   onItemPressed: PropTypes.func.isRequired,
-}
+};
 
 export default Certificates;
