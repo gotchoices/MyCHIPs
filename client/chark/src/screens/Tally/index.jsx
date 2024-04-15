@@ -4,7 +4,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableWithoutFeedback,
-  Dimensions,
+  Text,
 } from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -57,16 +57,22 @@ const Tally = props => {
 
   const [sortedTallies, setSortedTallies] = useState(tallies);
 
+  const [filteredTallies, setFilteredTallies] = useState(sortedTallies);
+
   const onSearch = text => {
     if (text.length >= 2) {
       const newTallies = sortedTallies.filter(tally => {
         const partName = getTallyName(tally);
+        const cid = tally.part_cert?.chad?.cid;
 
-        return partName.toLowerCase().startsWith(text.toLowerCase());
+        return (
+          partName.toLowerCase().includes(text.toLowerCase()) ||
+          cid.toLowerCase().includes(text.toLowerCase())
+        );
       });
 
       if (newTallies) {
-        return setSortedTallies(newTallies);
+        return setFilteredTallies(newTallies);
       }
     }
 
@@ -77,12 +83,14 @@ const Tally = props => {
     const sortedArray = sortTalliesAlphabetically(tallies);
 
     setSortedTallies(sortedArray);
+    setFilteredTallies(sortedArray);
   };
 
   const getSortedTallies = (field, descending) => {
     const sortedArray = sortTallies(tallies, field, descending);
 
     setSortedTallies(sortedArray);
+    setFilteredTallies(sortedArray);
   };
 
   const fetchFilteredTallies = () => {
@@ -223,7 +231,12 @@ const Tally = props => {
             searchInput={text => onSearch(text)}
           />
         }
-        data={sortedTallies}
+        ListEmptyComponent={
+          <View style={styles.center}>
+            <Text>No list found.</Text>
+          </View>
+        }
+        data={filteredTallies}
         renderItem={renderItem}
         onRefresh={fetchTallies}
         keyExtractor={(_, index) => index}
@@ -266,6 +279,10 @@ const styles = StyleSheet.create({
   footer: {
     paddingBottom: 30,
     backgroundColor: colors.white,
+  },
+  center: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
