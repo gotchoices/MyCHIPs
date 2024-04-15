@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -8,6 +8,7 @@ import { round } from '../../../utils/common';
 import Avatar from '../../../components/Avatar';
 import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 import { formatRandomString } from '../../../utils/format-string';
+import useMessageText from '../../../hooks/useMessageText';
 
 const TallyItem = (props) => {
   const tally = props.tally;
@@ -20,6 +21,13 @@ const TallyItem = (props) => {
     : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
 
   const hasPendingChit = !!tally?.net_pc && net != pendingNet;
+
+  const {messageText} = useMessageText();
+  const chitMeText = messageText?.chits_v_me?.col;
+  const pendingText = useMemo(() => {
+    return chitMeText?.status?.values?.find(s => s.value === 'pend');
+  }, [chitMeText?.status?.values]);
+
 
   return (
     <View style={styles.container}>
@@ -36,7 +44,7 @@ const TallyItem = (props) => {
       <View style={styles.price}>
         {hasPendingChit && (
           <Text style={styles.pending}>
-            {pendingNet}
+             {pendingText?.title ?? ''} {pendingNet}
           </Text>
         )}
 

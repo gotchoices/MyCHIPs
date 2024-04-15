@@ -75,7 +75,7 @@ const Certificates = props => {
   useEffect(() => {
     if (searchText.length >= 2) {
       const newTallies = tallies.filter(tally => {
-        return tally.comment.toLowerCase().startsWith(searchText.toLowerCase());
+        return tally.comment.toLowerCase().includes(searchText.toLowerCase());
       });
 
       if (newTallies) {
@@ -140,6 +140,11 @@ const Certificates = props => {
                 />
               );
             }}
+            ListEmptyComponent={
+              <View style={styles.center}>
+                <Text>No list found.</Text>
+              </View>
+            }
           />
         </View>
       </View>
@@ -202,6 +207,10 @@ const styles = StyleSheet.create({
     ...font,
     fontWeight: '400',
     color: colors.gray300,
+  },
+  center: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
