@@ -138,6 +138,7 @@ export const useChitsMeText = (wm) => {
     if(!messageText?.chits_v_me) {
       wm.register('chits_v_me' + Math.random(), 'mychips.chits_v_me', (data, err) => {
         if (data) {
+          console.log('HELLO>>>>>', data?.chits_v_me?.msg?.detail)
           addTextsToState('chits_v_me', data, setMessageText)
         }
       })

@@ -15,6 +15,7 @@ import { request } from '../../../services/profile';
 import useSocket from '../../../hooks/useSocket';
 import useMessageText from '../../../hooks/useMessageText';
 import { fetchComm, setUserChangeTrigger } from '../../../redux/profileSlice';
+import { showError } from '../../../utils/error';
 
 import HelpText from '../../../components/HelpText';
 import CenteredModal from '../../../components/CenteredModal';
@@ -158,12 +159,12 @@ const Comm = (props) => {
     }
 
     setUpdating(true);
+
     Promise.all(promises).then(() => {
       Keyboard.dismiss();
       Toast.show({
         type: 'success',
-        text1: 'Changes saved successfully.',
-        position: 'bottom',
+        text1: charkText?.updated?.help ?? '',
       });
       updateCommunicationList();
       setSeqToRemove([]);
@@ -171,12 +172,7 @@ const Comm = (props) => {
         setUserChangeTrigger()
       );
     }).catch((err) => {
-      console.log({err})
-      Toast.show({
-        type: 'error',
-        text1: err.message,
-        position: 'bottom',
-      });
+      showError(err)
     }).finally(() => {
       setUpdating(false);
     })

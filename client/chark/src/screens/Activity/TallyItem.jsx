@@ -18,6 +18,7 @@ import useSocket from '../../hooks/useSocket';
 import { colors } from '../../config/constants';
 import { refuseTally } from '../../services/tally';
 import useMessageText from '../../hooks/useMessageText';
+import { showError } from '../../utils/error';
 
 const TallyItem = (props) => {
   const tally = props.tally;
@@ -26,6 +27,7 @@ const TallyItem = (props) => {
   const { messageText } = useMessageText();
   const talliesMeText = messageText?.tallies_v_me?.col;
   const talliesMessageText = messageText?.tallies_v_me?.msg;
+  const charkText = messageText?.chark?.msg;
 
   const commonText = {
     offer: talliesMessageText?.offer,
@@ -60,13 +62,10 @@ const TallyItem = (props) => {
 
       Toast.show({
         type: "success",
-        text1: "Tally refused.",
+        text1: talliesMessageText?.rejected?.help ?? '',
       });
     } catch(err) {
-      Toast.show({
-        type: "error",
-        text1: err.message,
-      });
+      showError(err);
     } finally {
       setRejecting(false);
     }

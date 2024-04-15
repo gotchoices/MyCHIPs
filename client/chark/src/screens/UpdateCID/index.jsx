@@ -5,11 +5,14 @@ import Button from "../../components/Button";
 import { updateCID } from "../../services/profile";
 import useSocket from "../../hooks/useSocket";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import useMessageText from '../../hooks/useMessageText';
 
 const UpdateCID = (props) => {
   const { wm } = useSocket();
   const [cid, setCid] = useState()
   const [disabled, setDdisabled] = useState(false);
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const onUpdate = () => {
     if (!cid) {
@@ -30,7 +33,7 @@ const UpdateCID = (props) => {
 
       Toast.show({
         type: 'success',
-        text1: 'CID updated.'
+        text1: charkText?.updated?.help ?? '',
       });
       props.success(cid.toString());
 

@@ -41,6 +41,7 @@ import {request} from '../../services/request';
 import {random} from '../../utils/common';
 import {GenerateKeysAlertModal} from '../../components/GenerateKeyAlertModal';
 import {getTallyName} from '../../utils/user';
+import { showError } from '../../utils/error';
 
 const Header_Height = 160;
 
@@ -147,7 +148,7 @@ const TallyInvite = props => {
         }
       })
       .catch(err => {
-        console.log('Error fetching contract', err.message);
+        showError(err);
       });
   }, [wm]);
 
@@ -202,10 +203,7 @@ const TallyInvite = props => {
         getTemplates();
       })
       .catch(err => {
-        Toast.show({
-          type: 'error',
-          text1: err?.message ?? 'Error creating new template',
-        });
+        showError(err);
       });
   };
 
@@ -355,10 +353,7 @@ const TallyInvite = props => {
         props.navigation.goBack();
       })
       .catch(err => {
-        Toast.show({
-          type: 'error',
-          text1: err.message,
-        });
+        showError(err);
       });
   };
 
@@ -375,16 +370,13 @@ const TallyInvite = props => {
       .then(res => {
         Toast.show({
           type: 'success',
-          text1: 'Tally deleted.',
+          text1: charkText?.deleted?.help ?? '',
         });
         getTemplates();
       })
-      .catch(err =>
-        Toast.show({
-          type: 'error',
-          text1: err?.message ?? 'Error deleting the tally',
-        }),
-      );
+      .catch(err =>{
+        showError(err);
+      });
   };
 
   const commonText = {

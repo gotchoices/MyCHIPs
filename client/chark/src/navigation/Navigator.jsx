@@ -26,7 +26,6 @@ import FilterScreen from "../screens/Filter";
 import ShareTally from "../screens/ShareTally";
 import CustomIcon from "../components/CustomIcon";
 import ChitDetail from "../screens/Tally/ChitDetail";
-import DraftTally from "../screens/Tally/DraftTally";
 import TallyReport from "../screens/Tally/TallyReport";
 import ChitHistory from "../screens/Tally/ChitHistory";
 import TallyPreview from "../screens/Tally/TallyPreview";
@@ -71,11 +70,6 @@ function HomeStackScreen() {
         name="Home"
         component={Home}
         options={{ headerShown: false }}
-      />
-      <HomeStack.Screen
-        name="DraftTally"
-        component={DraftTally}
-        options={{ title: "Customize New Certificate" }}
       />
       <HomeStack.Screen
         name="TallyRequest"

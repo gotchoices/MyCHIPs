@@ -24,6 +24,7 @@ const TradingVariables = (props) => {
 
   const { messageText } = useMessageText();
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+  const charkMessageText = messageText?.chark?.msg;
 
   const [trade, setTrade] = useState('');
 
@@ -80,7 +81,7 @@ const TradingVariables = (props) => {
     }).then(() => {
       Toast.show({
         type: 'success',
-        text1: 'Settings applied successfully'
+        text1: charkMessageText?.updated?.help ?? '',
       })
     }).catch((err) => {
       const { isKeyAvailable } = err;

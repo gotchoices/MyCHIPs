@@ -18,10 +18,9 @@ import useSocket from '../../../hooks/useSocket';
 import {round} from '../../../utils/common';
 import {insertChit, updateChitDetails} from '../../../services/tally';
 import {useChitsMeText} from '../../../hooks/useLanguage';
-import useMessageText from '../../../hooks/useMessageText';
-import HelpText from '../../../components/HelpText';
 import {Toast} from 'react-native-toast-message/lib/src/Toast';
 import useTitle from '../../../hooks/useTitle';
+import { showError } from '../../../utils/error';
 
 import {ChitIcon, SwapIcon} from '../../../components/SvgAssets/SvgAssets';
 import BottomSheetModal from '../../../components/BottomSheetModal';
@@ -126,7 +125,6 @@ const RequestDetail = props => {
       tally_uuid,
       chit_seq,
     };
-    console.log('LOG_DATA ==> ', JSON.stringify(payload));
 
     insertChit(wm, payload)
       .then(result => {
@@ -134,56 +132,10 @@ const RequestDetail = props => {
         setShowSuccess(true);
       })
       .catch(err => {
-        console.log('ERROR ==> ', err);
-        Alert.alert('Error', JSON.stringify(err));
+        showError(err);
       })
       .finally(() => {
         setDisabled(false);
-      });
-  };
-
-  const updateRequest = () => {
-    const net = round((chit ?? 0) * 1000, 3);
-
-    if (net < 0) {
-      return Toast.show({
-        type: 'error',
-        text1: "Can't input negative chit.",
-      });
-    }
-
-    if (net == 0) {
-      return Toast.show({
-        type: 'error',
-        text1: 'Please provide an amount',
-      });
-    }
-
-    updateChitDetails(wm, {
-      data: {
-        reference: JSON.stringify(reference),
-        memo: memo,
-        units: net,
-        // request: 'offer',
-      },
-      chit_ent: editDetails?.chit_ent,
-      chit_idx: editDetails?.chit_idx,
-      chit_seq: editDetails?.chit_seq,
-      chit_uuid: editDetails?.chit_uuid,
-    })
-      .then(data => {
-        Toast.show({
-          type: 'success',
-          text1: 'Chit request refused successfully',
-        });
-        props.navigation.goBack();
-      })
-      .catch(ex => {
-        console.log('ERROR ==> ', ex);
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to refuse chit please try again.',
-        });
       });
   };
 

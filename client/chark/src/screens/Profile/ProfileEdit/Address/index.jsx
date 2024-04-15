@@ -153,8 +153,7 @@ const Address = (props) => {
     Promise.all(promises).then(() => {
       Toast.show({
         type: 'success',
-        text1: 'Changes saved successfully.',
-        position: 'bottom',
+        text1: charkText?.updated?.help ?? '',
       });
       Keyboard.dismiss();
       updateAddressList();
