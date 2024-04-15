@@ -18,6 +18,7 @@ const ChistHistoryHeader = (props) => {
 
   const { messageText } = useMessageText();
   const chitMeText = messageText?.chits_v_me?.col;
+  const talliesMeText = messageText?.tallies_v_me?.col;
 
   useEffect(() => {
     if (currencyCode) {
@@ -48,7 +49,7 @@ const ChistHistoryHeader = (props) => {
     <View style={styles.container}>
       <View style={styles.row}>
         <View style={{ alignItems: 'flex-start' }}>
-          <Text style={[styles.label, { fontWeight: 'bold' }]}>Balance</Text>
+          <Text style={[styles.label, { fontWeight: 'bold' }]}>{talliesMeText?.net?.title ?? ''}</Text>
 
           <Text style={{ marginTop: 8 }}>
             {pendingText?.title ?? ''} {net_pc}

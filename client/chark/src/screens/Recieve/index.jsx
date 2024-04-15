@@ -21,6 +21,8 @@ import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { useTallyText } from "../../hooks/useLanguage";
 import { showError } from '../../utils/error';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { useChitsMeText } from '../../hooks/useLanguage';
+import useTitle from '../../hooks/useTitle';
 
 const Receive = props => {
   const [memo, setMemo] = useState('');
@@ -37,10 +39,15 @@ const Receive = props => {
   const {wm} = useSocket();
 
   const {request, comment} = useTallyText(wm);
+  console.log(comment, 'comment')
 
   const {preferredCurrency} = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
+
+  const chitsMeText = useChitsMeText();
+
+  useTitle(props.navigation, chitsMeText?.col?.request?.title)
 
   useEffect(() => {
     if (currencyCode) {

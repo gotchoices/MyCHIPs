@@ -147,7 +147,7 @@ const TallyReviewView = props => {
             }}
           />
 
-          <HelpText helpText="help" label={limitText?.title ?? ''} style={styles.midText} />
+          <HelpText helpText={limitText?.help ?? ''} label={limitText?.title ?? ''} style={styles.midText} />
 
           <TextInput
             maxLength={9}

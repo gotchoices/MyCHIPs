@@ -30,6 +30,7 @@ import {
 import useSocket from '../../../hooks/useSocket';
 import { processTicket } from '../../../services/tally';
 import useMessage from '../../../hooks/useMessageText';
+import { showError } from '../../../utils/error';
 
 const CustomCertificate = (props) => {
   const tally_ent = props.tally_ent;
@@ -197,15 +198,11 @@ const CustomCertificate = (props) => {
         await processTicket(wm, ticketPayload);
         Toast.show({
           type: 'success',
-          text1: 'Tally ticket processed.'
+          text1: talliesMeMessageText?.requested?.title ?? ''
         });
         props.navigation.navigate('Home')
       } catch(err) {
-        console.log(err, 'err')
-        Toast.show({
-          type: 'error',
-          text1: err.message ?? 'Tally ticket process failed.'
-        })
+        showError(err)
       } finally {
         setProcessingTicket(false);
       }

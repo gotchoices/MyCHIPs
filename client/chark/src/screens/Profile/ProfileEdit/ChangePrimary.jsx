@@ -32,8 +32,7 @@ const ChangePrimary = (props) => {
     props.savePrimary().then(() => {
       Toast.show({
         type: 'success',
-        text1: 'Changes saved successfully.',
-        position: 'bottom',
+        text1: charkText?.updated?.help ?? '',
       });
       dispatch(
         setUserChangeTrigger()

@@ -8,6 +8,7 @@ import { round } from "../../../utils/common";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
+import { showError } from '../../../utils/error';
 
 const ChitDetail = (props) => {
   const { chit_ent, chit_idx, chit_seq, chit_uuid } = props.route.params;
@@ -18,6 +19,7 @@ const ChitDetail = (props) => {
   const { messageText } = useMessageText();
   const chitsMeText = messageText?.chits_v_me?.col;
   const chitsMeMessageText = messageText?.chits_v_me?.msg;
+  const charkText = messageText?.chark?.msg;
 
   useTitle(props.navigation, chitsMeMessageText?.detail?.title)
 
@@ -50,24 +52,23 @@ const ChitDetail = (props) => {
     ).then(data => {
       if (data.length > 0) {
         const _data = data[0];
-        console.log("CHIT_DETAIL_CONTENT ==> ", JSON.stringify(_data));
         setChit(_data);
       }
-    }).catch(ex => {
-      Alert.alert("Error", ex?.message ?? '');
+    }).catch(err => {
+      showError(err)
     }).finally(() => setLoading(false))
   }
 
   const onPay = () => {
     Alert.alert(
       "Confirmn Payment",
-      "Are you sure to confir payment?",
+      "Are you sure to confirm payment?",
       [
         {
           text: 'Cancel'
         },
         {
-          text: 'Ok',
+          text: 'Yes',
           onPress: () => {
             updateChitState(
               wm,
@@ -76,12 +77,10 @@ const ChitDetail = (props) => {
                 chit_uuid
               }
             ).then((data) => {
-              console.log("ACCEPT RESPONSE ==> ", JSON.stringify(data));
-              Toast.show({ type: 'success', text1: 'Chit request accepted successfully' });
+              Toast.show({ type: 'success', text1: charkText?.updated?.help ?? '' });
               _fetchChitDetails();
-            }).catch(ex => {
-              console.log("ERROR ==> ", ex);
-              Toast.show({ type: 'error', text1: 'Failed to accept chit request please try again' });
+            }).catch(err => {
+              showError(err);
             });
           }
         },
@@ -108,12 +107,10 @@ const ChitDetail = (props) => {
                 chit_uuid
               }
             ).then((data) => {
-              console.log("REFUSE RESPONSE ==> ", JSON.stringify(data));
-              Toast.show({ type: 'success', text1: 'Chit request refused successfully' });
+              Toast.show({ type: 'success', text1: charkText?.updated?.help ?? '' });
               _fetchChitDetails();
-            }).catch(ex => {
-              console.log("ERROR ==> ", ex);
-              Toast.show({ type: 'error', text1: 'Failed to refuse chit please try again.' })
+            }).catch(err => {
+              showError(err);
             });
           }
         }
@@ -157,7 +154,7 @@ const ChitDetail = (props) => {
       <Text style={styles.text}>{chitsMeText?.signature?.title ?? ''}: {chit?.signature}</Text>
       <Text style={styles.text}>{chitsMeText?.clean?.title ?? ''}: {chit?.clean?.toString()}</Text>
       <Text style={styles.text}>{chitsMeText?.net?.title ?? ''}: {totalChitNet}</Text>
-      <Text style={styles.text}>{chitsMeText?.reference?.title ?? ''}: {chit?.reference}</Text>
+      <Text style={styles.text}>{chitsMeText?.reference?.title ?? ''}: {JSON.stringify(chit?.reference ?? {})}</Text>
       <Text style={styles.text}>{chitsMeText?.memo?.title ?? ''}: {chit?.memo}</Text>
       <Text style={styles.text}>{chitsMeText?.request?.title ?? ''}: {chit?.request ?? 'None'}</Text>
       <Text style={styles.text}>{chitsMeText?.status?.title ?? ''}: {chit?.status}</Text>

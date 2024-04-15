@@ -26,6 +26,7 @@ import { insertChit } from "../../../services/tally";
 import { useChitsMeText } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
 import useTitle from '../../../hooks/useTitle';
+import { showError } from '../../../utils/error';
 
 import { createSignature } from "../../../utils/message-signature";
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
@@ -171,7 +172,7 @@ const PaymentDetail = (props) => {
           [{ text: "Cancel" }, { text: "Continue", onPress: showCreateSignatureModal }]
         );
       } else {
-        Alert.alert("Error", err.message ?? 'Error making payment');
+        showError(err);
       }
     } finally {
       setDisabled(false);

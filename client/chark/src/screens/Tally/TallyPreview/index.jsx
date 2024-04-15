@@ -36,6 +36,9 @@ import { GenerateKeysAlertModal } from "../../../components/GenerateKeyAlertModa
 import AcceptButton from '../AcceptButton';
 import OfferButton from '../OfferButton';
 import { fetchOpenTallies } from "../../../redux/openTalliesSlice";
+import useMessageText from '../../../hooks/useMessageText';
+import useTitle from '../../../hooks/useTitle';
+import { showError } from "../../../utils/error";
 
 const TallyPreview = (props) => {
   const dispatch = useDispatch()
@@ -107,6 +110,14 @@ const TallyPreview = (props) => {
     certificateChangeTrigger?.hold_cert,
   ])
 
+  // Fetch tally text
+  const talliesMeText = useTalliesMeText(wm)
+  const talliesMeMessageText = talliesMeText?.msg ?? {};
+  const { messageText } = useMessageText();
+  const charkMessageText = messageText?.chark?.msg;
+
+  useTitle(props.navigation, talliesMeMessageText?.detail?.title)
+
   const onDisplayCertUpdate = () => {
     setUpdateCert(true);
   };
@@ -114,10 +125,6 @@ const TallyPreview = (props) => {
   const onDismissCertUpdate = () => {
     setUpdateCert(false);
   };
-
-  // Fetch tally text
-  const talliesMeText = useTalliesMeText(wm)
-  const talliesMeMessageText = talliesMeText?.msg ?? {};
 
   const onShare = () => {
     const hold_limit = tally?.hold_terms?.limit;
@@ -130,7 +137,7 @@ const TallyPreview = (props) => {
     ) {
       return Toast.show({
         type: "error",
-        text1: "Please add hold terms and part terms before sharing tally.",
+        text1: talliesMeMessageText?.noterms?.help,
       });
     }
 
@@ -162,11 +169,11 @@ const TallyPreview = (props) => {
 
         Toast.show({
           type: "success",
-          text1: "Certificate updated successfully.",
+          text1: charkMessageText?.updated?.help ?? '',
         });
       })
-      .catch((ex) => {
-        console.log("EXCEPTION_HERE ==> ", ex);
+      .catch((err) => {
+        showError(err);
       });
   };
 
@@ -223,7 +230,7 @@ const TallyPreview = (props) => {
 
       Toast.show({
         type: "success",
-        text1: "Tally updated successfully",
+        text1: charkMessageText?.updated?.help,
       });
 
       setTriggerInviteFetch((c) => {
@@ -239,10 +246,7 @@ const TallyPreview = (props) => {
     }).then((data) => {
       setTally(data)
     }).catch((err) => {
-      Toast.show({
-        type: "error",
-        text1: err.message,
-      });
+      showError(err);
     });
   };
 
@@ -273,7 +277,7 @@ const TallyPreview = (props) => {
   const postAccept = () => {
     Toast.show({
       type: "success",
-      text1: "Tally accepted",
+      text1: talliesMeMessageText?.accepted?.title ?? '',
     });
     props.navigation.goBack();
   }

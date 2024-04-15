@@ -7,7 +7,7 @@ const useTitle = (navigation, title) => {
         title,
       });
     }
-  }, [])
+  }, [title])
 }
 
 export default useTitle;

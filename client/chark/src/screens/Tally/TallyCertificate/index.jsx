@@ -15,6 +15,8 @@ import { colors } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import { updateHoldCert } from '../../../services/tally';
 import { setCertificate, resetCertificate, setConnect, setBirth, setPlace, setState, setCertificateChangeTrigger, setFile } from '../../../redux/workingTalliesSlice';
+import useMessageText from '../../../hooks/useMessageText';
+import { showError } from '../../../utils/error';
 
 const TallyCertificate = (props) => {
   const { title, cert, tally_ent, tally_seq, state: tallyState} = props.route?.params ?? {};
@@ -24,6 +26,9 @@ const TallyCertificate = (props) => {
   const [updating, setUpdating] = useState(false);
   const { personal } = useSelector(state => state.profile);
   const { place, state, birth, connect, file } = useSelector(state => state.workingTallies)
+
+  const { messageText } = useMessageText();
+  const charkMsgText = messageText?.chark?.msg;
 
   useEffect(() => {
     const {
@@ -177,13 +182,10 @@ const TallyCertificate = (props) => {
         )
         Toast.show({
           type: 'success',
-          text1: 'Certificate updated'
+          text1: charkMsgText?.updated?.help ?? ''
         });
       } catch(err) {
-        Toast.show({
-          type: 'error',
-          text1: err.message ?? 'Error updating certificate'
-        })
+        showError(err);
       } finally {
         setUpdating(false);
       }

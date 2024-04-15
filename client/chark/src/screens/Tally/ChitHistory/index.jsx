@@ -11,6 +11,7 @@ import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
 import { formatDate } from "../../../utils/format-date";
+import useMessageText from '../../../hooks/useMessageText';
 
 const ChitHistory = (props) => {
   const { tally_uuid, digest } = props.route?.params ?? {};
@@ -19,6 +20,8 @@ const ChitHistory = (props) => {
   const [chits, setChits] = useState(undefined);
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const avatar = imagesByDigest?.[digest];
+  const { messageText } = useMessageText();
+  const chitMeText = messageText?.chits_v_me?.col;
 
   useEffect(() => {
     _fetchChitHistory();
@@ -104,10 +107,10 @@ const ChitHistory = (props) => {
             </View>
           </View>
 
-          <Text style={{ color: 'black', marginTop: 4 }}>Reference: {JSON.stringify(item.reference) ?? 'not added'} </Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>Memo: {item.memo ?? 'not added'}</Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>State: {item.state}</Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>Action: {item.action?.toString()}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.reference?.title ?? ''}: {JSON.stringify(item.reference) ?? 'not added'} </Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.memo?.title ?? ''}: {item.memo ?? 'not added'}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.state?.title ?? ''}: {item.state}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.action?.title ?? ''}: {item.action?.toString()}</Text>
         </View>
 
         <View style={{ width: 8 }} />
