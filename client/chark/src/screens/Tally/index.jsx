@@ -1,31 +1,32 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, {useEffect, useState, useMemo} from 'react';
 import {
   View,
   StyleSheet,
   FlatList,
   TouchableWithoutFeedback,
   Dimensions,
-} from "react-native";
-import { useSelector, useDispatch } from "react-redux";
+} from 'react-native';
+import {useSelector, useDispatch} from 'react-redux';
 
-import useSocket from "../../hooks/useSocket";
-import { round } from "../../utils/common";
-import { getCurrency } from "../../services/user";
-import { useTalliesMeText, useChitsMeText } from "../../hooks/useLanguage";
+import useSocket from '../../hooks/useSocket';
+import {round} from '../../utils/common';
+import {getCurrency} from '../../services/user';
+import {useTalliesMeText, useChitsMeText} from '../../hooks/useLanguage';
 import {
   fetchOpenTallies,
   updateTallyOnChitTransferred,
-} from "../../redux/openTalliesSlice";
-import { fetchImagesByDigest as fetchImages } from "../../redux/avatarSlice";
+} from '../../redux/openTalliesSlice';
+import {fetchImagesByDigest as fetchImages} from '../../redux/avatarSlice';
 
-import TallyItem from "./TallyItem";
-import TallyHeader from "./TallyHeader";
-import PayModal from "../Pay";
-import { colors } from "../../config/constants";
+import TallyItem from './TallyItem';
+import TallyHeader from './TallyHeader';
+import PayModal from '../Pay';
+import {colors} from '../../config/constants';
 import {
+  getTallyName,
   sortTallies,
   sortTalliesAlphabetically,
-} from "../../utils/user";
+} from '../../utils/user';
 
 const connectionStatus = {
   connected: 'Connected',
@@ -33,18 +34,16 @@ const connectionStatus = {
   connecting: 'Connecting',
 };
 
-const Tally = (props) => {
-  const { wm, tallyNegotiation, chitTrigger, status } = useSocket();
+const Tally = props => {
+  const {wm, tallyNegotiation, chitTrigger, status} = useSocket();
   const dispatch = useDispatch();
-  const { preferredCurrency, filterTally } = useSelector(
-    (state) => state.profile
-  );
+  const {preferredCurrency, filterTally} = useSelector(state => state.profile);
   const {
     imageFetchTrigger,
     tallies: tallies,
     /*imagesByDigest,*/ fetching,
-  } = useSelector((state) => state.openTallies);
-  const { imagesByDigest } = useSelector((state) => state.avatar);
+  } = useSelector(state => state.openTallies);
+  const {imagesByDigest} = useSelector(state => state.avatar);
   useTalliesMeText(wm);
   useChitsMeText(wm);
 
@@ -57,6 +56,22 @@ const Tally = (props) => {
   const [isVisible, setIsVisible] = useState(false);
 
   const [sortedTallies, setSortedTallies] = useState(tallies);
+
+  const onSearch = text => {
+    if (text.length >= 2) {
+      const newTallies = sortedTallies.filter(tally => {
+        const partName = getTallyName(tally);
+
+        return partName.toLowerCase().startsWith(text.toLowerCase());
+      });
+
+      if (newTallies) {
+        return setSortedTallies(newTallies);
+      }
+    }
+
+    return fetchFilteredTallies();
+  };
 
   const getTalliesAlphabetically = () => {
     const sortedArray = sortTalliesAlphabetically(tallies);
@@ -73,64 +88,64 @@ const Tally = (props) => {
   const fetchFilteredTallies = () => {
     if (wm) {
       const selectedKey = Object.keys(filterTally).find(
-        (key) => filterTally[key].selected === true
+        key => filterTally[key].selected === true,
       );
 
       switch (selectedKey) {
-        case "absolute":
-          return getSortedTallies("mag_p", true);
+        case 'absolute':
+          return getSortedTallies('mag_p', true);
 
-        case "ascending":
-          return getSortedTallies("net", true);
+        case 'ascending':
+          return getSortedTallies('net', true);
 
-        case "descending":
-          return getSortedTallies("net", false);
+        case 'descending':
+          return getSortedTallies('net', false);
 
-        case "recent":
-          return getSortedTallies("tally_date", true);
+        case 'recent':
+          return getSortedTallies('tally_date', true);
 
-        case "alphabetical":
+        case 'alphabetical':
           return getTalliesAlphabetically();
 
         default:
-          return getSortedTallies("tally_date", true);
+          return getSortedTallies('tally_date', true);
       }
     }
   };
 
-  useEffect(()=>{
-    if(tallies){
-      fetchFilteredTallies()
+  useEffect(() => {
+    if (tallies) {
+      fetchFilteredTallies();
     }
-  },[tallies])
+  }, [tallies]);
 
-  useEffect(()=>{
-    fetchFilteredTallies()
-  },[filterTally])
+  useEffect(() => {
+    fetchFilteredTallies();
+  }, [filterTally]);
 
   const fetchTallies = () => {
     if (wm) {
-      dispatch(fetchOpenTallies({ wm }));
+      dispatch(fetchOpenTallies({wm}));
     }
   };
 
   useEffect(() => {
     fetchTallies();
-  }, [wm, dispatch, fetchOpenTallies, tallyNegotiation])
+  }, [wm, dispatch, fetchOpenTallies, tallyNegotiation]);
 
   useEffect(() => {
     if (wm) {
-      dispatch(fetchImages({ wm, status: "open" }));
+      dispatch(fetchImages({wm, status: 'open'}));
     }
   }, [wm, imageFetchTrigger]);
 
   useEffect(() => {
     if (currencyCode) {
       getCurrency(wm, currencyCode)
-        .then((data) => {
+        .then(data => {
           setConversionRate(parseFloat(data?.rate ?? 0));
         })
-        .catch((err) => {
+        .catch(err => {
           // TODO
         });
     }
@@ -168,25 +183,23 @@ const Tally = (props) => {
     return 0;
   }, [totalNet, conversionRate]);
 
-  const onItemPress = ({ tally }) => {
+  const onItemPress = ({tally}) => {
     setTally(tally);
     setIsVisible(true);
   };
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({item, index}) => (
     <TouchableWithoutFeedback
       onPress={() => {
         onItemPress({
           tally: item,
         });
-      }}
-    >
+      }}>
       <View
         style={[
           styles.item,
           index === tallies?.length - 1 ? styles.itemLast : null,
-        ]}
-      >
+        ]}>
         <TallyItem
           tally={item}
           image={imagesByDigest?.[item?.part_cert?.file?.[0]?.digest]}
@@ -207,6 +220,7 @@ const Tally = (props) => {
             totalNetDollar={totalNetDollar}
             currencyCode={preferredCurrency.code}
             navigation={props.navigation}
+            searchInput={text => onSearch(text)}
           />
         }
         data={sortedTallies}
@@ -239,9 +253,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   item: {
-    width: "90%",
+    width: '90%',
     paddingVertical: 18,
-    alignSelf: "center",
+    alignSelf: 'center',
     borderBottomWidth: 1,
     paddingHorizontal: 12,
     borderBottomColor: colors.lightgray,
@@ -250,7 +264,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   footer: {
-    paddingBottom:30,
+    paddingBottom: 30,
     backgroundColor: colors.white,
   },
 });

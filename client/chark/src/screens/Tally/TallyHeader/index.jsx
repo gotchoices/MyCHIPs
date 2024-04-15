@@ -14,7 +14,7 @@ const TallyHeader = (props) => {
     />
 
     <View style={styles.search}>
-      <Search />
+      <Search  searchInput ={(text)=>props.searchInput(text)}/>
     </View>
   </View>
 }

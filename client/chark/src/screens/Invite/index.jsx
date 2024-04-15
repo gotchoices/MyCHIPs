@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, {useState, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -6,55 +6,56 @@ import {
   TouchableOpacity,
   Alert,
   TouchableHighlight,
-} from "react-native";
-import Toast from "react-native-toast-message";
-import SwipeableFlatList from "react-native-swipeable-list";
-import { useSelector, useDispatch } from "react-redux";
+} from 'react-native';
+import Toast from 'react-native-toast-message';
+import SwipeableFlatList from 'react-native-swipeable-list';
+import {useSelector, useDispatch} from 'react-redux';
 
-import { colors } from "../../config/constants";
-import useSocket from "../../hooks/useSocket";
-import useInvite from "../../hooks/useInvite";
+import {colors} from '../../config/constants';
+import useSocket from '../../hooks/useSocket';
+import useInvite from '../../hooks/useInvite';
 import {
   createTemplate,
   fetchContracts,
   refuseTally,
-} from "../../services/tally";
-import TemplateItem from "./TemplateItem";
-import CustomTextInput from "../../components/CustomTextInput";
+} from '../../services/tally';
+import TemplateItem from './TemplateItem';
+import CustomTextInput from '../../components/CustomTextInput';
 import {
   FilterSecondIcon,
   SearchIcon,
-} from "../../components/SvgAssets/SvgAssets";
-import FloatingActionButton from "../../components/FloadingActionButton";
-import BottomSheetModal from "../../components/BottomSheetModal";
-import CommentContent from "./CommentContent";
-import LimitContent from "./LimitContent";
-import SuccessContent from "../../components/SuccessContent";
-import { GenerateKeysDialog } from "../Tally/TallyPreview/GenerateKeysDialog";
-import TallyEntryModal from "./TallyEntryModal";
+} from '../../components/SvgAssets/SvgAssets';
+import FloatingActionButton from '../../components/FloadingActionButton';
+import BottomSheetModal from '../../components/BottomSheetModal';
+import CommentContent from './CommentContent';
+import LimitContent from './LimitContent';
+import SuccessContent from '../../components/SuccessContent';
+import {GenerateKeysDialog} from '../Tally/TallyPreview/GenerateKeysDialog';
+import TallyEntryModal from './TallyEntryModal';
 
-import useMessageText from "../../hooks/useMessageText";
-import { useTalliesMeText } from "../../hooks/useLanguage";
-import { fetchTemplates } from "../../redux/workingTalliesSlice";
-import { fetchImagesByDigest } from "../../redux/avatarSlice";
-import { request } from "../../services/request";
-import { random } from "../../utils/common";
-import { GenerateKeysAlertModal } from "../../components/GenerateKeyAlertModal";
+import useMessageText from '../../hooks/useMessageText';
+import {useTalliesMeText} from '../../hooks/useLanguage';
+import {fetchTemplates} from '../../redux/workingTalliesSlice';
+import {fetchImagesByDigest} from '../../redux/avatarSlice';
+import {request} from '../../services/request';
+import {random} from '../../utils/common';
+import {GenerateKeysAlertModal} from '../../components/GenerateKeyAlertModal';
+import {getTallyName} from '../../utils/user';
 
 const Header_Height = 160;
 
-const useSearchData = (initialData) => {
-  const [searchValue, setSearchValue] = useState("");
+const useSearchData = initialData => {
+  const [searchValue, setSearchValue] = useState('');
   const [filteredData, setFilteredData] = useState(initialData);
 
   useEffect(() => {
-    if (searchValue) {
-      const filtered = initialData.filter((item) => {
-        const userName = item.part_cert?.name;
-        const name = `${userName?.first}${
-          userName?.middle ? " " + userName?.middle + " " : ""
-        } ${userName?.surname}`;
-        return name.toLowerCase().includes(searchValue.toLowerCase());
+    if (searchValue.length >= 2) {
+      const filtered = initialData.filter(item => {
+        const name = getTallyName(item);
+
+        if (name) {
+          return name.toLowerCase().includes(searchValue.toLowerCase());
+        }
       });
       setFilteredData(filtered);
     } else {
@@ -62,7 +63,7 @@ const useSearchData = (initialData) => {
     }
   }, [searchValue, initialData]);
 
-  return { searchValue, setSearchValue, filteredData };
+  return {searchValue, setSearchValue, filteredData};
 };
 
 const EmptyContent = () => {
@@ -70,45 +71,40 @@ const EmptyContent = () => {
     <View
       style={{
         flex: 1,
-        alignItems: "center",
-        alignContent: "center",
-      }}
-    >
+        alignItems: 'center',
+        alignContent: 'center',
+      }}>
       <Text>No Tallies Found with the status.</Text>
     </View>
   );
 };
 
-const TallyInvite = (props) => {
-  const { fetching, tallies: data, imageFetchTrigger } = useSelector(
-    (state) => state.workingTallies
-  );
+const TallyInvite = props => {
+  const {
+    fetching,
+    tallies: data,
+    imageFetchTrigger,
+  } = useSelector(state => state.workingTallies);
 
-  const { searchValue, setSearchValue, filteredData } = useSearchData(
-    data
-  );
-  const { wm, ws, tallyNegotiation } = useSocket();
-  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(
-    false
-  );
+  const {searchValue, setSearchValue, filteredData} = useSearchData(data);
+  const {wm, ws, tallyNegotiation} = useSocket();
+  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
 
   /*
    * fromOffer: used to navigate after offering tally from tally preview
    */
-  const { fromOffer } = props.route?.params ?? {};
+  const {fromOffer} = props.route?.params ?? {};
 
-  const { triggerInviteFetch } = useInvite();
-  const { filter } = useSelector((state) => state.profile);
+  const {triggerInviteFetch} = useInvite();
+  const {filter} = useSelector(state => state.profile);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [showTemplateSuccess, setShowTemplateSuccess] = useState(
-    false
-  );
+  const [showTemplateSuccess, setShowTemplateSuccess] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
   const [showOfferSuccess, setShowOfferSuccess] = useState({
     show: false,
-    offerTo: "",
+    offerTo: '',
     tally_ent: null,
     tally_seq: null,
   });
@@ -121,15 +117,15 @@ const TallyInvite = (props) => {
   });
 
   useTalliesMeText(wm);
-  const { messageText } = useMessageText();
+  const {messageText} = useMessageText();
   const talliesColText = messageText?.tallies_v_me?.col;
   const charkText = messageText?.chark?.msg;
 
   const draftLang = useMemo(() => {
     return talliesColText?.request?.values?.find(
-      (item) => item.value === "draft"
+      item => item.value === 'draft',
     );
-  }, [talliesColText?.request?.values])
+  }, [talliesColText?.request?.values]);
 
   useEffect(() => {
     if (ws) {
@@ -139,26 +135,26 @@ const TallyInvite = (props) => {
 
   useEffect(() => {
     fetchContracts(wm, {
-      fields: ["name", "language", "host", "rid"],
+      fields: ['name', 'language', 'host', 'rid'],
       where: {
         top: true,
-        name: "Tally_Contract",
+        name: 'Tally_Contract',
       },
     })
-      .then((data) => {
+      .then(data => {
         if (data?.[0]) {
           setContract(data[0]);
         }
       })
-      .catch((err) => {
-        console.log("Error fetching contract", err.message);
+      .catch(err => {
+        console.log('Error fetching contract', err.message);
       });
   }, [wm]);
 
   // Fetch images(uses cache if already present)
   useEffect(() => {
     if (wm) {
-      dispatch(fetchImagesByDigest({ wm, status: "working" }));
+      dispatch(fetchImagesByDigest({wm, status: 'working'}));
     }
   }, [wm, imageFetchTrigger]);
 
@@ -166,7 +162,7 @@ const TallyInvite = (props) => {
     if (fromOffer) {
       setShowOfferSuccess({
         show: fromOffer.show ?? false,
-        offerTo: fromOffer.offerTo ?? "",
+        offerTo: fromOffer.offerTo ?? '',
         tally_ent: fromOffer.tally_ent ?? null,
         tally_seq: fromOffer.tally_seq ?? null,
       });
@@ -175,49 +171,47 @@ const TallyInvite = (props) => {
 
   const getFilterResult = (filterBy, separatedBy) => {
     const values = Object.values(filter);
-    const selectedValues = values.filter((item) => item.selected);
+    const selectedValues = values.filter(item => item.selected);
     const entry =
       selectedValues.length === 0
-        ? values.map((item) => item?.[filterBy]).join(separatedBy)
-        : selectedValues
-            .map((item) => item?.[filterBy])
-            .join(separatedBy);
+        ? values.map(item => item?.[filterBy]).join(separatedBy)
+        : selectedValues.map(item => item?.[filterBy]).join(separatedBy);
     return entry;
   };
 
   //Create a new template
-  const newTemplate = (item) => {
-    const rid = contract?.rid ?? "";
+  const newTemplate = item => {
+    const rid = contract?.rid ?? '';
 
     const payload = {
-      contract: { source: rid },
-      comment: item.comment ?? "Test: " + new Date(),
+      contract: {source: rid},
+      comment: item.comment ?? 'Test: ' + new Date(),
       tally_type: item.tally_type,
       hold_terms: {
         call: 30,
-        limit: item.tally_type === "foil" ? item.limit : null,
+        limit: item.tally_type === 'foil' ? item.limit : null,
       },
       part_terms: {
         call: 30,
-        limit: item.tally_type === "stock" ? item.limit : null,
+        limit: item.tally_type === 'stock' ? item.limit : null,
       },
     };
     createTemplate(wm, payload)
-      .then((data) => {
+      .then(data => {
         setShowTemplateSuccess(true);
         getTemplates();
       })
-      .catch((err) => {
+      .catch(err => {
         Toast.show({
-          type: "error",
-          text1: err?.message ?? "Error creating new template",
+          type: 'error',
+          text1: err?.message ?? 'Error creating new template',
         });
       });
   };
 
   const getTemplates = () => {
-    const entry = getFilterResult("status", " ");
-    dispatch(fetchTemplates({ wm, entry }));
+    const entry = getFilterResult('status', ' ');
+    dispatch(fetchTemplates({wm, entry}));
   };
 
   const onNeogitationModalClose = () => {
@@ -235,7 +229,7 @@ const TallyInvite = (props) => {
   };
 
   const postOffer = () => {
-    const { tally_ent, tally_seq, name } = negotiationData?.data ?? {};
+    const {tally_ent, tally_seq, name} = negotiationData?.data ?? {};
     setShowOfferSuccess({
       tally_ent,
       tally_seq,
@@ -243,33 +237,33 @@ const TallyInvite = (props) => {
       offerTo: name,
     });
     resetNegotiationData();
-  }
+  };
 
-  const postAccept= () => {
+  const postAccept = () => {
     setShowAcceptSuccess(true);
     resetNegotiationData();
-  }
+  };
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({item, index}) => {
     return (
       <View style={styles.itemView}>
         <TemplateItem
           testID={`tally-${index}`}
           template={item}
           navigation={props.navigation}
-          onItemSelected={(item) => {
+          onItemSelected={item => {
             const state = item?.state;
-            const canShare = state === "draft";
-            const canOffer = state === "P.draft";
-            const canAccept = state === "P.offer";
+            const canShare = state === 'draft';
+            const canOffer = state === 'P.draft';
+            const canAccept = state === 'P.offer';
             const first = item.part_cert?.name?.first;
             const middle = item.part_cert?.name?.middle;
             const surname = item.part_cert?.name?.surname;
             const name =
-              item.part_cert?.type === "o"
+              item.part_cert?.type === 'o'
                 ? `${item.part_cert?.name}`
-                : `${first}${middle ? " " + middle : ""}${
-                    surname ? " " + surname : ""
+                : `${first}${middle ? ' ' + middle : ''}${
+                    surname ? ' ' + surname : ''
                   }`;
             const limit = item.part_terms?.limit ?? 0;
             const holdDigest = item.hold_cert?.file?.[0]?.digest;
@@ -297,23 +291,23 @@ const TallyInvite = (props) => {
               return;
             }
 
-            props.navigation.navigate("TallyPreview", {
+            props.navigation.navigate('TallyPreview', {
               tally_seq: item.id,
               tally_ent: item.tally_ent,
             });
           }}
-          draftLang={draftLang?.title ?? "draft"}
+          draftLang={draftLang?.title ?? 'draft'}
         />
       </View>
     );
   };
 
   const onFilter = () => {
-    props.navigation.navigate("FilterScreen");
+    props.navigation.navigate('FilterScreen');
   };
 
   const onReview = (tally_seq, tally_ent) => {
-    props.navigation.navigate("TallyPreview", {
+    props.navigation.navigate('TallyPreview', {
       tally_seq,
       tally_ent,
     });
@@ -322,7 +316,7 @@ const TallyInvite = (props) => {
   };
 
   const onTallyOpenDone = () => {
-    props.navigation.navigate("Home");
+    props.navigation.navigate('Home');
   };
 
   const onDismissOfferSuccess = () => {
@@ -331,7 +325,7 @@ const TallyInvite = (props) => {
     });
     setShowOfferSuccess({
       show: false,
-      offerTo: "",
+      offerTo: '',
       tally_ent: null,
       tally_seq: null,
     });
@@ -344,52 +338,52 @@ const TallyInvite = (props) => {
     onDismissOfferSuccess();
 
     if (tally_ent && tally_seq) {
-      props.navigation.navigate("TallyPreview", {
+      props.navigation.navigate('TallyPreview', {
         tally_seq,
         tally_ent,
       });
     }
   };
 
-  const onRefuse = (item) => {
+  const onRefuse = item => {
     refuseTally(wm, item)
       .then(() => {
         Toast.show({
-          type: "success",
-          text1: "Tally refused.",
+          type: 'success',
+          text1: 'Tally refused.',
         });
         props.navigation.goBack();
       })
-      .catch((err) => {
+      .catch(err => {
         Toast.show({
-          type: "error",
+          type: 'error',
           text1: err.message,
         });
       });
   };
 
-  const deleteDraftTallies = (item) => {
+  const deleteDraftTallies = item => {
     const spec = {
-      view: "mychips.tallies_v_me",
+      view: 'mychips.tallies_v_me',
       where: {
         tally_ent: item.tally_ent,
         tally_seq: item.tally_seq,
       },
     };
 
-    return request(wm, "delete_tally" + random(), "delete", spec)
-      .then((res) => {
+    return request(wm, 'delete_tally' + random(), 'delete', spec)
+      .then(res => {
         Toast.show({
-          type: "success",
-          text1: "Tally deleted.",
+          type: 'success',
+          text1: 'Tally deleted.',
         });
         getTemplates();
       })
-      .catch((err) =>
+      .catch(err =>
         Toast.show({
-          type: "error",
-          text1: err?.message ?? "Error deleting the tally",
-        })
+          type: 'error',
+          text1: err?.message ?? 'Error deleting the tally',
+        }),
       );
   };
 
@@ -401,27 +395,23 @@ const TallyInvite = (props) => {
     hold_terms: talliesColText?.hold_terms,
   };
 
-  const onDeleteTally = (item) => {
-    if (item.status === "draft") {
+  const onDeleteTally = item => {
+    if (item.status === 'draft') {
       return deleteDraftTallies(item);
     }
 
     return onRefuse(item);
   };
 
-  const renderRightAction = (item) => {
+  const renderRightAction = item => {
     return (
       <View style={styles.row}>
         <TouchableHighlight
           activeOpacity={0.6}
           onPress={() => onDeleteTally(item)}
           underlayColor={colors.red}
-          style={[
-            styles.rightActions,
-            { backgroundColor: colors.red },
-          ]}
-        >
-          <Text style={{ color: colors.white }}>void</Text>
+          style={[styles.rightActions, {backgroundColor: colors.red}]}>
+          <Text style={{color: colors.white}}>void</Text>
         </TouchableHighlight>
       </View>
     );
@@ -435,19 +425,17 @@ const TallyInvite = (props) => {
           <View
             style={[
               styles.row,
-              { marginTop: 22, justifyContent: "space-between" },
-            ]}
-          >
-            <Text style={[styles.filterText, { fontSize: 16 }]}>
+              {marginTop: 22, justifyContent: 'space-between'},
+            ]}>
+            <Text style={[styles.filterText, {fontSize: 16}]}>
               {draftLang?.title ?? ''}
             </Text>
 
-            <TouchableOpacity
-              style={styles.filterContainer}
-              onPress={onFilter}
-            >
+            <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
               <FilterSecondIcon />
-              <Text style={styles.filterText}>{talliesColText?.status?.title}</Text>
+              <Text style={styles.filterText}>
+                {talliesColText?.status?.title}
+              </Text>
             </TouchableOpacity>
           </View>
           <CustomTextInput
@@ -460,7 +448,7 @@ const TallyInvite = (props) => {
 
         <SwipeableFlatList
           ListHeaderComponent={
-            <View style={{ height: Header_Height, marginTop: 8 }} />
+            <View style={{height: Header_Height, marginTop: 8}} />
           }
           data={filteredData}
           renderItem={renderItem}
@@ -469,30 +457,23 @@ const TallyInvite = (props) => {
           maxSwipeDistance={90}
           shouldBounceOnMount={true}
           showsVerticalScrollIndicator={false}
-          renderQuickActions={({ item }) => renderRightAction(item)}
+          renderQuickActions={({item}) => renderRightAction(item)}
           onRefresh={() => getTemplates()}
-          keyExtractor={(item, index) =>
-            `${item?.tally_uuid}${index}`
-          }
-          ItemSeparatorComponent={() => (
-            <View style={{ height: 16 }} />
-          )}
+          keyExtractor={(item, index) => `${item?.tally_uuid}${index}`}
+          ItemSeparatorComponent={() => <View style={{height: 16}} />}
           ListEmptyComponent={fetching ? <></> : <EmptyContent />}
           progressViewOffset={150}
         />
-        <FloatingActionButton
-          onPress={() => setShowCommentModal(true)}
-        />
+        <FloatingActionButton onPress={() => setShowCommentModal(true)} />
       </View>
 
       <BottomSheetModal
         isVisible={showCommentModal}
-        onClose={() => setShowCommentModal(false)}
-      >
+        onClose={() => setShowCommentModal(false)}>
         <CommentContent
           text={commonText}
-          onNext={(item) => {
-            setTallyItem({ ...tallyItem, ...item });
+          onNext={item => {
+            setTallyItem({...tallyItem, ...item});
             setShowCommentModal(false);
             setShowLimitModal(true);
           }}
@@ -504,13 +485,12 @@ const TallyInvite = (props) => {
 
       <BottomSheetModal
         isVisible={showLimitModal}
-        onClose={() => setShowLimitModal(false)}
-      >
+        onClose={() => setShowLimitModal(false)}>
         <LimitContent
           text={commonText}
-          onNext={(item) => {
+          onNext={item => {
             setShowLimitModal(false);
-            newTemplate({ ...tallyItem, ...item });
+            newTemplate({...tallyItem, ...item});
           }}
           onDismiss={() => {
             setShowLimitModal(false);
@@ -520,8 +500,7 @@ const TallyInvite = (props) => {
 
       <BottomSheetModal
         isVisible={showTemplateSuccess}
-        onClose={() => setShowTemplateSuccess(false)}
-      >
+        onClose={() => setShowTemplateSuccess(false)}>
         <SuccessContent
           message="Your tally has been created"
           onDone={() => setShowTemplateSuccess(false)}
@@ -531,8 +510,7 @@ const TallyInvite = (props) => {
 
       <BottomSheetModal
         isVisible={showAcceptSuccess}
-        onClose={() => setShowAcceptSuccess(false)}
-      >
+        onClose={() => setShowAcceptSuccess(false)}>
         <SuccessContent
           buttonTitle="View"
           message="Your tally is now open"
@@ -543,8 +521,7 @@ const TallyInvite = (props) => {
 
       <BottomSheetModal
         isVisible={showOfferSuccess.show}
-        onClose={onDismissOfferSuccess}
-      >
+        onClose={onDismissOfferSuccess}>
         <SuccessContent
           buttonTitle="View"
           message={`Sending tally offer to ${showOfferSuccess?.offerTo}`}
@@ -553,11 +530,9 @@ const TallyInvite = (props) => {
         />
       </BottomSheetModal>
 
-
       <BottomSheetModal
         isVisible={negotiationData.showModal}
-        onClose={onNeogitationModalClose}
-      >
+        onClose={onNeogitationModalClose}>
         <TallyEntryModal
           shouldShowReview
           onNeogitationModalClose={onNeogitationModalClose}
@@ -571,29 +546,28 @@ const TallyInvite = (props) => {
       <GenerateKeysAlertModal
         visible={showKeyModal}
         onDismiss={() => setShowKeyModal(false)}
-        onError={(err) => {
-          Alert.alert("Error", err);
+        onError={err => {
+          Alert.alert('Error', err);
         }}
         onKeySaved={() => {
           setShowKeyModal(false);
           Alert.alert(
-            "Success",
-            "Key is generated successfully now you can accept tally."
+            'Success',
+            'Key is generated successfully now you can accept tally.',
           );
         }}
       />
 
-
       <GenerateKeysDialog
         visible={showGenerateKeyDialog}
         onDismiss={() => setShowGenerateKeyDialog(false)}
-        onError={(err) => {
-          Alert.alert("Error", err);
+        onError={err => {
+          Alert.alert('Error', err);
         }}
         onKeySaved={() => {
           Alert.alert(
-            "Success",
-            "Key is generated successfully now you can accept tally."
+            'Success',
+            'Key is generated successfully now you can accept tally.',
           );
         }}
       />
@@ -609,12 +583,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     color: colors.gray300,
-    fontFamily: "inter",
+    fontFamily: 'inter',
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   contentContainerStyle: {
     marginTop: 20,
@@ -625,54 +599,54 @@ const styles = StyleSheet.create({
     height: 30,
     borderColor: colors.white100,
     backgroundColor: colors.white200,
-    flexDirection: "row",
+    flexDirection: 'row',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 3,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterText: {
     fontSize: 12,
-    color: "#636363",
+    color: '#636363',
     marginStart: 4,
-    fontFamily: "inter",
+    fontFamily: 'inter',
   },
   header: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     top: 0,
     height: Header_Height,
     backgroundColor: colors.white,
     zIndex: 1000,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 16,
   },
   h1: {
     fontSize: 18,
-    fontFamily: "inter",
-    fontWeight: "500",
-    color: "#636363",
-    alignSelf: "center",
+    fontFamily: 'inter',
+    fontWeight: '500',
+    color: '#636363',
+    alignSelf: 'center',
   },
   rightActions: {
     width: 80,
     borderRadius: 2,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   row: {
     height: 60,
     marginRight: 18,
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   itemView: {
     height: 70,
     marginHorizontal: 18,
     backgroundColor: colors.white,
-    justifyContent: "center",
+    justifyContent: 'center',
     backgroundColor: colors.white,
   },
 });
