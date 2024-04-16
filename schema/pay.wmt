@@ -10,4 +10,6 @@ tabtext mychips.lifts_v_pay_me	{My Payments}	{User view of lift payments to/from
 } -message {
   {address	{Payment Address}	{Generate a link or QR code other users can use to pay you}}
   {payreq	{Payment Request}	{Information others can use to pay you if they are not directly connected to you by a tally}}
+  {accept	{Approve Payment}	{Agree to the proposed payment lift}}
+  {reject	{Reject Payment}	{Refuse the proposed payment lift}}
 }

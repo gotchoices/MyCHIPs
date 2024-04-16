@@ -153,8 +153,8 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {revise	{Revise Tally}		{Revise the proposed tally}}
   {reject	{Reject Tally}		{Refuse the proposed tally}}
   {requested	{Tally Requested}	{You have disclosed certificate information and requested to tally}}
-  {accepted	{Tally Accepted}	{The tally has been accepted by the partner}}
-  {rejected	{Tally Rejected}	{The tally has been rejected by the partner}}
+  {accepted	{Tally Accepted}	{The tally has been accepted and authorized}}
+  {rejected	{Tally Rejected}	{The tally has been refused}}
   {noterms	{No Tally Terms}	{Please specify credit terms before sharing the tally}}
   {sort		{Tally Order}		{Control the order in which tallies are listed}}
   {credit	{Credit}		{Trust is extended for this amount}}
@@ -165,6 +165,7 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {sort.mbal	{Largest to Smallest}	{Show biggest totals (asset or liability) at the top}}
   {sort.dname	{Alphabetical}		{Sort alphabetically by partner name}}
   {invited	{Wants to Tally}	{Requests you to offer a new MyCHIPs tally}}
+  {nocert	{Invalid Certificate}	{The partner's certificate is missing or invalid}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
     {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}
     {invite.format	{Format}	{Determines which type of invitation is generated}}

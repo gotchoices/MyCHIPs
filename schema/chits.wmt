@@ -79,6 +79,8 @@ tabtext mychips.chits_v_me {My Chits}		{View of all transactions on the tallies 
   {liability	{Liability}		{A chit issued by you to pay your partner}}
   {dirpmt	{Direct Payment}	{A payment issued by you to pay your tally partner}}
   {dirreq	{Direct Request}	{A payment requested by you from your tally partner}}
+  {accepted	{Chit Accepted}		{The chit has been approved and authorized}}
+  {rejected	{Chit Rejected}		{The chit has been refused}}
 }
 
 tabtext mychips.chits_v_chains {Chit Chains}	{Contains information about hash-linked chains of value transfer (chit) records} {

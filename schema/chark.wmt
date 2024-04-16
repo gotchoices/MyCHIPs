@@ -22,6 +22,7 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {cancel	{Cancel}		{Abort the current operation}}
   {custom	{Custom}		{Customize my settings}}
   {save		{Save}			{Save the current changes}}
+  {sure		{Are you Sure}		{Confirm that you want to proceed}}
   {edit		{Edit}			{Modify the current information}}
   {updated	{Updated}		{Changes have been written to the database}}
   {deleted	{Deleted}		{The item has been deleted from the database}}
@@ -34,4 +35,5 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {certopts	{Certificate Options}	{Select what information is contained in a certificate}}
   {certshare	{Certificate Sharing}	{Decide what personal information will you share with the other party.  You can create a custom certificate or use one from any existing draft tallies you might have.}}
   {certtpts	{Template Certificates}	{Select a certificate from an existing tally template}}
+  {nokey	{No Signing Key}	{You have not yet created a digital signing key.  Proceed to create one.}}
 }
