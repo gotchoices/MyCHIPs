@@ -13,17 +13,17 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {version	{Version}		{A number indicating the format standard this tally adheres to}}
   {revision	{Revision}		{Count of the number of times the tally was revised/counter-offered during negotiation}}
   {comment	{Comment}		{Any notes the user might want to enter regarding this tally}}
-  {contract	{Contract}		{The Resource ID of the contract governing this tally (or a json record more fully specifying it)} {
+  {contract	{Contract}		{The contract governing this tally agreement} {
     {name	{Name}			{The tag name of the governing contract}}
     {host	{Host}			{The host site of the author of the governing contract (default: mychips.org)}}
     {source	{Resource}		{The Resource ID of the governing contract}}
   }}
-  {hold_cert	{Holder Certificate}	{The JSON structure of identifying data for the entity that owns/holds this tally} {
+  {hold_cert	{Holder Certificate}	{Identification data for the entity that owns/holds this tally} {
     {chad	{CHIP Address}		{JSON object describing how/where other users communicate MyCHIPs transactions with you}}
     {date	{Certificate Date}	{Timestamp showing when this certificate data was generated}}
     {name	{Holder Name}		{A record (or array) of the names you are addressed by}}
   }}
-  {part_cert	{Partner Certificate}	{The JSON structure of identifying data for the other party to this tally}}
+  {part_cert	{Partner Certificate}	{Identification data for the other party to this tally}}
   {hold_sig	{Holder Signed}		{The digital signature of the entity that owns/holds this tally}}
   {part_sig	{Partner Signed}	{The digital signature of the other party to this tally}}
   {hold_terms	{Holder Terms}		{The credit terms the tally holder has offered to its partner} {

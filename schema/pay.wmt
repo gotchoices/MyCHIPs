@@ -12,4 +12,5 @@ tabtext mychips.lifts_v_pay_me	{My Payments}	{User view of lift payments to/from
   {payreq	{Payment Request}	{Information others can use to pay you if they are not directly connected to you by a tally}}
   {accept	{Approve Payment}	{Agree to the proposed payment lift}}
   {reject	{Reject Payment}	{Refuse the proposed payment lift}}
+  {request	{Request Payment}	{Generate a request for payment as a QR code or link}}
 }
