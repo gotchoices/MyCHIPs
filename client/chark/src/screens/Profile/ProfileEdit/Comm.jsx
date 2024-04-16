@@ -248,7 +248,7 @@ const Comm = (props) => {
           <TouchableWithoutFeedback
             onPress={onPrimaryChangeClick}
           >
-            <Text style={{ color: colors.blue }}>change_primary_{communicationText[profileType]}</Text>
+            <Text style={{ color: colors.blue }}>{charkText?.edit?.title ?? ''}</Text>
           </TouchableWithoutFeedback>
         </View>
 

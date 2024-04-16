@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import stringify from 'json-stable-stringify';
-import Toast from 'react-native-toast-message';
 
 import Button from '../../../components/Button';
 
@@ -14,6 +13,7 @@ import useSocket from '../../../hooks/useSocket';
 import { acceptChit } from '../../../services/chit';
 import { createSignature } from '../../../utils/message-signature';
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
+import { showError } from '../../../utils/error';
 
 const AcceptButton = (props) => {
   const { wm } = useSocket();
@@ -39,19 +39,15 @@ const AcceptButton = (props) => {
       props?.postAccept?.();
 
     } catch(err) {
-      console.log(err, 'err')
       const { isKeyAvailable, message } = err;
       if (isKeyAvailable === false) {
         Alert.alert(
-          "Create Keys",
-          "Seems like there is no key to create signature please continue to create one and offer tally.",
-          [{ text: "Cancel" }, { text: "Continue", onPress: showCreateSignatureModal }]
+          props?.text?.nokey?.title ?? '',
+          props?.text?.nokey?.help ?? '',
+          [{ text: props?.text?.cancel?.title ?? '' }, { text: props?.text?.next?.title ?? '', onPress: showCreateSignatureModal }]
         );
       } else {
-        Toast.show({
-          type: "error",
-          text1: err.message,
-        });
+        showError(err);
       }
     } finally {
       setDisabled(false);

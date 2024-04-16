@@ -31,7 +31,6 @@ const HomeScreen = (props) => {
   const dispatch  = useDispatch();
 
   const [visible, setVisible] = useState(false);
-  const [tallyProcess, setTallyProcess] = useState(undefined);
 
   // Common text, will be used by multiple screens
   const charkText = useCharkText(wm);
@@ -60,7 +59,9 @@ const HomeScreen = (props) => {
       requestProposedTally(invite)
     } else if(payUrl) {
       const parsed = qs.parseUrl(payUrl);
-      requestPay(parsed.query);
+      props.navigation.navigate('PaymentDetail', {
+        distributedPayment: parsed.query,
+      })
     }
   }, [tallyInviteUrl, payUrl])
 
@@ -76,7 +77,9 @@ const HomeScreen = (props) => {
         requestProposedTally(parsed)
       } else if(payUri.has(host)) {
         const parsed = qs.parseUrl(url);
-        requestPay(parsed.query);
+        props.navigation.navigate('PaymentDetail', {
+          distributedPayment: parsed.query,
+        })
       }
       return;
     }
@@ -115,24 +118,6 @@ const HomeScreen = (props) => {
     setTimeout(() => {
       props.navigation.navigate("TallyRequest", invite);
     }, 100)
-  }
-
-  const requestPay = async (parsed) => {
-    try {
-      Toast.show({
-        type: 'info',
-        text1: 'Making payment for the request'
-      });
-
-      const pay = await createLiftsPay(wm, parsed);
-
-      Toast.show({
-        type: 'info',
-        text1: 'Payment complete'
-      });
-    } catch(err) {
-      showError(err)
-    }
   }
 
   return (

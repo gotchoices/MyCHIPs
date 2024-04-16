@@ -29,6 +29,7 @@ const TallyCertificate = (props) => {
 
   const { messageText } = useMessageText();
   const charkMsgText = messageText?.chark?.msg;
+  const talliesMessageText = messageText?.talliex_v_me?.msg;
 
   useEffect(() => {
     const {
@@ -111,7 +112,7 @@ const TallyCertificate = (props) => {
       if(!personal?.cert) {
         return Toast.show({
           type: 'error',
-          text1: 'Certificate not found'
+          text1: talliesMessageText?.nocert?.help ?? '',
         });
       }
 

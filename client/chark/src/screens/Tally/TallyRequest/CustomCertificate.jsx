@@ -135,7 +135,7 @@ const CustomCertificate = (props) => {
       if(!certificate) {
         return Toast.show({
           type: 'error',
-          text1: 'Certificate not found'
+          text1: talliesMeMessageText?.nocert?.help ?? '',
         });
       }
 

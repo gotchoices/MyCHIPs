@@ -18,6 +18,7 @@ import { colors } from '../../../config/constants';
 import { getCurrencyRate } from '../../../redux/chipCurrencySlice';
 import useSocket from '../../../hooks/useSocket';
 import { round } from '../../../utils/common';
+import useMessageText from '../../../hooks/useMessageText';
 
 const PendingChitDetail = (props) => {
   const dispatch = useDispatch();
@@ -26,10 +27,22 @@ const PendingChitDetail = (props) => {
   const [memo, setMemo] = useState(chit?.memo ?? '');
   const [swapped, setSwapped] = useState(false);
 
+  const { messageText } = useMessageText()
+  const chitsMessageText = messageText?.chits_v_me?.msg;
+  const charkText = messageText?.chark?.msg;
+
   const { preferredCurrency } = useSelector((state) => state.profile);
   const { conversionRate } = useSelector((state) => state.chipCurrency);
   const net_pc = (chit.net ?? 0) / 1000;
   let convertedNet = 0;
+
+  const commonText = {
+    rejected: chitsMessageText?.rejected,
+    accepted: chitsMessageText?.accepted,
+    nokey: charkText?.nokey,
+    cancel: charkText?.cancel,
+    next: charkText?.next,
+  }
 
   if(conversionRate) {
     convertedNet = round(conversionRate * net_pc, 2);
@@ -113,6 +126,7 @@ const PendingChitDetail = (props) => {
             chit_ent={chit?.chit_ent}
             chit_seq={chit?.chit_seq}
             chit_idx={chit?.chit_idx}
+            text={commonText}
           />
 
           <RejectButton
@@ -120,6 +134,7 @@ const PendingChitDetail = (props) => {
             chit_seq={chit?.chit_seq}
             chit_idx={chit?.chit_idx}
             style={styles.rejectBtn}
+            text={commonText}
           />
         </View>
       )}

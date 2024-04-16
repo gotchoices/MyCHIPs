@@ -87,9 +87,9 @@ const TradingVariables = (props) => {
       const { isKeyAvailable } = err;
       if (isKeyAvailable === false) {
         return Alert.alert(
-          "Create Keys",
-          "Seems like there is no key to create signature please continue to create one and offer tally.",
-          [{ text: "Cancel" }, { text: "Continue", onPress: showCreateSignatureModal }]
+          charkMessageText?.nokey?.title ?? '',
+          charkMessageText?.nokey?.help ?? '',
+          [{ text: charkMessageText?.cancel?.title ?? ''}, { text: charkMessageText?.next?.title ?? '', onPress: showCreateSignatureModal }]
         );
       }
 

@@ -22,11 +22,14 @@ const ChitItem = (props) => {
   const isNegative = props.chit.net < 0;
   const { messageText } = useMessageText()
   const talliesMessageText = messageText?.tallies_v_me?.msg;
+  const chitsMessageText = messageText?.chits_v_me?.msg;
 
   const commonText = {
     offer: talliesMessageText?.offer,
     accept: talliesMessageText?.accept,
     reject: talliesMessageText?.reject,
+    rejected: chitsMessageText?.rejected,
+    accepted: chitsMessageText?.accepted,
   }
 
   const net_pc = round((props?.chit?.net ?? 0) / 1000, 3);
