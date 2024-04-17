@@ -6,10 +6,12 @@ import Button from '../../../components/Button';
 
 import useSocket from '../../../hooks/useSocket';
 import { rejectChit } from '../../../services/chit';
+import { showError } from '../../../utils/error';
 
 const RejectButton = (props) => {
   const { wm } = useSocket();
   const [disabled, setDisabled] = useState(false);
+  const text = props?.text;
 
   const onReject = async () => {
     setDisabled(true);
@@ -24,13 +26,10 @@ const RejectButton = (props) => {
 
       Toast.show({
         type: "success",
-        text1: 'Chit has been rejected',
+        text1: text?.rejected?.help,
       });
     } catch(err) {
-      Toast.show({
-        type: "error",
-        text1: err.message,
-      });
+      showError(err);
     } finally {
       setDisabled(false);
     }

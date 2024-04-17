@@ -65,7 +65,7 @@ const Share = (props) => {
         >
           <View style={[styles.tabItem, activeTab === 'qr' ? styles.activeTab : {}]}>
             <Text style={[styles.tabText, activeTab === 'qr' ? styles.activeText : {}]}>
-              QR Code
+              {props?.text?.qr?.title ?? ''}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -75,7 +75,7 @@ const Share = (props) => {
         >
           <View style={[styles.tabItem, activeTab === 'link' ? styles.activeTab : {}]}>
             <Text style={[styles.tabText, activeTab === 'link' ? styles.activeText : {}]}>
-              Link
+              {props?.text?.link?.title ?? ''}
             </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -121,7 +121,7 @@ const Share = (props) => {
           onPress={onShare}
         >
           <View style={styles.share}>
-            <Text style={{ color: colors.white, fontWeight: 'bold', fontSize: 16 }}>Share</Text>
+            <Text style={{ color: colors.white, fontWeight: 'bold', fontSize: 16 }}>{props?.text?.share?.title ?? ''}</Text>
           </View>
         </TouchableOpacity>
 
@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
    shareTitle: PropTypes.string.isRequired,
    // Message to share when shared through link
    message: PropTypes.string.isRequired,
+   text: PropTypes.object.isRequired,
  }
 
 export default Share;

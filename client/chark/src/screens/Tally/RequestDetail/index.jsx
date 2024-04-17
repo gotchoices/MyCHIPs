@@ -218,7 +218,7 @@ const RequestDetail = props => {
         onPress={() => ref.current.focus()}>
         <TextInput
           ref={ref}
-          placeholder="Message"
+          placeholder={chitsText?.col?.memo?.title ?? ''}
           value={reference}
           onChangeText={setMemo}
         />

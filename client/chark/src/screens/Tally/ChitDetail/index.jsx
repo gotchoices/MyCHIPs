@@ -9,6 +9,7 @@ import { Toast } from "react-native-toast-message/lib/src/Toast";
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
 import { showError } from '../../../utils/error';
+import { useLiftsPayMeText } from '../../../hooks/useLanguage';
 
 const ChitDetail = (props) => {
   const { chit_ent, chit_idx, chit_seq, chit_uuid } = props.route.params;
@@ -20,6 +21,8 @@ const ChitDetail = (props) => {
   const chitsMeText = messageText?.chits_v_me?.col;
   const chitsMeMessageText = messageText?.chits_v_me?.msg;
   const charkText = messageText?.chark?.msg;
+
+  const liftsPayMeText = useLiftsPayMeText(wm)
 
   useTitle(props.navigation, chitsMeMessageText?.detail?.title)
 
@@ -61,14 +64,14 @@ const ChitDetail = (props) => {
 
   const onPay = () => {
     Alert.alert(
-      "Confirmn Payment",
-      "Are you sure to confirm payment?",
+      liftsPayMeText?.msg?.accept?.title ?? '',
+      charkText?.sure?.help,
       [
         {
-          text: 'Cancel'
+          text: charkText?.cancel?.title ?? '',
         },
         {
-          text: 'Yes',
+          text: charkText?.next?.title ?? '',
           onPress: () => {
             updateChitState(
               wm,
@@ -91,14 +94,14 @@ const ChitDetail = (props) => {
 
   const onRefuse = () => {
     Alert.alert(
-      "Refuse Payment",
-      "Are you sure to refuse payment request?",
+      liftsPayMeText?.msg?.reject?.title ?? '',
+      charkText?.sure?.help,
       [
         {
-          text: "Cancel",
+          text: charkText?.cancel?.title ?? '',
         },
         {
-          text: 'Yes',
+          text: charkText?.next?.title ?? '',
           onPress: () => {
             updateChitState(
               wm,
@@ -169,7 +172,7 @@ const ChitDetail = (props) => {
       />
 
       <Button
-        title="Modify"
+        title={charkText?.edit?.title ?? ''}
         onPress={onEdit}
         style={styles.edit}
       />

@@ -10,7 +10,6 @@ import {
   Alert,
 } from 'react-native';
 import {Camera, CameraType} from 'react-native-camera-kit';
-import {useScanBarcodes, BarcodeFormat} from 'vision-camera-code-scanner';
 import * as Keychain from 'react-native-keychain';
 import {v4 as uuid} from 'uuid';
 

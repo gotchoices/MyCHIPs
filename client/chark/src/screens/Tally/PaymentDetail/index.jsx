@@ -27,6 +27,7 @@ import { useChitsMeText } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
 import useTitle from '../../../hooks/useTitle';
 import { showError } from '../../../utils/error';
+import { createLiftsPay } from '../../../services/pay'
 
 import { createSignature } from "../../../utils/message-signature";
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
@@ -36,7 +37,7 @@ import BottomSheetModal from "../../../components/BottomSheetModal";
 import SuccessModal from "../Success";
 
 const PaymentDetail = (props) => {
-  const { chit_ent, tally_uuid, chit_seq, tally_type, chad } = props.route?.params;
+  const { chit_ent, tally_uuid, chit_seq, tally_type, chad, distributedPayment } = props.route?.params;
   const { wm } = useSocket();
   const { preferredCurrency } = useSelector((state) => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
@@ -63,12 +64,29 @@ const PaymentDetail = (props) => {
   const { messageText } = useMessageText();
 
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
+  const charkText = messageText?.chark?.msg;
 
   const showCreateSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(true));
   }
 
   useTitle(props.navigation, chitsText?.msg?.dirpmt?.title)
+
+  useEffect(() => {
+    if(distributedPayment) {
+      setChit(distributedPayment.units ?? 0)
+      setMemo(distributedPayment.memo ?? 0)
+      totalNetDollar(distributedPayment.units ?? 0)
+      const textLength = distributedPayment?.units?.length;
+      setInputWidth(Math.max(Math.ceil(textLength * 20), 80))
+    }
+  }, [distributedPayment])
+
+  useEffect(() => {
+    if(distributedPayment?.units) {
+      totalNetDollar(distributedPayment.units ?? 0)
+    }
+  }, [distributedPayment?.units, conversionRate])
 
   useEffect(() => {
     if (currencyCode) {
@@ -109,6 +127,25 @@ const PaymentDetail = (props) => {
 
     setChit(0);
   };
+
+  const onDistributedPayment = async () => {
+    Keyboard.dismiss();
+    setDisabled(true);
+
+    try {
+      const pay = await createLiftsPay(wm, {
+        ...distributedPayment,
+        units: chit,
+        memo: memo,
+      });
+
+      setShowSuccess(true);
+    } catch(err) {
+      showError(err)
+    } finally {
+      setDisabled(false);
+    }
+  }
 
   const onMakePayment = async () => {
     Keyboard.dismiss();
@@ -167,9 +204,9 @@ const PaymentDetail = (props) => {
       const { isKeyAvailable } = err;
       if (isKeyAvailable === false) {
         Alert.alert(
-          "Create Keys",
-          "Seems like there is no key to create signature please continue to create one and offer tally.",
-          [{ text: "Cancel" }, { text: "Continue", onPress: showCreateSignatureModal }]
+          charkText?.nokey?.title ?? '',
+          charkText?.nokey?.help ?? '',
+          [{ text: charkText?.cancel?.title ?? ''}, { text: charkText?.next?.title ?? '', onPress: showCreateSignatureModal }]
         );
       } else {
         showError(err);
@@ -178,6 +215,14 @@ const PaymentDetail = (props) => {
       setDisabled(false);
     }
   };
+
+  const onPay = () => {
+    if(distributedPayment) {
+      onDistributedPayment()
+    } else {
+      onMakePayment()
+    }
+  }
 
   /**
     * @param {string} type - chit or usd
@@ -319,7 +364,7 @@ const PaymentDetail = (props) => {
         <Button
           style={styles.button}
           title={talliesMeMessageText?.['launch.pay']?.title ?? ''}
-          onPress={onMakePayment}
+          onPress={onPay}
           disabled={disabled}
         />
       </View>

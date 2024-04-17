@@ -138,7 +138,6 @@ export const useChitsMeText = (wm) => {
     if(!messageText?.chits_v_me) {
       wm.register('chits_v_me' + Math.random(), 'mychips.chits_v_me', (data, err) => {
         if (data) {
-          console.log('HELLO>>>>>', data?.chits_v_me?.msg?.detail)
           addTextsToState('chits_v_me', data, setMessageText)
         }
       })
@@ -162,6 +161,22 @@ export const useCharkText = (wm) => {
   }, [wm, setMessageText])
 
   return messageText?.chark ?? {};
+}
+
+export const useLiftsPayMeText = (wm) => {
+  const { messageText, setMessageText } = useMessageText();
+
+  useEffect(() => {
+    if(!messageText?.lifts_v_pay_me) {
+      wm.register('lifts_v_pay_me' + Math.random(), 'mychips.lifts_v_pay_me', (data, err) => {
+        if (data) {
+          addTextsToState('lifts_v_pay_me', data, setMessageText)
+        }
+      })
+    }
+  }, [wm, setMessageText])
+
+  return messageText?.lifts_v_pay_me ?? {};
 }
 
 function addTextsToState(field, texts, setState) {

@@ -8,6 +8,8 @@ import { colors } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import { request } from '../../services/request';
 import { random } from '../../utils/common';
+import useMessageText from '../../hooks/useMessageText';
+import useTitle from '../../hooks/useTitle';
 
 const ShareTally = (props) => {
   const tally_id = props.route?.params?.tally_id;
@@ -20,6 +22,17 @@ const ShareTally = (props) => {
   const tallyUrl = tallyObj?.url;
 
   const message = `${tallyObj?.title ?? ''} \n\n${tallyObj?.message ?? ''} \n\n${tallyUrl}`;
+
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
+
+  const text = {
+    share: charkText?.share,
+    link: charkText?.link,
+    qr: charkText?.qr,
+  }
+
+  useTitle(props.navigation, charkText?.share?.title)
 
   useEffect(() => {
     const spec = {
@@ -58,6 +71,7 @@ const ShareTally = (props) => {
       linkHtml={linkHtml}
       shareTitle="Share Tally"
       message={message}
+      text={text}
     />
   )
 }

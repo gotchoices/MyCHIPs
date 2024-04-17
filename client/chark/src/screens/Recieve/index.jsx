@@ -18,7 +18,6 @@ import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
 import { receiveChit } from '../../services/chit';
 import { Toast } from "react-native-toast-message/lib/src/Toast";
-import { useTallyText } from "../../hooks/useLanguage";
 import { showError } from '../../utils/error';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import { useChitsMeText } from '../../hooks/useLanguage';
@@ -38,14 +37,11 @@ const Receive = props => {
   const ref = useRef('');
   const {wm} = useSocket();
 
-  const {request, comment} = useTallyText(wm);
-  console.log(comment, 'comment')
-
   const {preferredCurrency} = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
 
-  const chitsMeText = useChitsMeText();
+  const chitsMeText = useChitsMeText(wm);
 
   useTitle(props.navigation, chitsMeText?.col?.request?.title)
 
@@ -261,7 +257,7 @@ const Receive = props => {
         onPress={() => ref.current.focus()}>
         <TextInput
           ref={ref}
-          placeholder={comment?.title ?? 'Comment'}
+          placeholder={chitsMeText?.col?.memo?.title?? 'comment'}
           value={memo}
           onChangeText={setMemo}
         />
@@ -274,7 +270,7 @@ const Receive = props => {
       <View style={styles.buttonView}>
         <Button
           style={styles.button}
-          title={request?.title ?? 'Request'}
+          title={chitsMeText?.col?.request?.title ?? ''}
           onPress={onReceive}
           disabled={disabled}
         />
