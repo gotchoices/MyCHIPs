@@ -29,9 +29,11 @@ const Profile = (props) => {
 
   // Registering necessary text hooks for current language
   const commText = useCommunication(wm);
-  useAddressV(wm);
+  const addrText = useAddressV(wm);
   useAddressVFlat(wm);
   useUser(wm);
+
+  const primaryText = addrText?.addr_prim?.title;
 
   const { user } = useSelector(state => state.currentUser);
   const user_ent = user?.curr_eid;

@@ -3,11 +3,15 @@ import React from "react";
 import Share from '../../components/Share';
 import useMessageText from "../../hooks/useMessageText";
 import useTitle from "../../hooks/useTitle";
+import { useLiftsPayMeText } from '../../hooks/useLanguage';
+import useSocket from '../../hooks/useSocket';
 
 const RequestShare = (props) => {
+  const { wm } = useSocket();
   const { json = {}, link } = props.route.params;
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
+  const liftsPayText = useLiftsPayMeText(wm)
 
   const text = {
     share: charkText?.share,
@@ -25,7 +29,7 @@ const RequestShare = (props) => {
     <Share
       qrData={url}
       linkHtml={linkHtml}
-      shareTitle={'Request Chit'}
+      shareTitle={liftsPayText?.msg?.request?.title ?? ''}
       message={message}
       text={text}
     />

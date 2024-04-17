@@ -121,7 +121,7 @@ const Address = (props) => {
         }
 
         promises.push(
-          request(wm, `mail_update_${random(1000)}`, 'update', spec)
+          request(wm, `mail_update_${random()}`, 'update', spec)
         )
       } else {
         const spec = {
@@ -129,7 +129,7 @@ const Address = (props) => {
           view: 'mychips.addr_v_me',
         }
         promises.push(
-          request(wm, `mail_update_${random(1000)}`, 'insert', spec)
+          request(wm, `mail_update_${random()}`, 'insert', spec)
         )
       }
     })
@@ -145,7 +145,7 @@ const Address = (props) => {
         }
 
         promises.push(
-          request(wm, `remove_addr_${random(1000)}`, 'delete', spec)
+          request(wm, `remove_addr_${random()}`, 'delete', spec)
         )
       })
     }

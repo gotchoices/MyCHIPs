@@ -1,5 +1,6 @@
 import { random } from '../utils/common';
 import { langRegister, request } from './request';
+import { v4 as uuid } from 'uuid';
 
 export const getTallyText = (wm) => {
   return langRegister(wm, '_tally_lang' + random(), 'mychips.tallies');
@@ -25,7 +26,8 @@ export const fetchTallies = (wm, args) => {
     spec.order= args.order;
   }
 
-  return request(wm, 'tallies' + random(), 'select', spec);
+  const rand = uuid();
+  return request(wm, rand, 'select', spec);
 }
 
 export const fetchChitHistory = (wm, args) => {
@@ -160,7 +162,7 @@ export const createTemplate = (wm, payload) => {
     view: 'mychips.tallies_v_me',
   }
 
-  return request(wm, 'new_template' + random(1000), 'insert', spec)
+  return request(wm, 'new_template' + random(), 'insert', spec)
 }
 
 export const fetchTallyFile = (wm, digest, tally_seq) => {
@@ -178,7 +180,7 @@ export const fetchTallyFile = (wm, digest, tally_seq) => {
     }
   }
 
-  return request(wm, 'fetch_tally_file' + random(1000), 'action', spec);
+  return request(wm, 'fetch_tally_file' + random(), 'action', spec);
 }
 
 /**
@@ -199,7 +201,7 @@ export const fetchTradingVariables = (wm, payload) => {
     }
   }
 
-  return request(wm, 'fetch_trade' + random(1000), 'action', spec);
+  return request(wm, 'fetch_trade' + random(), 'action', spec);
 }
 
 /**
@@ -305,7 +307,7 @@ export const getHolderImage = (wm, digest) => {
     },
   }
 
-  return request(wm, 'holder_image' + random(1000), 'select', spec).then((data) => {
+  return request(wm, 'holder_image' + random(), 'select', spec).then((data) => {
     if(data?.[0]) {
       data[0].digest = digest;
       return data;
