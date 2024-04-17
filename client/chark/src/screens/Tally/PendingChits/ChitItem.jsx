@@ -27,9 +27,10 @@ const ChitItem = (props) => {
   const commonText = {
     offer: talliesMessageText?.offer,
     accept: talliesMessageText?.accept,
-    reject: talliesMessageText?.reject,
+    approve: chitsMessageText?.approve,
+    reject: chitsMessageText?.reject,
     rejected: chitsMessageText?.rejected,
-    accepted: chitsMessageText?.accepted,
+    accepted: chitsMessageText?.approved,
   }
 
   const net_pc = round((props?.chit?.net ?? 0) / 1000, 3);

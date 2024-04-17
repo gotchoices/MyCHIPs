@@ -12,6 +12,7 @@ import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
 import { formatDate } from "../../../utils/format-date";
 import useMessageText from '../../../hooks/useMessageText';
+import useTitle from '../../../hooks/useTitle';
 
 const ChitHistory = (props) => {
   const { tally_uuid, digest } = props.route?.params ?? {};
@@ -21,7 +22,9 @@ const ChitHistory = (props) => {
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const avatar = imagesByDigest?.[digest];
   const { messageText } = useMessageText();
-  const chitMeText = messageText?.chits_v_me?.col;
+  const chitMeText = messageText?.chits_v_me;
+
+  useTitle(props.navigation, chitMeText?.msg?.chits?.title)
 
   useEffect(() => {
     _fetchChitHistory();
@@ -91,7 +94,9 @@ const ChitHistory = (props) => {
       <View>
         {
           item?.action && <View style={{ backgroundColor: 'red', width: "100%", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 }}>
-            <Text style={{ color: 'white', fontSize: 12 }}>Action Required</Text>
+            <Text style={{ color: 'white', fontSize: 12 }}>
+              {chitMeText?.col?.action?.title ?? ''}
+            </Text>
           </View>
         }
       </View>
@@ -107,10 +112,10 @@ const ChitHistory = (props) => {
             </View>
           </View>
 
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.reference?.title ?? ''}: {JSON.stringify(item.reference) ?? 'not added'} </Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.memo?.title ?? ''}: {item.memo ?? 'not added'}</Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.state?.title ?? ''}: {item.state}</Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.action?.title ?? ''}: {item.action?.toString()}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.reference?.title ?? ''}: {JSON.stringify(item.reference) ?? 'not added'} </Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.memo?.title ?? ''}: {item.memo ?? 'not added'}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.state?.title ?? ''}: {item.state}</Text>
+          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.action?.title ?? ''}: {item.action?.toString()}</Text>
         </View>
 
         <View style={{ width: 8 }} />

@@ -14,7 +14,7 @@ export const getCurrency = (wm, curr) => {
     }
   };
 
-  return request(wm, `chip_json_${random(1000)}`, 'action', spec);
+  return request(wm, `chip_json_${random()}`, 'action', spec);
 }
 
 export const getTallyReport = (wm) => {
@@ -37,7 +37,7 @@ export const getUserCert = (wm) => {
     view: 'mychips.users_v_me',
   }
 
-  return request(wm, `_user_ref_${random(1000)}`, 'select', spec).then(response => {
+  return request(wm, `_user_ref_${random()}`, 'select', spec).then(response => {
     return response?.[0]?.cert;
   })
 }

@@ -28,6 +28,7 @@ const PendingChitDetail = (props) => {
   const [swapped, setSwapped] = useState(false);
 
   const { messageText } = useMessageText()
+  const chitsMeText = messageText?.chits_v_me?.col;
   const chitsMessageText = messageText?.chits_v_me?.msg;
   const charkText = messageText?.chark?.msg;
 
@@ -38,7 +39,9 @@ const PendingChitDetail = (props) => {
 
   const commonText = {
     rejected: chitsMessageText?.rejected,
-    accepted: chitsMessageText?.accepted,
+    accepted: chitsMessageText?.approved,
+    approve: chitsMessageText?.approve,
+    reject: chitsMessageText?.reject,
     nokey: charkText?.nokey,
     cancel: charkText?.cancel,
     next: charkText?.next,
@@ -72,7 +75,7 @@ const PendingChitDetail = (props) => {
       <View style={{ marginBottom: 48 }}>
         <Header onBackPress={onBack}>
           <Text style={styles.headerText}>
-            Details
+            {chitsMessageText?.pending?.title ?? ''}
           </Text>
         </Header>
       </View>
@@ -107,6 +110,7 @@ const PendingChitDetail = (props) => {
           multiline
           numberOfLines={6}
           value={memo}
+          placeholder={chitsMeText?.memo?.title ?? ''}
           style={[styles.input, styles.comment]}
           onChangeText={onMemoChange}
         />
@@ -114,7 +118,7 @@ const PendingChitDetail = (props) => {
         <View style={styles.reference}>
           <HelpText
             style={styles.referenceText}
-            label={'Reference'}
+            label={chitsMeText?.reference?.title ?? ''}
           />
         </View>
       </View>

@@ -24,7 +24,7 @@ export const getComm = (wm, user_ent) => {
     }
   }
 
-  return request(wm, '_comm_ref' + random(1000), 'select', spec);
+  return request(wm, '_comm_ref' + random(), 'select', spec);
 }
 
 export const getPersonal = (wm, user_ent) => {
@@ -37,7 +37,7 @@ export const getPersonal = (wm, user_ent) => {
   }
 
 
-  return request(wm, `_user_ref_${random(1000)}`, 'select', spec).then(response => {
+  return request(wm, `_user_ref_${random()}`, 'select', spec).then(response => {
     const user = response?.[0];
     return {
       born_date: user?.born_date ?? '',
@@ -57,7 +57,7 @@ export const getUserCert = (wm, user_ent) => {
     params: [user_ent]
   };
 
-  return request(wm, `_user_cert_${random(1000)}`, 'select', spec);
+  return request(wm, `_user_cert_${random()}`, 'select', spec);
 }
 
 export const getAddresses = (wm, user_ent) => {
@@ -73,7 +73,7 @@ export const getAddresses = (wm, user_ent) => {
     }
   };
 
-  return request(wm, '_addr_ref' + random(1000), 'select', spec);
+  return request(wm, '_addr_ref' + random(), 'select', spec);
 }
 
 
@@ -86,7 +86,7 @@ export const getCountry = (wm, co_code) => {
     }
   };
 
-  return request(wm, '_co_ref' + random(1000), 'select', spec).then((countries) => {
+  return request(wm, '_co_ref' + random(), 'select', spec).then((countries) => {
     return countries?.[0];
   })
 }
@@ -101,7 +101,7 @@ export const getCurrency = (wm, cur_code) => {
     }
   }
 
-  return request(wm, '_cur_ref' + random(1000), 'select', spec).then(currencies => {
+  return request(wm, '_cur_ref' + random(), 'select', spec).then(currencies => {
     return currencies?.[0];
   });
 }
@@ -146,7 +146,7 @@ export const uploadImage = (wm, payload) => {
     },
   }
 
-  return request(wm, 'upload_image' + random(1000), 'action', spec);
+  return request(wm, 'upload_image' + random(), 'action', spec);
 }
 
 export const getFile = (wm, user_ent) => {
@@ -159,7 +159,7 @@ export const getFile = (wm, user_ent) => {
     },
   }
 
-  return request(wm, 'get_image' + random(1000), 'select', spec);
+  return request(wm, 'get_image' + random(), 'select', spec);
 }
 
 export const updateCID = (wm, args) => {

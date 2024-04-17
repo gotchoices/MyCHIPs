@@ -25,6 +25,7 @@ const ShareTally = (props) => {
 
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
+  const talliesMessageText = messageText?.tallies_v_me?.msg;
 
   const text = {
     share: charkText?.share,
@@ -47,10 +48,9 @@ const ShareTally = (props) => {
       }
     }
 
-    request(wm, `_invite_ref_json_${random(1000)}`, 'action', spec).then((data) => {
+    request(wm, `_invite_ref_json_${random()}`, 'action', spec).then((data) => {
       const json = data?.[0];
       const link = data?.[1];
-      console.log(link, 'link')
 
       setInvite({
         json,
@@ -69,7 +69,7 @@ const ShareTally = (props) => {
     <Share
       qrData={tallyUrl}
       linkHtml={linkHtml}
-      shareTitle="Share Tally"
+      shareTitle={talliesMessageText?.invite?.title ?? ''}
       message={message}
       text={text}
     />
