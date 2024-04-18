@@ -7,7 +7,20 @@ import { colors } from "../../../config/constants";
 
 const CommentContent = (props) => {
   const [comment, setComment] = useState();
-  const [selectedItem, setSelectedItem] = useState(undefined);
+  const [selectedItem, setSelectedItem] = useState('foil');
+  const [myLimit, setMyLimit] = useState(0);
+  const [partnerLimit, setPartnerLimit] = useState(0);
+
+  const holdTermsText = props?.text?.hold_terms;
+  const partTermsText = props?.text?.part_terms;
+
+  const holdLimitText = useMemo(() => {
+    return holdTermsText?.values?.find((term) => term.value === 'limit')
+  }, [holdTermsText?.values])
+
+  const partLimitText = useMemo(() => {
+    return partTermsText?.values?.find((term) => term.value === 'limit')
+  }, [partTermsText?.values])
 
   const tallyTypeText = useMemo(() => {
     return props.text?.tally_type?.values?.reduce((acc, current) => {
@@ -23,13 +36,37 @@ const CommentContent = (props) => {
     borderWidth: 1,
     borderEndWidth: itemType === "foil" ? 0 : 1,
     borderColor: selected ? 'blue' : '#D7D7D7',
-    backgroundColor: selected ? 'blue' : '#F5F5F5',
+    backgroundColor: selected ? 'blue' : colors.white,
     borderTopLeftRadius: itemType === "foil" ? 6 : 0,
     borderBottomLeftRadius: itemType === "foil" ? 6 : 0,
     borderTopRightRadius: itemType === "stock" ? 6 : 0,
     borderBottomRightRadius: itemType === "stock" ? 6 : 0,
 
   });
+
+  const checkValidInput = (textValue) => {
+    return textValue && /^[0-9]*(\.[0-9]{0,3})?$/.test(textValue);
+  };
+
+  const getValidAmount = (amount) => {
+    if (parseFloat(amount) > 0) {
+      return amount;
+    }
+
+    return 1.000
+  };
+
+  const calculateSendingAmount = (value, setLimit) => {
+    const amount = getValidAmount(value);
+
+    if (amount && checkValidInput(amount)) {
+      return setLimit(amount);
+    }
+
+    return setLimit(
+     round(amount, 3)
+    );
+  };
 
   return (<View style={styles.bottomSheetContainer}>
     <CustomIcon
@@ -38,13 +75,29 @@ const CommentContent = (props) => {
       onPress={props.onDismiss}
       style={{ alignSelf: 'flex-end', backgroundColor: 'white', height: 24, width: 24, justifyContent: 'center', alignItems: 'center' }}
     />
+
     <Text style={styles.bottomSheetTitle}>{props?.text?.newtally?.title ?? ''}</Text>
+
     <TextInput
-      value={comment}
-      onChangeText={setComment}
-      placeholder={props.text?.comment?.title ?? ''}
-      style={styles.textInput}
+      maxLength={9}
+      numberOfLines={1}
       returnKeyType="done"
+      keyboardType="numeric"
+      style={styles.textInput}
+      value={myLimit ? myLimit : ''}
+      onChangeText={(text) => calculateSendingAmount(text, setMyLimit)}
+      placeholder={holdLimitText?.title ?? ''}
+    />
+
+    <TextInput
+      maxLength={9}
+      numberOfLines={1}
+      returnKeyType="done"
+      keyboardType="numeric"
+      style={styles.textInput}
+      value={partnerLimit ?  partnerLimit : ''}
+      onChangeText={(text) => calculateSendingAmount(text, setPartnerLimit)}
+      placeholder={partLimitText?.title ?? ''}
     />
 
     <View style={styles.selectorParent}>
@@ -63,10 +116,19 @@ const CommentContent = (props) => {
       </TouchableOpacity>
     </View>
 
+    <TextInput
+      value={comment}
+      onChangeText={setComment}
+      placeholder={props.text?.comment?.title ?? ''}
+      style={styles.textInput}
+      returnKeyType="done"
+    />
+
+
     <Button
       title={props?.text?.next?.title ?? ''}
       onPress={() => {
-        props.onNext({ comment: comment, tally_type: selectedItem });
+        props.onNext({ comment: comment, tally_type: selectedItem, myLimit, partnerLimit });
       }}
       style={styles.button}
     />
@@ -82,11 +144,12 @@ CommentContent.propTypes = {
 const styles = StyleSheet.create({
   bottomSheetContainer: {
     height: 600,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 24,
     alignItems: 'center',
   },
   bottomSheetTitle: {
+    marginBottom: 25,
     fontSize: 25,
     fontWeight: '400',
     fontFamily: 'inter',
@@ -99,14 +162,15 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     width: '100%',
     borderRadius: 6,
-    marginTop: 40,
+    marginVertical: 14,
+    //marginTop: 40,
     height: 40,
   },
   selectorParent: {
-    width: "80%",
+    width: "90%",
     height: 60,
     flexDirection: 'row',
-    marginTop: 35,
+    marginVertical: 16,
     borderRadius: 6,
   },
   selectedLabel: {

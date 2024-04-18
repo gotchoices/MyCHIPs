@@ -53,7 +53,6 @@ export const fetchTemplates = createAsyncThunk('workingTallies/fetchTemplates', 
         asc: false,
       }
     })
-    console.log(data.map(d => d.state))
 
     const hashes = []
     const tallies = data?.map(el => {
