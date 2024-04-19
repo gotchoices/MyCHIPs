@@ -28,7 +28,6 @@ import {
 import FloatingActionButton from '../../components/FloadingActionButton';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import CommentContent from './CommentContent';
-import LimitContent from './LimitContent';
 import SuccessContent from '../../components/SuccessContent';
 import {GenerateKeysDialog} from '../Tally/TallyPreview/GenerateKeysDialog';
 import TallyEntryModal from './TallyEntryModal';
@@ -99,7 +98,6 @@ const TallyInvite = props => {
   const {triggerInviteFetch} = useInvite();
   const {filter} = useSelector(state => state.profile);
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [showLimitModal, setShowLimitModal] = useState(false);
   const [showTemplateSuccess, setShowTemplateSuccess] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
@@ -190,11 +188,11 @@ const TallyInvite = props => {
       tally_type: item.tally_type,
       hold_terms: {
         call: 30,
-        limit: item.tally_type === 'foil' ? item.limit : null,
+        limit: item.myLimit ?? null,
       },
       part_terms: {
         call: 30,
-        limit: item.tally_type === 'stock' ? item.limit : null,
+        limit: item.partnerLimit ?? null,
       },
     };
     createTemplate(wm, payload)
@@ -385,6 +383,7 @@ const TallyInvite = props => {
     next: charkText?.next,
     newtally: charkText?.newtally,
     hold_terms: talliesColText?.hold_terms,
+    part_terms: talliesColText?.part_terms,
   };
 
   const onDeleteTally = item => {
@@ -465,27 +464,11 @@ const TallyInvite = props => {
         <CommentContent
           text={commonText}
           onNext={item => {
-            setTallyItem({...tallyItem, ...item});
             setShowCommentModal(false);
-            setShowLimitModal(true);
+            newTemplate(item);
           }}
           onDismiss={() => {
             setShowCommentModal(false);
-          }}
-        />
-      </BottomSheetModal>
-
-      <BottomSheetModal
-        isVisible={showLimitModal}
-        onClose={() => setShowLimitModal(false)}>
-        <LimitContent
-          text={commonText}
-          onNext={item => {
-            setShowLimitModal(false);
-            newTemplate({...tallyItem, ...item});
-          }}
-          onDismiss={() => {
-            setShowLimitModal(false);
           }}
         />
       </BottomSheetModal>
