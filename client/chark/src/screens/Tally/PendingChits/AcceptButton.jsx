@@ -14,6 +14,7 @@ import { acceptChit } from '../../../services/chit';
 import { createSignature } from '../../../utils/message-signature';
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
 import { showError } from '../../../utils/error';
+import { KeyNotFoundError } from '../../../utils/Errors';
 
 const AcceptButton = (props) => {
   const { wm } = useSocket();
@@ -39,13 +40,8 @@ const AcceptButton = (props) => {
       props?.postAccept?.();
 
     } catch(err) {
-      const { isKeyAvailable, message } = err;
-      if (isKeyAvailable === false) {
-        Alert.alert(
-          props?.text?.nokey?.title ?? '',
-          props?.text?.nokey?.help ?? '',
-          [{ text: props?.text?.cancel?.title ?? '' }, { text: props?.text?.next?.title ?? '', onPress: showCreateSignatureModal }]
-        );
+      if(err instanceof KeyNotFoundError) {
+        showCreateSignatureModal();
       } else {
         showError(err);
       }

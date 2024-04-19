@@ -281,6 +281,7 @@ const TallyInvite = props => {
                   json_core: item.json_core,
                   tally_seq: item.id,
                   tallyType: item.tally_type,
+                  tally_type: item.tally_type,
                   tally_ent: item.tally_ent,
                 },
               });

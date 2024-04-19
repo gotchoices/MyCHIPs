@@ -13,6 +13,10 @@ import { colors } from '../../config/constants';
 import { createSignature } from '../../utils/message-signature';
 import { acceptTally } from '../../services/tally';
 import { setShowCreateSignatureModal } from '../../redux/profileSlice';
+import { KeyNotFoundError } from '../../utils/Errors';
+import { showError } from '../../utils/error';
+import { comparePublicKey } from '../../services/tally';
+import Toast from 'react-native-toast-message'
 
 const AcceptButton = (props) => {
   const tally = props.tally;
@@ -35,6 +39,18 @@ const AcceptButton = (props) => {
     try {
       setAccepting(true);
       const message = stringify(tally.json_core)
+
+      const tallyType = tally?.tally_type;
+      const tallyPublicKey = tally?.json_core?.[tallyType]?.cert?.public;
+      const isNewPublicKey = await comparePublicKey(tallyPublicKey)
+
+      if(!isNewPublicKey) {
+        return Toast.show({
+          type: 'success',
+          text1: 'New key cannot used for signing the tally',
+        })
+      }
+
       const signature = await createSignature(message);
       await acceptTally(wm, {
         signature,
@@ -45,11 +61,10 @@ const AcceptButton = (props) => {
       props.postOffer?.();
 
     } catch(err) {
-      const { isKeyAvailable, message } = err;
-      if (isKeyAvailable === false) {
+      if(err instanceof KeyNotFoundError) {
         showCreateSignatureModal();
       } else {
-        Alert.alert("Error", message || err);
+        showError(err);
       }
 
     } finally {

@@ -1,6 +1,8 @@
 import { random } from '../utils/common';
 import { langRegister, request } from './request';
 import { v4 as uuid } from 'uuid';
+import { retrieveKey } from '../utils/keychain-store'
+import { keyServices } from '../config/constants';
 
 export const getTallyText = (wm) => {
   return langRegister(wm, '_tally_lang' + random(), 'mychips.tallies');
@@ -313,4 +315,16 @@ export const getHolderImage = (wm, digest) => {
       return data;
     }
   });
+}
+
+export const comparePublicKey = async (tallyPublicKey) => {
+  const publicCreds = await retrieveKey(keyServices.publicKey)
+
+  if(publicCreds) {
+    const currentPublicKey = JSON.parse(publicCreds.password);
+
+    return currentPublicKey.x === tallyPublicKey?.x && currentPublicKey.y === tallyPublicKey.y;
+  }
+
+  return true;
 }

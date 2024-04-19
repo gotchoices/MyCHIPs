@@ -16,6 +16,7 @@ import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
 import { showError } from '../../../utils/error';
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
+import { KeyNotFoundError } from '../../../utils/Errors';
 
 const TradingVariables = (props) => {
   const { tally_seq, tally_ent, chad, tally_type, tally_uuid } = props.route?.params ?? {};
@@ -84,16 +85,11 @@ const TradingVariables = (props) => {
         text1: charkMessageText?.updated?.help ?? '',
       })
     }).catch((err) => {
-      const { isKeyAvailable } = err;
-      if (isKeyAvailable === false) {
-        return Alert.alert(
-          charkMessageText?.nokey?.title ?? '',
-          charkMessageText?.nokey?.help ?? '',
-          [{ text: charkMessageText?.cancel?.title ?? ''}, { text: charkMessageText?.next?.title ?? '', onPress: showCreateSignatureModal }]
-        );
+      if(err instanceof KeyNotFoundError) {
+        showCreateSignatureModal();
+      } else {
+        showError(err)
       }
-
-      return showError(err)
     });
 
     return false;
