@@ -108,9 +108,9 @@ describe("Peer-to-peer lift testing", function() {
 	    	values($1,$2,$3,$4,$5,$6,'init') returning *;`
       , parms = [user3, find, date, units, uuid, auth]
       , dc = 3, _done = () => {if (!--dc) done()}	//dc _done's to be done
-log.debug("Sql:", sql, JSON.stringify(parms))
+//log.debug("Sql:", sql, JSON.stringify(parms))
     dbL.query(sql, parms, (e, res) => {if (e) done(e)		//;log.debug("Res:", res)
-      let pay = getRow(res, 0)					;log.debug("Pay:", JSON.stringify(pay))
+      let pay = getRow(res, 0)					//;log.debug("Pay:", JSON.stringify(pay))
       assert.equal(pay.units, units)
       assert.equal(pay.lift_seq, 0)
       assert.ok(pay.lift_uuid)

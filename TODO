@@ -1,5 +1,14 @@
 TODO:
 
+X- Build simulated network for ChipNet integration
+X-  Make PeerComm listener for each site/agent
+X-  Stock proposes tally to foil
+X-  Answer/approve for foil
+X-  Check that tallies are open
+X-  Build a single chit for each tally to establish desired balance
+
+- Clean up pre-beta checklist below
+
 - Payment testing:
 -   
 X-  Test: tally signatures pass agent check
@@ -50,6 +59,8 @@ X- App is signing chits
 
 - Language Support
 -  Integrate/find missing language tags for app
+-  Wyseman: if launched in foreign language, english defaults are missing
+-  
 
 -  Trigger to prevent delete/update of files/contracts referenced in tallies
 -  App displays my partners' primary photo

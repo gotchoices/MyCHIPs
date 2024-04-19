@@ -1353,7 +1353,7 @@ create function base.ent_tf_iuacc() returns trigger language plpgsql security de
       return new;
     end;
 $$;
-create view base.ent_v as select e.id, e.ent_num, e.conn_pub, e.ent_name, e.ent_type, e.ent_cmt, e.fir_name, e.mid_name, e.pref_name, e.title, e.gender, e.marital, e.born_date, e.username, e.ent_inact, e.country, e.tax_id, e.bank, e.crt_by, e.mod_by, e.crt_date, e.mod_date
+create view base.ent_v as select e.id, e.conn_pub, e.ent_type, e.ent_num, e.ent_name, e.ent_cmt, e.fir_name, e.mid_name, e.pref_name, e.title, e.gender, e.marital, e.born_date, e.username, e.ent_inact, e.country, e.tax_id, e.bank, e.crt_by, e.mod_by, e.crt_date, e.mod_date
       , case when e.fir_name is null then e.ent_name else e.ent_name || ', ' || coalesce(e.pref_name,e.fir_name) end	as std_name
       , e.ent_name || case when e.fir_name is not null then ', ' || 
                 case when e.title is null then '' else e.title || ' ' end ||
@@ -1656,7 +1656,7 @@ grant delete on table base.ent_link_v to ent_2;
 create function base.ent_tf_audit_d() --Call when a record is deleted in the audited table
           returns trigger language plpgsql security definer as $$
             begin
-                insert into base.ent_audit (id,a_date,a_by,a_action,a_values) values (old.id,transaction_timestamp(),session_user,'delete',jsonb_build_object('ent_name',old.ent_name,'ent_type',old.ent_type,'ent_cmt',old.ent_cmt,'fir_name',old.fir_name,'mid_name',old.mid_name,'pref_name',old.pref_name,'title',old.title,'gender',old.gender,'marital',old.marital,'born_date',old.born_date,'username',old.username,'ent_inact',old.ent_inact,'country',old.country,'tax_id',old.tax_id,'bank',old.bank));
+                insert into base.ent_audit (id,a_date,a_by,a_action,a_values) values (old.id,transaction_timestamp(),session_user,'delete',jsonb_build_object('ent_type',old.ent_type,'ent_num',old.ent_num,'ent_name',old.ent_name,'ent_cmt',old.ent_cmt,'fir_name',old.fir_name,'mid_name',old.mid_name,'pref_name',old.pref_name,'title',old.title,'gender',old.gender,'marital',old.marital,'born_date',old.born_date,'username',old.username,'ent_inact',old.ent_inact,'country',old.country,'tax_id',old.tax_id,'bank',old.bank));
                 return old;
             end;
         $$;
@@ -1666,8 +1666,9 @@ create function base.ent_tf_audit_u() --Call when a record is updated in the aud
                 doit	boolean = false;
                 jobj	jsonb = '{}';
             begin
-                if new.ent_name is distinct from old.ent_name then doit=true; jobj = jobj || jsonb_build_object('ent_name', old.ent_name); end if;
-		if new.ent_type is distinct from old.ent_type then doit=true; jobj = jobj || jsonb_build_object('ent_type', old.ent_type); end if;
+                if new.ent_type is distinct from old.ent_type then doit=true; jobj = jobj || jsonb_build_object('ent_type', old.ent_type); end if;
+		if new.ent_num is distinct from old.ent_num then doit=true; jobj = jobj || jsonb_build_object('ent_num', old.ent_num); end if;
+		if new.ent_name is distinct from old.ent_name then doit=true; jobj = jobj || jsonb_build_object('ent_name', old.ent_name); end if;
 		if new.ent_cmt is distinct from old.ent_cmt then doit=true; jobj = jobj || jsonb_build_object('ent_cmt', old.ent_cmt); end if;
 		if new.fir_name is distinct from old.fir_name then doit=true; jobj = jobj || jsonb_build_object('fir_name', old.fir_name); end if;
 		if new.mid_name is distinct from old.mid_name then doit=true; jobj = jobj || jsonb_build_object('mid_name', old.mid_name); end if;
@@ -1696,7 +1697,7 @@ create function base.ent_v_insfunc() returns trigger language plpgsql security d
   begin
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'base.ent_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into base.ent (ent_name,ent_type,ent_cmt,fir_name,mid_name,pref_name,title,gender,marital,born_date,username,ent_inact,country,tax_id,bank,crt_by,mod_by,crt_date,mod_date) values (trec.ent_name,trec.ent_type,trec.ent_cmt,trec.fir_name,trec.mid_name,trec.pref_name,trec.title,trec.gender,trec.marital,trec.born_date,trec.username,trec.ent_inact,trec.country,trec.tax_id,trec.bank,session_user,session_user,current_timestamp,current_timestamp) returning id into new.id;
+    insert into base.ent (ent_type,ent_num,ent_name,ent_cmt,fir_name,mid_name,pref_name,title,gender,marital,born_date,username,ent_inact,country,tax_id,bank,crt_by,mod_by,crt_date,mod_date) values (trec.ent_type,trec.ent_num,trec.ent_name,trec.ent_cmt,trec.fir_name,trec.mid_name,trec.pref_name,trec.title,trec.gender,trec.marital,trec.born_date,trec.username,trec.ent_inact,trec.country,trec.tax_id,trec.bank,session_user,session_user,current_timestamp,current_timestamp) returning id into new.id;
     select into new * from base.ent_v where id = new.id;
     return new;
   end;
@@ -1887,8 +1888,10 @@ create function base.priv_grants() returns int language plpgsql as $$
 $$;
 create function base.priv_tf_dgrp() returns trigger security definer language plpgsql as $$
     begin
+      if exists (select from pg_roles where rolname = old.grantee) then
         execute 'revoke "' || old.priv_level || '" from ' || old.grantee;
-        return old;
+      end if;
+      return old;
     end;
 $$;
 create function base.priv_tf_iugrp() returns trigger security definer language plpgsql as $$
@@ -2535,7 +2538,7 @@ create function mychips.users_tf_biu() returns trigger language plpgsql security
 $$;
 create trigger mychips_users_tr_change after insert or update or delete on mychips.users for each statement execute procedure mychips.users_tf_change();
 create view mychips.users_v as select 
-    ee.id, ee.ent_name, ee.ent_type, ee.ent_cmt, ee.fir_name, ee.mid_name, ee.pref_name, ee.title, ee.gender, ee.marital, ee.born_date, ee.username, ee.ent_inact, ee.country, ee.tax_id, ee.bank, ee.ent_num, ee.std_name, ee.frm_name, ee.giv_name, ee.cas_name, ee.age, ee.conn_pub
+    ee.id, ee.ent_type, ee.ent_num, ee.ent_name, ee.ent_cmt, ee.fir_name, ee.mid_name, ee.pref_name, ee.title, ee.gender, ee.marital, ee.born_date, ee.username, ee.ent_inact, ee.country, ee.tax_id, ee.bank, ee.std_name, ee.frm_name, ee.giv_name, ee.cas_name, ee.age, ee.conn_pub
   , ue.user_ent, ue.user_host, ue.user_port, ue.user_stat, ue.user_hid, ue.peer_cid, ue.peer_agent, ue.peer_psig, ue.peer_named, ue.user_cmt, ue.crt_by, ue.crt_date, ue.mod_by
   , ag.agent_key, ag.agent_ip
 
@@ -3012,7 +3015,7 @@ create function mychips.users_v_insfunc() returns trigger language plpgsql secur
         execute 'select string_agg(val,'','') from wm.column_def where obj = $1 and not col ~ $2;' into str using 'base.ent','^_';
 
         execute 'select ' || str || ';' into trec using new;
-        insert into base.ent (ent_name,ent_type,ent_cmt,fir_name,mid_name,pref_name,title,gender,marital,born_date,username,ent_inact,country,tax_id,bank,mod_by,mod_date) values (trec.ent_name,trec.ent_type,trec.ent_cmt,trec.fir_name,trec.mid_name,trec.pref_name,trec.title,trec.gender,trec.marital,trec.born_date,trec.username,trec.ent_inact,trec.country,trec.tax_id,trec.bank,session_user,current_timestamp) returning id into new.id;
+        insert into base.ent (ent_type,ent_num,ent_name,ent_cmt,fir_name,mid_name,pref_name,title,gender,marital,born_date,username,ent_inact,country,tax_id,bank,mod_by,mod_date) values (trec.ent_type,trec.ent_num,trec.ent_name,trec.ent_cmt,trec.fir_name,trec.mid_name,trec.pref_name,trec.title,trec.gender,trec.marital,trec.born_date,trec.username,trec.ent_inact,trec.country,trec.tax_id,trec.bank,session_user,current_timestamp) returning id into new.id;
     end if;
     
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1 and not col ~ $2;' into str using 'mychips.users','^_';
@@ -6655,7 +6658,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','chits','signature','eng','Signature','Digital signature of the party authorizing the transaction'),
   ('mychips','chits','status','eng','Status','The status field indicates if the state has progressed to the point where the amount of the chit can be considered pending or final'),
   ('mychips','chits','units','eng','Units','The amount of the transaction, measured in milli-CHIPs (1/1000 of a CHIP)'),
-  ('mychips','chits_v','action','eng','Action','Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.'),
+  ('mychips','chits_v','action','eng','Action Required','Indicates this tally requires some kind of action on the part of the user, such as accepting, rejecting, confirming, etc.'),
   ('mychips','chits_v','chain','eng','Chain Message','Chit chaining consensus data'),
   ('mychips','chits_v','clean','eng','Clean','Indicates that the stored hash matches the computed hash.  This is an indication that the record has not been tampered with.'),
   ('mychips','chits_v','cstate','eng','Consensus State','The state of the chit as defined for the consensus algorithm'),
@@ -6813,12 +6816,12 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','closing','eng','Closing','One of the parties has registered a close request on the tally'),
   ('mychips','tallies','clutch','eng','Sell Margin','A cost for negative-going lifts, or ''drops'' (0.01 = 1%).  Set to 1 to effectively prevent such trades.  Negative means the holder will lose value!'),
   ('mychips','tallies','comment','eng','Comment','Any notes the user might want to enter regarding this tally'),
-  ('mychips','tallies','contract','eng','Contract','The Resource ID of the contract governing this tally (or a json record more fully specifying it)'),
+  ('mychips','tallies','contract','eng','Contract','The contract governing this tally agreement'),
   ('mychips','tallies','crt_by','eng','Created By','The user who entered this record'),
   ('mychips','tallies','crt_date','eng','Created','The date this record was created'),
   ('mychips','tallies','digest','eng','Digest Hash','A digitally encrypted hash indicating a unique but condensed representation of the critical information belonging to the tally.  The originator will sign this hash to make the lift binding.'),
   ('mychips','tallies','hold_agent','eng','Holder Agent','Cached value of holder''s agent from the holder certificate'),
-  ('mychips','tallies','hold_cert','eng','Holder Certificate','The JSON structure of identifying data for the entity that owns/holds this tally'),
+  ('mychips','tallies','hold_cert','eng','Holder Certificate','Identification data for the entity that owns/holds this tally'),
   ('mychips','tallies','hold_cid','eng','Holder CID','Cached value of holder''s CHIP identity from the holder certificate'),
   ('mychips','tallies','hold_sets','eng','Holder Settings','The current terms the holder has asserted on the tally'),
   ('mychips','tallies','hold_sig','eng','Holder Signed','The digital signature of the entity that owns/holds this tally'),
@@ -6828,7 +6831,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies','net_c','eng','Good Units','Total milliCHIP value of committed chits'),
   ('mychips','tallies','net_pc','eng','Pending Units','Total milliCHIP value of committed and pending chits'),
   ('mychips','tallies','part_agent','eng','Partner Agent','Cached value of partner''s agent from the holder certificate'),
-  ('mychips','tallies','part_cert','eng','Partner Certificate','The JSON structure of identifying data for the other party to this tally'),
+  ('mychips','tallies','part_cert','eng','Partner Certificate','Identification data for the other party to this tally'),
   ('mychips','tallies','part_cid','eng','Partner CID','Cached value of partner''s CHIP identify from the holder certificate'),
   ('mychips','tallies','part_ent','eng','Partner Entity','The entity id number of the other party to this tally'),
   ('mychips','tallies','part_sets','eng','Partner Settings','The current terms the partner has asserted on the tally'),
@@ -6860,7 +6863,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('mychips','tallies_v','latest','eng','Last Chit','The date of the latest chit on the tally'),
   ('mychips','tallies_v','liftable','eng','Liftable','Indicates if the tally is eligible to participate in lifts'),
   ('mychips','tallies_v','mag_p','eng','Magnitude','Tally CHIP total absolute value of confirmed and pending chits'),
-  ('mychips','tallies_v','net','eng','Signed Units','Total milliCHIP value on the tally, as summed from current chits'),
+  ('mychips','tallies_v','net','eng','Tally Total','Total milliCHIP value on the tally, as summed from current chits'),
   ('mychips','tallies_v','net_p','eng','Net Pending','Tally CHIP total of confirmed and pending chits'),
   ('mychips','tallies_v','part_addr','eng','Partner Address','The CHIP address (cid:agent) of the partner on this tally'),
   ('mychips','tallies_v','part_chad','eng','Partner Address','CHIP address data for the tally partner'),
@@ -7291,8 +7294,8 @@ insert into wm.value_text (vt_sch,vt_tab,vt_col,value,language,title,help) value
   ('mychips','tallies','status','draft','eng','Draft','The tally has been suggested by one party but not yet accepted by the other party'),
   ('mychips','tallies','status','open','eng','Open','The tally is affirmed by both parties and can be used for trading chits'),
   ('mychips','tallies','status','void','eng','Void','The tally has been abandoned before being affirmed by both parties'),
-  ('mychips','tallies','tally_type','foil','eng','Foil','The entity this tally belongs to is typically the debtor on transactions'),
-  ('mychips','tallies','tally_type','stock','eng','Stock','The entity this tally belongs to is typically the creditor on transactions'),
+  ('mychips','tallies','tally_type','foil','eng','Foil','The entity this tally belongs to is typically the buyer/debtor on transactions'),
+  ('mychips','tallies','tally_type','stock','eng','Stock','The entity this tally belongs to is typically the seller/creditor on transactions'),
   ('mychips','tallies_v','state','close','eng','Closed','The tally can no longer be used for trades'),
   ('mychips','tallies_v','state','H.offer','eng','Holder Offer','You have signed and offered the tally to your partner'),
   ('mychips','tallies_v','state','open','eng','Open','The tally is now open an can be used for trades'),
@@ -7385,6 +7388,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','certshare','eng','Certificate Sharing','Decide what personal information will you share with the other party.  You can create a custom certificate or use one from any existing draft tallies you might have.'),
   ('mychips','chark','certtpts','eng','Template Certificates','Select a certificate from an existing tally template'),
   ('mychips','chark','custom','eng','Custom','Customize my settings'),
+  ('mychips','chark','deleted','eng','Deleted','The item has been deleted from the database'),
   ('mychips','chark','edit','eng','Edit','Modify the current information'),
   ('mychips','chark','export','eng','Export','Export the item to an external format'),
   ('mychips','chark','filter','eng','Filter','Settings to control display of records in the list preview'),
@@ -7397,6 +7401,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','mychips','eng','My CHIPs','Title for main screen'),
   ('mychips','chark','newtally','eng','New Tally','Creating a new tally template'),
   ('mychips','chark','next','eng','Next','Proceed to the next step'),
+  ('mychips','chark','nokey','eng','No Signing Key','You have not yet created a digital signing key.  Proceed to create one.'),
   ('mychips','chark','profile','eng','Personal Data','View/modify personal information about the user'),
   ('mychips','chark','qr','eng','QR Code','Generate a scannable QR code'),
   ('mychips','chark','save','eng','Save','Save the current changes'),
@@ -7404,6 +7409,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','selall','eng','Select All','Select all possible items'),
   ('mychips','chark','settings','eng','Settings','View/modify application preferences'),
   ('mychips','chark','share','eng','Share','Share this item by some external medium'),
+  ('mychips','chark','sure','eng','Are you Sure','Confirm that you want to proceed'),
+  ('mychips','chark','updated','eng','Updated','Changes have been written to the database'),
   ('mychips','chark','working','eng','Working Tallies','Draft and void templates you may use to tally with other users'),
   ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a chit'),
   ('mychips','chits','BLL','eng','Bad Lift Sequence','Only lift chits should include a lift sequence number'),
@@ -7417,9 +7424,17 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chits','IST','eng','Illegal State Change','The executed state transition is not allowed'),
   ('mychips','chits','LIT','eng','Link Invalid Tally','Attempted to link chit to invalid tally'),
   ('mychips','chits','MIS','eng','Bad Chit Signature','A chit marked to be good has no signature'),
+  ('mychips','chits_v_me','approve','eng','Approve Chit','Authorize and sign the requested chit'),
+  ('mychips','chits_v_me','approved','eng','Chit Apprived','The chit has been approved and authorized'),
   ('mychips','chits_v_me','asset','eng','Asset','A chit issued by your partner to pay you'),
+  ('mychips','chits_v_me','chits','eng','Chit History','List of past payment chits'),
+  ('mychips','chits_v_me','detail','eng','Chit Details','Show all information about the chit'),
+  ('mychips','chits_v_me','dirpmt','eng','Direct Payment','A payment issued by you to pay your tally partner'),
+  ('mychips','chits_v_me','dirreq','eng','Direct Request','A payment requested by you from your tally partner'),
   ('mychips','chits_v_me','liability','eng','Liability','A chit issued by you to pay your partner'),
   ('mychips','chits_v_me','pending','eng','Pending Chits','Chits that are proposed but not yet approved'),
+  ('mychips','chits_v_me','reject','eng','Reject Chit','Refuse to make payment on the requested chit'),
+  ('mychips','chits_v_me','rejected','eng','Chit Rejected','The chit has been refused'),
   ('mychips','contracts','BVN','eng','Bad Version Number','Version number for contracts should start with 1 and move progressively larger'),
   ('mychips','contracts','ILR','eng','Illegal Rows','A query expecting a single record returned zero or multiple rows'),
   ('mychips','contracts','IRI','eng','Invalid Resource ID','A contract contains a reference to another document that can not be found'),
@@ -7443,7 +7458,11 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','lifts','IVS','eng','Invalid Status','At attempt was made to set a lift status to an unallowed value'),
   ('mychips','lifts','IVT','eng','Invalid Type','At attempt was made to create a lift record with a disallowed type'),
   ('mychips','lifts','MDA','eng','Missing Agent','A destination CHIP address was given without specifying an agent address'),
+  ('mychips','lifts_v_pay_me','accept','eng','Approve Payment','Agree to the proposed payment lift'),
   ('mychips','lifts_v_pay_me','address','eng','Payment Address','Generate a link or QR code other users can use to pay you'),
+  ('mychips','lifts_v_pay_me','payreq','eng','Payment Request','Information others can use to pay you if they are not directly connected to you by a tally'),
+  ('mychips','lifts_v_pay_me','reject','eng','Reject Payment','Refuse the proposed payment lift'),
+  ('mychips','lifts_v_pay_me','request','eng','Request Payment','Generate a request for payment as a QR code or link'),
   ('mychips','routes','BST','eng','Bad Route Status','Not a valid status for the route status'),
   ('mychips','routes','CRL','eng','Illegal Route Target','Routes should be only to users on other systems'),
   ('mychips','routes','LMG','eng','Illegal Margin','The margin must be specified between -1 and 1'),
@@ -7471,6 +7490,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies','USM','eng','Bad User Signature','An open tally must contain a user signature'),
   ('mychips','tallies','VER','eng','Bad Tally Version','Tally version must be 1 or greater'),
   ('mychips','tallies_v_me','accept','eng','Accept Tally','Agree to the proposed tally'),
+  ('mychips','tallies_v_me','accepted','eng','Tally Accepted','The tally has been accepted and authorized'),
   ('mychips','tallies_v_me','agree','eng','Preview Agreement','Generate the tally agreement as a sharable PDF document'),
   ('mychips','tallies_v_me','agree.cert.foil','eng','Foil Certificate','Information identifying the Foil Holder'),
   ('mychips','tallies_v_me','agree.cert.stock','eng','Stock Certificate','Information identifying the Stock Holder'),
@@ -7485,6 +7505,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','close','eng','Close Tally','Request that the current tally be closed once its balance reaches zero'),
   ('mychips','tallies_v_me','CNF','eng','Unknown Contract','Unable to find a contract for the tally'),
   ('mychips','tallies_v_me','credit','eng','Credit','Trust is extended for this amount'),
+  ('mychips','tallies_v_me','detail','eng','Tally Details','Show all information about the tally'),
   ('mychips','tallies_v_me','disclose','eng','Send Certificate','Disclose my certificate information to the other partner'),
   ('mychips','tallies_v_me','file','eng','Document File','Fetch any partner file attachements the referenced tally'),
   ('mychips','tallies_v_me','file.digest','eng','File Digest','Specify the base64url hash of a single document file to return'),
@@ -7495,7 +7516,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','H.offer.draft','eng','Tally Revised','The other party has marked the tally offer for revision'),
   ('mychips','tallies_v_me','H.offer.offer','eng','Your Offer','You have offerred this tally to the other party'),
   ('mychips','tallies_v_me','invite','eng','Invite to Tally','Create a new invitation to tally for a prospective partner'),
-  ('mychips','tallies_v_me','invited','eng','Wants to Tally','Invites you to open a new MyCHIPs tally'),
+  ('mychips','tallies_v_me','invited','eng','Wants to Tally','Requests you to offer a new MyCHIPs tally'),
   ('mychips','tallies_v_me','invite.format','eng','Format','Determines which type of invitation is generated'),
   ('mychips','tallies_v_me','invite.format.json','eng','json','Return tally invitation as JSON object'),
   ('mychips','tallies_v_me','invite.format.link','eng','link','Return tally invitation as deep link Uniform Resource Locator'),
@@ -7510,6 +7531,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','launch.pay','eng','Send Payment','Send a direct payment to this tally partner'),
   ('mychips','tallies_v_me','launch.request','eng','Request Payment','Request a direct payment from this tall partner'),
   ('mychips','tallies_v_me','launch.title','eng','Tallies','Peer Trading Relationships'),
+  ('mychips','tallies_v_me','nocert','eng','Invalid Certificate','The partner''s certificate is missing or invalid'),
+  ('mychips','tallies_v_me','noterms','eng','No Tally Terms','Please specify credit terms before sharing the tally'),
   ('mychips','tallies_v_me','notify.draft','eng','Initiate Tally','Someone wants to engage with your invitation to open a MyCHIPs tally ledger'),
   ('mychips','tallies_v_me','notify.P.offer','eng','Tally Offer','You have received an offer to open a MyCHIPs tally ledger'),
   ('mychips','tallies_v_me','offer','eng','Offer Tally','Propose the tally to the partner'),
@@ -7518,6 +7541,8 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','tallies_v_me','P.draft.valid','eng','Tally Inquiry','Someone has responded to your tally invitation, including its own identifying certificate data'),
   ('mychips','tallies_v_me','P.offer.offer','eng','Tally Offer','This tally is offered to you by the other party'),
   ('mychips','tallies_v_me','reject','eng','Reject Tally','Refuse the proposed tally'),
+  ('mychips','tallies_v_me','rejected','eng','Tally Rejected','The tally has been refused'),
+  ('mychips','tallies_v_me','requested','eng','Tally Requested','You have disclosed certificate information and requested to tally'),
   ('mychips','tallies_v_me','review','eng','Review Tally','Review the proposed tally'),
   ('mychips','tallies_v_me','revise','eng','Revise Tally','Revise the proposed tally'),
   ('mychips','tallies_v_me','risk','eng','Risk','A loss may be incurred for this amount'),

@@ -41,7 +41,7 @@ log.debug('res:', res, 'row:', row)
 
   it("Build User Keys", function(done) {
     let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
-    crypto.generate((keyPair, private, public) => {	//log.debug('key0:', private)
+    crypto.generate((keyPair, private, public, err) => {if (err) done(err)
       assert.ok(keyPair.publicKey)
       assert.ok(keyPair.privateKey)
       assert.ok(public.x)
