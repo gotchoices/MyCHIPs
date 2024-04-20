@@ -3,6 +3,7 @@ import { Buffer } from "buffer";
 
 import { retrieveKey } from "./keychain-store";
 import { keyServices, KeyConfig } from "../config/constants";
+import { KeyNotFoundError } from '../utils/Errors';
 
 const subtle = window.crypto.subtle;
 
@@ -13,28 +14,23 @@ function base64ToBase64url(base64) {
 }
 
 
-export const createSignature = (message) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(message);
-      retrieveKey(keyServices.privateKey)
-        .then(creds => {
-          if (creds) {
-            console.log("PRIVATE KEY ==> ", creds.password);
-            return subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
-          } else {
-            throw { isKeyAvailable: false, message: "Create Keys!" };
-          }
-        })
-        .then(pvtKey => subtle.sign(KeyConfig, pvtKey, data))
-        .then(signature => Buffer.from(signature).toString('base64'))
-        .then(base64 => resolve(base64ToBase64url(base64)))
-        .catch(ex => reject(ex));
-    } catch (ex) {
-      reject(ex);
+export const createSignature = async (message, ) => {
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(message);
+    const creds = await retrieveKey(keyServices.privateKey)
+
+    if (creds) {
+      const pvtKey = await subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
+      const signature = await subtle.sign(KeyConfig, pvtKey, data)
+      const base64 = Buffer.from(signature).toString('base64')
+      return base64ToBase64url(base64)
+    } else {
+      throw new KeyNotFoundError('Create not found')
     }
-  });
+  } catch (err) {
+    throw err
+  }
 }
 
 export const verifySignature = (signature, message, publicKey) => {

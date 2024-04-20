@@ -5,15 +5,18 @@ import stringify from 'json-stable-stringify';
 import {
   Alert,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import Button from '../../components/Button';
 
 import useSocket from '../../hooks/useSocket';
-import { colors } from '../../config/constants';
+import { colors, keyServices } from '../../config/constants';
 import { createSignature } from '../../utils/message-signature';
 import { offerTally } from '../../services/tally';
 import { setShowCreateSignatureModal } from '../../redux/profileSlice';
 import { showError } from '../../utils/error';
+import { KeyNotFoundError } from '../../utils/Errors';
+import { comparePublicKey } from '../../services/tally';
 
 const OfferButton = (props) => {
   const tally = props.tally;
@@ -36,6 +39,18 @@ const OfferButton = (props) => {
     try {
       setOffering(true);
       const message = stringify(tally.json_core)
+
+      const tallyType = tally?.tally_type;
+      const tallyPublicKey = tally?.json_core?.[tallyType]?.cert?.public;
+      const isNewPublicKey = await comparePublicKey(tallyPublicKey)
+
+      if(!isNewPublicKey) {
+        return Toast.show({
+          type: 'success',
+          text1: 'New key cannot used for signing the tally',
+        })
+      }
+
       const signature = await createSignature(message)
       await offerTally(wm, {
         signature,
@@ -46,8 +61,7 @@ const OfferButton = (props) => {
 
       props?.postOffer?.();
     } catch(err) {
-      const { isKeyAvailable, message } = err;
-      if (isKeyAvailable === false) {
+      if(err instanceof KeyNotFoundError) {
         showCreateSignatureModal();
       } else {
         showError(err);

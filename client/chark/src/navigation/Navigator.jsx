@@ -46,6 +46,7 @@ import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
 import { GenerateKeysAlertModal } from '../components/GenerateKeyAlertModal';
 import KeyManagement from '../screens/KeyManagement';
 import Activity from '../screens/Activity';
+import Toast from 'react-native-toast-message';
 
 const screenOptions = {
   headerTitleAlign: "center",
@@ -254,10 +255,10 @@ const Navigator = () => {
 
   const onKeySaved = () => {
     dispatch(setShowCreateSignatureModal(false))
-    Alert.alert(
-      "Success",
-      "Key is generated successfully now you can accept tally."
-    );
+    Toast.show({
+      type: 'success',
+      text1: 'Key is generated successfully now you can perform the required action.',
+    });
   }
 
   return (

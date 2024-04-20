@@ -37,8 +37,8 @@ const TallyEntryModal = (props) => {
       <View style={{ alignItems: 'center' }}>
         <HandshakeIcon />
         <View style={{ flexDirection: 'row' }}>
-          <Avatar avatar={imagesByDigest[negotiationData?.data?.tallyType === 'stock' ? negotiationData?.data?.partDigest : negotiationData?.data?.holdDigest]} style={styles.foilAvatar}/>
-          <Avatar avatar={imagesByDigest[negotiationData?.data?.tallyType === 'stock' ? negotiationData?.data?.holdDigest : negotiationData?.data?.partDigest]} style={styles.stockAvatar}/>
+          <Avatar avatar={imagesByDigest[negotiationData?.data?.tally_type === 'stock' ? negotiationData?.data?.partDigest : negotiationData?.data?.holdDigest]} style={styles.foilAvatar}/>
+          <Avatar avatar={imagesByDigest[negotiationData?.data?.tally_type === 'stock' ? negotiationData?.data?.holdDigest : negotiationData?.data?.partDigest]} style={styles.stockAvatar}/>
         </View>
 
         <Text style={{ fontWeight: '400', fontSize: 30, color: colors.black, fontFamily: 'inter' }}>

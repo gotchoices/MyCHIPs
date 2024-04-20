@@ -31,6 +31,7 @@ import { createLiftsPay } from '../../../services/pay'
 
 import { createSignature } from "../../../utils/message-signature";
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
+import { KeyNotFoundError } from '../../../utils/Errors';
 
 import { ChitIcon, SwapIcon } from "../../../components/SvgAssets/SvgAssets";
 import BottomSheetModal from "../../../components/BottomSheetModal";
@@ -64,7 +65,6 @@ const PaymentDetail = (props) => {
   const { messageText } = useMessageText();
 
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
-  const charkText = messageText?.chark?.msg;
 
   const showCreateSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(true));
@@ -201,13 +201,8 @@ const PaymentDetail = (props) => {
       await insertChit(wm, payload)
       setShowSuccess(true);
     } catch(err) {
-      const { isKeyAvailable } = err;
-      if (isKeyAvailable === false) {
-        Alert.alert(
-          charkText?.nokey?.title ?? '',
-          charkText?.nokey?.help ?? '',
-          [{ text: charkText?.cancel?.title ?? ''}, { text: charkText?.next?.title ?? '', onPress: showCreateSignatureModal }]
-        );
+      if (err instanceof KeyNotFoundError) {
+        showCreateSignatureModal();
       } else {
         showError(err);
       }
