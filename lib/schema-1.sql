@@ -5076,7 +5076,7 @@ create function mychips.path_find(inp_node text, out_node text = '', size bigint
           q.signs || e.sign
         from queue q
         join mychips.tallies_v_edg e on e.inp = q.out and e.out <> all(q.ath)
-        where q.level = depth and coalesce(e.min, size) >= size;
+        where e.out notnull and q.level = depth and coalesce(e.min, size) >= size;
 
       delete from queue q where q.level = depth;
       depth := depth + 1;

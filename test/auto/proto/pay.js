@@ -9,8 +9,7 @@
 //- Generate payment lift request
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, Crypto } = require('../common')
-const PeerCont = require(libModule('peer2peer'))
+const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, Crypto, peerTest } = require('../common')
 const log = testLog(__filename)
 const crypto = new Crypto(log)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
@@ -18,7 +17,6 @@ const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
 const cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
 const adminListen = 'mychips_admin'
 const user3Listen = 'mu_' + user3
-const {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
 
 describe("Peer-to-peer lift testing", function() {
@@ -48,9 +46,9 @@ describe("Peer-to-peer lift testing", function() {
   })
 
   before('Launch three peer servers', function(done) {
-    server0 = new PeerCont(aCon0, db2Conf())
-    server1 = new PeerCont(aCon1, new dbConf())
-    server2 = new PeerCont(aCon2, db2Conf())
+    server0 = new peerTest(aCon0, db2Conf())
+    server1 = new peerTest(aCon1, new dbConf())
+    server2 = new peerTest(aCon2, db2Conf())
     done()
   })
 
