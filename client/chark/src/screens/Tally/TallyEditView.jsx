@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -6,18 +6,18 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import moment from 'moment'
+import {Picker} from '@react-native-picker/picker';
+import moment from 'moment';
 
 import HelpText from '../../components/HelpText';
 import TallyReviewView from '../TallyReview/TallyReviewView';
 import CertificateInformation from './CertificateInformation';
 
 import EyeIcon from '../../../assets/svg/eye_icon.svg';
-import { colors } from '../../config/constants';
+import {colors} from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
 
-const TallyEditView = (props) => {
+const TallyEditView = props => {
   const tally = props.tally;
   const tallyType = props.tallyType;
   const contract = props.contract;
@@ -32,7 +32,7 @@ const TallyEditView = (props) => {
   const tallyContracts = props.tallyContracts ?? [];
   const canEdit = tally.state === 'draft' || tally.state === 'P.draft';
 
-  const { messageText } = useMessageText();
+  const {messageText} = useMessageText();
 
   const hasPartCert = !!tally?.part_cert;
   const hasHoldCert = !!tally?.hold_cert;
@@ -41,49 +41,63 @@ const TallyEditView = (props) => {
   const charkMsgText = messageText?.chark?.msg;
   const certText = messageText?.users_v_me?.col?.cert;
 
-  const partName= Object.values((tally.part_cert?.name ?? {})).join(' ')
-  const partChipAddress = hasPartCert ? `${tally.part_cert?.chad?.cid ?? ''}-${tally.part_cert?.chad?.agent ?? ''}` : '';
+  const partName = Object.values(tally.part_cert?.name ?? {}).join(' ');
+  const partChipAddress = hasPartCert
+    ? `${tally.part_cert?.chad?.cid ?? ''}-${
+        tally.part_cert?.chad?.agent ?? ''
+      }`
+    : '';
   const partEmail = useMemo(() => {
-    if(hasPartCert) {
-      const found = (tally.part_cert?.connect ?? []).find(connect => connect.media === 'email')
-      return found?.address ?? ''
+    if (hasPartCert) {
+      const found = (tally.part_cert?.connect ?? []).find(
+        connect => connect.media === 'email',
+      );
+      return found?.address ?? '';
     }
 
     return '';
-  }, [hasPartCert, tally.part_cert?.connect])
+  }, [hasPartCert, tally.part_cert?.connect]);
 
-  const holdName= Object.values((tally.hold_cert ?.name ?? {})).join(' ')
-  const holdChipAddress = hasHoldCert ? `${tally.hold_cert?.chad?.cid ?? ''}-${tally.hold_cert?.chad?.agent ?? ''}` : '';
+  const holdName = Object.values(tally.hold_cert?.name ?? {}).join(' ');
+  const holdChipAddress = hasHoldCert
+    ? `${tally.hold_cert?.chad?.cid ?? ''}-${
+        tally.hold_cert?.chad?.agent ?? ''
+      }`
+    : '';
   const holdEmail = useMemo(() => {
-    if(hasHoldCert) {
-      const found = (tally.hold_cert?.connect ?? []).find(connect => connect.media === 'email')
-      return found?.address ?? ''
+    if (hasHoldCert) {
+      const found = (tally.hold_cert?.connect ?? []).find(
+        connect => connect.media === 'email',
+      );
+      return found?.address ?? '';
     }
 
     return '';
-  }, [hasHoldCert, tally.hold_cert?.connect])
+  }, [hasHoldCert, tally.hold_cert?.connect]);
 
-  const onCommentChange = (text) => {
-    setComment?.(text)
-  }
+  const onCommentChange = text => {
+    setComment?.(text);
+  };
 
-  const onContractChange = (item) => {
+  const onContractChange = item => {
     setContract(item);
-  }
+  };
+  console.log(tallyContracts);
 
-  const onViewCertificate= (args) => {
-    return () => props.navigation.navigate("TallyCertificate", { 
-      title: args.title,
-      cert: args.cert,
-      state: tally.state,
-      tally_seq: tally.tally_seq,
-      tally_ent: tally.tally_ent,
-    });
-  }
+  const onViewCertificate = args => {
+    return () =>
+      props.navigation.navigate('TallyCertificate', {
+        title: args.title,
+        cert: args.cert,
+        state: tally.state,
+        tally_seq: tally.tally_seq,
+        tally_ent: tally.tally_ent,
+      });
+  };
 
   return (
-    <View style={{ paddingHorizontal: 10 }}>
-      <TallyReviewView 
+    <View style={{paddingHorizontal: 10}}>
+      <TallyReviewView
         tallyType={tallyType}
         setTallyType={setTallyType}
         partTerms={partTerms}
@@ -102,36 +116,35 @@ const TallyEditView = (props) => {
             helpText={talliesMeText?.contract?.help}
           />
 
-        <TouchableWithoutFeedback
-          onPress={props.onViewContract}
-          style={{ marginBottom: 8 }}
-        >
-          <View style={{ paddingVertical: 4, paddingHorizontal: 5 }}>
-            <EyeIcon style={{ marginBottom: 4 }}/>
-          </View>
-        </TouchableWithoutFeedback>
-
+          <TouchableWithoutFeedback
+            onPress={props.onViewContract}
+            style={{marginBottom: 8}}>
+            <View style={{paddingVertical: 4, paddingHorizontal: 5}}>
+              <EyeIcon style={{marginBottom: 4}} />
+            </View>
+          </TouchableWithoutFeedback>
         </View>
 
         {canEdit ? (
-          <Picker
-            mode="dropdown"
-            style={{ backgroundColor: colors.gray5 }}
-            selectedValue={contract}
-            enabled={canEdit}
-            onValueChange={onContractChange}
-          >
-            <Picker.Item label="Select contract" />
-            {
-              tallyContracts.map((tallyContract) => (
-                <Picker.Item key={tallyContract.name} label={tallyContract.title} value={tallyContract.rid} />
-              ))
-            }
-          </Picker>
-        ): (
-          <Text style={styles.inputValue}>
-            {contract}
-          </Text>
+          <View style={styles.container}>
+            <Text style={[styles.inputValue]}>Select contract</Text>
+
+            <Picker
+              mode="dropdown"
+              selectedValue={contract}
+              enabled={canEdit}
+              onValueChange={onContractChange}>
+              {tallyContracts.map(tallyContract => (
+                <Picker.Item
+                  key={tallyContract.name}
+                  label={tallyContract.title}
+                  value={tallyContract.rid}
+                />
+              ))}
+            </Picker>
+          </View>
+        ) : (
+          <Text style={styles.inputValue}>{contract}</Text>
         )}
 
         {hasPartCert && (
@@ -140,7 +153,10 @@ const TallyEditView = (props) => {
             name={partName}
             chipAddress={partChipAddress}
             email={partEmail}
-            onViewDetails={onViewCertificate({ title: talliesMeText?.part_cert?.title ?? '', cert: tally?.part_cert ?? {} })}
+            onViewDetails={onViewCertificate({
+              title: talliesMeText?.part_cert?.title ?? '',
+              cert: tally?.part_cert ?? {},
+            })}
             certText={certText ?? {}}
           />
         )}
@@ -151,11 +167,13 @@ const TallyEditView = (props) => {
             name={holdName}
             chipAddress={holdChipAddress}
             email={holdEmail}
-            onViewDetails={onViewCertificate({ title: charkMsgText?.certopts?.title, cert: tally?.hold_cert ?? {} } )}
+            onViewDetails={onViewCertificate({
+              title: charkMsgText?.certopts?.title,
+              cert: tally?.hold_cert ?? {},
+            })}
             certText={certText ?? {}}
           />
         )}
-
       </View>
 
       <View style={styles.detailControl}>
@@ -173,10 +191,8 @@ const TallyEditView = (props) => {
             style={[styles.input, styles.comment]}
             onChangeText={onCommentChange}
           />
-        ): (
-          <Text style={styles.inputValue}>
-            {comment || 'N/A'}
-          </Text>
+        ) : (
+          <Text style={styles.inputValue}>{comment || 'N/A'}</Text>
         )}
       </View>
 
@@ -186,9 +202,7 @@ const TallyEditView = (props) => {
           helpText={talliesMeText?.tally_uuid?.help}
         />
 
-        <Text style={styles.inputValue}>
-          {tally.tally_uuid}
-        </Text>
+        <Text style={styles.inputValue}>{tally.tally_uuid}</Text>
       </View>
 
       <View style={styles.detailControl}>
@@ -197,17 +211,17 @@ const TallyEditView = (props) => {
           helpText={talliesMeText?.tally_date?.help}
         />
         <Text style={styles.inputValue}>
-          {moment(tally.tally_date).format('MM/DD/YYYY,hh:mm')} 
+          {moment(tally.tally_date).format('MM/DD/YYYY,hh:mm')}
         </Text>
       </View>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   detailControl: {
-    marginTop:20,
-    marginVertical: 10
+    marginTop: 20,
+    marginVertical: 10,
   },
   contractLabel: {
     flexDirection: 'row',
@@ -262,8 +276,14 @@ const styles = StyleSheet.create({
   inputValue: {
     color: 'black',
     fontSize: 12,
-  }
-})
+  },
+  container: {
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: colors.gray7,
+    backgroundColor: colors.gray5,
+  },
+});
 
 export default TallyEditView;
-
