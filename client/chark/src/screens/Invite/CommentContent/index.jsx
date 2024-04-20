@@ -1,4 +1,4 @@
-import React, { useState, useMemo} from "react";
+import React, { useState, useMemo, useRef, useEffect} from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import Button from "../../../components/Button";
 import CustomIcon from "../../../components/CustomIcon";
@@ -13,6 +13,8 @@ const CommentContent = (props) => {
 
   const holdTermsText = props?.text?.hold_terms;
   const partTermsText = props?.text?.part_terms;
+
+  const textRef= useRef()
 
   const holdLimitText = useMemo(() => {
     return holdTermsText?.values?.find((term) => term.value === 'limit')
@@ -68,6 +70,12 @@ const CommentContent = (props) => {
     );
   };
 
+  useEffect(()=>{
+    if(textRef){
+      textRef.current.focus()
+    }
+  },[props])
+
   return (<View style={styles.bottomSheetContainer}>
     <CustomIcon
       name="close"
@@ -79,6 +87,8 @@ const CommentContent = (props) => {
     <Text style={styles.bottomSheetTitle}>{props?.text?.newtally?.title ?? ''}</Text>
 
     <TextInput
+    ref={textRef}
+      autoFocus
       maxLength={9}
       numberOfLines={1}
       returnKeyType="done"
