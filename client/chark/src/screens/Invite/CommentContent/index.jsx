@@ -1,9 +1,13 @@
 import React, { useState, useMemo, useRef, useEffect} from "react";
+import PropTypes from 'prop-types';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
 import Button from "../../../components/Button";
 import CustomIcon from "../../../components/CustomIcon";
-import PropTypes from 'prop-types';
+
 import { colors } from "../../../config/constants";
+import { round } from "../../../utils/common";
 
 const CommentContent = (props) => {
   const [comment, setComment] = useState();
@@ -76,73 +80,76 @@ const CommentContent = (props) => {
     }
   },[props])
 
-  return (<View style={styles.bottomSheetContainer}>
-    <CustomIcon
-      name="close"
-      size={16}
-      onPress={props.onDismiss}
-      style={{ alignSelf: 'flex-end', backgroundColor: 'white', height: 24, width: 24, justifyContent: 'center', alignItems: 'center' }}
-    />
+  const holdText = (holdLimitText?.title ?? '') + ` (${holdTermsText?.title ?? ''})`
+  const partText = (partLimitText?.title ?? '') + ` (${partTermsText?.title ?? ''})`
 
-    <Text style={styles.bottomSheetTitle}>{props?.text?.newtally?.title ?? ''}</Text>
+  return (
+    <View style={styles.bottomSheetContainer}>
+      <CustomIcon
+        name="close"
+        size={16}
+        onPress={props.onDismiss}
+        style={{ alignSelf: 'flex-end', backgroundColor: 'white', height: 24, width: 24, justifyContent: 'center', alignItems: 'center' }}
+      />
 
-    <TextInput
-    ref={textRef}
-      autoFocus
-      maxLength={9}
-      numberOfLines={1}
-      returnKeyType="done"
-      keyboardType="numeric"
-      style={styles.textInput}
-      value={myLimit ? myLimit : ''}
-      onChangeText={(text) => calculateSendingAmount(text, setMyLimit)}
-      placeholder={holdLimitText?.title ?? ''}
-    />
+      <Text style={styles.bottomSheetTitle}>{props?.text?.newtally?.title ?? ''}</Text>
 
-    <TextInput
-      maxLength={9}
-      numberOfLines={1}
-      returnKeyType="done"
-      keyboardType="numeric"
-      style={styles.textInput}
-      value={partnerLimit ?  partnerLimit : ''}
-      onChangeText={(text) => calculateSendingAmount(text, setPartnerLimit)}
-      placeholder={partLimitText?.title ?? ''}
-    />
+      <TextInput
+        ref={textRef}
+        autoFocus
+        numberOfLines={1}
+        returnKeyType="done"
+        keyboardType="numeric"
+        style={styles.textInput}
+        value={myLimit ? myLimit : ''}
+        onChangeText={(text) => calculateSendingAmount(text, setMyLimit)}
+        placeholder={holdText}
+      />
 
-    <View style={styles.selectorParent}>
-      <TouchableOpacity
-        onPress={() => { setSelectedItem('foil') }}
-        style={generateCommonStyle('foil', selectedItem === "foil")}
-      >
-        <Text style={selectedItem === "foil" ? styles.selectedLabel : styles.unSelectedLabel}>{tallyTypeText?.foil?.title ?? ''}</Text>
-      </TouchableOpacity>
+      <TextInput
+        maxLength={9}
+        numberOfLines={1}
+        returnKeyType="done"
+        keyboardType="numeric"
+        style={styles.textInput}
+        value={partnerLimit ?  partnerLimit : ''}
+        onChangeText={(text) => calculateSendingAmount(text, setPartnerLimit)}
+        placeholder={partText}
+      />
 
-      <TouchableOpacity
-        onPress={() => { setSelectedItem('stock') }}
-        style={generateCommonStyle('stock', selectedItem === "stock")}
-      >
-        <Text style={selectedItem === "stock" ? styles.selectedLabel : styles.unSelectedLabel}>{tallyTypeText?.stock?.title ?? ''}</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.selectorParent}>
+        <TouchableOpacity
+          onPress={() => { setSelectedItem('foil') }}
+          style={generateCommonStyle('foil', selectedItem === "foil")}
+        >
+          <Text style={selectedItem === "foil" ? styles.selectedLabel : styles.unSelectedLabel}>{tallyTypeText?.foil?.title ?? ''}</Text>
+        </TouchableOpacity>
 
-    <TextInput
-      value={comment}
-      onChangeText={setComment}
-      placeholder={props.text?.comment?.title ?? ''}
-      style={styles.textInput}
-      returnKeyType="done"
-    />
+        <TouchableOpacity
+          onPress={() => { setSelectedItem('stock') }}
+          style={generateCommonStyle('stock', selectedItem === "stock")}
+        >
+          <Text style={selectedItem === "stock" ? styles.selectedLabel : styles.unSelectedLabel}>{tallyTypeText?.stock?.title ?? ''}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TextInput
+        value={comment}
+        onChangeText={setComment}
+        placeholder={props.text?.comment?.title ?? ''}
+        style={styles.textInput}
+        returnKeyType="done"
+      />
 
 
-    <Button
-      title={props?.text?.next?.title ?? ''}
-      onPress={() => {
-        props.onNext({ comment: comment, tally_type: selectedItem, myLimit, partnerLimit });
-      }}
-      style={styles.button}
-    />
-  </View>);
+      <Button
+        title={props?.text?.next?.title ?? ''}
+        onPress={() => {
+          props.onNext({ comment: comment, tally_type: selectedItem, myLimit, partnerLimit });
+        }}
+        style={styles.button}
+      />
+    </View>);
 }
 
 

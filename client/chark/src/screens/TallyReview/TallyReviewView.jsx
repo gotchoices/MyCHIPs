@@ -21,6 +21,7 @@ import {
   RightArrowIcon,
 } from '../../components/SvgAssets/SvgAssets';
 import {round} from '../../utils/common';
+import IconTooltip from '../../components/IconTooltip';
 
 const TallyReviewView = props => {
   const {imagesByDigest} = useSelector(state => state.avatar);
@@ -50,6 +51,15 @@ const TallyReviewView = props => {
   const { messageText } = useMessageText();
   const talliesMessageText = messageText?.tallies_v_me?.msg;
   const talliesMeText = messageText?.tallies_v_me?.col;
+
+  const holdLimitText = useMemo(() => {
+    return talliesMeText?.hold_terms?.values?.find(hold => hold.value === 'limit');
+  }, [talliesMeText?.hold_terms?.values])
+
+  const partLimitText = useMemo(() => {
+    return talliesMeText?.part_terms?.values?.find(hold => hold.value === 'limit');
+  }, [talliesMeText?.part_terms?.values])
+
 
   const tallyTypeText = useMemo(() => {
     return talliesMeText?.tally_type?.values?.reduce((acc, current) => {
@@ -87,12 +97,13 @@ const TallyReviewView = props => {
   return (
     <View style={styles.main}>
       <View style={styles.wrapper}>
-        <View style={styles.rowWrapper}>
+        <View style={[styles.rowWrapper, { marginBottom: -25 }]}>
           <View style={styles.leftIcon}>
             <HelpText
               label={talliesMessageText?.risk?.title ?? 'risk_title'}
               style={[styles.leftText, styles.leftTopText]}
             />
+
             <DownArrowIcon />
           </View>
 
@@ -121,69 +132,74 @@ const TallyReviewView = props => {
             )}
           </View>
 
-          <View style={styles.rightIcon}>
+          <View style={[styles.rightIcon]}>
+            <LeftArrowIcon />
+
             <HelpText
               label={talliesMessageText?.credit?.title ?? 'credit_title'}
               style={[styles.rightText, styles.rightTopText]}
             />
-            <LeftArrowIcon />
           </View>
         </View>
       </View>
 
       <View style={styles.midView}>
-        <View style={styles.rowWrapper}>
-          <TextInput
-            maxLength={9}
-            placeholder={props.net ?? ''}
-            editable={canEdit}
-            value={tallyType === 'foil' ? holdLimit : partLimit}
-            keyboardType="numeric"
-            style={styles.input}
-            onBlur={onBlurLimit}
-            onChangeText={text => {
-              tallyType === 'foil'
-                ? props.onHoldTermsChange('limit')(text)
-                : props.onPartTermsChange('limit')(text);
-            }}
-          />
+        <View style={styles.midRow}>
+          <View style={{ width: '25%', flexDirection: 'row' }}>
+            <TextInput
+              maxLength={9}
+              placeholder={props.net ?? ''}
+              editable={canEdit}
+              value={tallyType === 'foil' ? holdLimit : partLimit}
+              keyboardType="numeric"
+              style={styles.input}
+              onBlur={onBlurLimit}
+              onChangeText={text => {
+                tallyType === 'foil'
+                  ? props.onHoldTermsChange('limit')(text)
+                  : props.onPartTermsChange('limit')(text);
+              }}
+            />
 
-          <HelpText helpText={limitText?.help ?? ''} label={limitText?.title ?? ''} style={styles.midText} />
+            <IconTooltip text={tallyType === 'foil' ? holdLimitText?.help ?? '' : partLimitText?.help ?? ''} />
+          </View>
 
-          <TextInput
-            maxLength={9}
-            editable={canEdit}
-            placeholder={props.amount ?? ''}
-            value={tallyType === 'stock' ? holdLimit : partLimit}
-            keyboardType="numeric"
-            style={styles.input}
-            onBlur={onBlurLimit}
-            onChangeText={text => {
-              tallyType === 'stock'
-                ? props.onHoldTermsChange('limit')(text)
-                : props.onPartTermsChange('limit')(text);
-            }}
-          />
+          <View style={{ width: '50%', alignItems: 'center' }}>
+            <HelpText label={limitText?.title ?? ''} style={styles.midText} />
+          </View>
+
+          <View style={{ width: '25%', flexDirection: 'row' }}>
+            <IconTooltip text={tallyType === 'stock' ? holdLimitText?.help : partLimitText?.help} />
+
+            <TextInput
+              maxLength={9}
+              editable={canEdit}
+              placeholder={props.amount ?? ''}
+              value={tallyType === 'stock' ? holdLimit : partLimit}
+              keyboardType="numeric"
+              style={styles.input}
+              onBlur={onBlurLimit}
+              onChangeText={text => {
+                tallyType === 'stock'
+                  ? props.onHoldTermsChange('limit')(text)
+                  : props.onPartTermsChange('limit')(text);
+              }}
+            />
+          </View>
         </View>
       </View>
 
       <View style={styles.wrapper}>
-        <View style={styles.rowWrapper}>
+        <View style={[styles.rowWrapper, { marginTop: -25 }]}>
           <View style={styles.leftIcon}>
-            <RightArrowIcon />
             <HelpText
               label={talliesMessageText?.credit?.title ?? 'credit_title'}
               style={[styles.leftText, styles.leftBottomText]}
             />
+            <RightArrowIcon />
           </View>
 
           <View style={styles.bottomCenterWrapper}>
-            <HelpText
-              helpText={tallyTypeText?.stock?.help ?? ''}
-              label={tallyTypeText?.stock?.title ?? ''}
-              style={styles.headerText}
-            />
-
             {tallyType === 'stock' ? (
               holdImage ? (
                 <View style={styles.circle}>
@@ -199,6 +215,13 @@ const TallyReviewView = props => {
             ) : (
               <Text style={styles.boldText}>{partText}</Text>
             )}
+
+            <HelpText
+              helpText={tallyTypeText?.stock?.help ?? ''}
+              label={tallyTypeText?.stock?.title ?? ''}
+              style={styles.headerText}
+            />
+
           </View>
 
           <View style={styles.rightIcon}>
@@ -231,8 +254,9 @@ const arrowText = {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
+    //marginTop: 25,
     paddingTop: 24,
-    marginHorizontal: 40,
+    //marginHorizontal: 40,
     alignItems: 'center',
   },
   circle: {
@@ -242,6 +266,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray700,
   },
   headerText: {
+    marginLeft: 14,
     paddingTop: 10,
     fontWeight: '400',
     textAlign: 'center',
@@ -254,78 +279,66 @@ const styles = StyleSheet.create({
   },
   bottomCenterWrapper: {
     height: 100,
-    marginBottom: -25,
+    marginBottom: -75, 
+    //marginBottom: -25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   topCenterWrapper: {
     height: 100,
+    //marginBottom: 80,
     marginTop: -75,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rowWrapper: {
+    width: '80%',
+    flexDirection: 'row',
+  },
+  midRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  midView: {
-    marginRight: 60,
-  },
   input: {
-    width: '30%',
-    //height: 24,
+    width: '90%',
     padding: 10,
     borderRadius: 5,
     borderWidth: 0.5,
-    marginHorizontal: 30,
+    //marginHorizontal: 30,
     borderColor: colors.dimgray,
   },
   leftIcon: {
-    width: '30%',
-    marginLeft: 20,
+    width: '33%',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   rightIcon: {
-    width: '30%',
-    marginRight: 20,
+    width: '33%',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   leftText: {
     ...arrowText,
-    marginRight: 50,
     color: colors.black,
   },
   rightText: {
     ...arrowText,
-    marginLeft: 50,
     color: colors.black,
   },
   leftTopText: {
-    marginLeft: -10,
-    marginBottom: -20,
-    width: '55%',
   },
   leftBottomText: {
-    marginLeft: -10,
-    marginTop: -20,
-    width: '80%',
   },
   rightTopText: {
-    marginRight: -25,
-    marginBottom: -20,
-    width: '80%',
   },
   rightBottomText: {
-    marginRight: -25,
-    marginTop: -18,
-    width: '55%',
   },
   absoluteView: {
     top: 0,
-    right: -20,
+    right: 0,
     position: 'absolute',
   },
   boldText: {
