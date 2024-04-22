@@ -11,7 +11,7 @@ import Toast from 'react-native-toast-message';
 import SwipeableFlatList from 'react-native-swipeable-list';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {colors} from '../../config/constants';
+import { colors, toastVisibilityTime } from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import useInvite from '../../hooks/useInvite';
 import {
@@ -348,6 +348,7 @@ const TallyInvite = props => {
         Toast.show({
           type: 'success',
           text1: 'Tally refused.',
+          visibilityTime: toastVisibilityTime,
         });
         props.navigation.goBack();
       })
@@ -370,6 +371,7 @@ const TallyInvite = props => {
         Toast.show({
           type: 'success',
           text1: charkText?.deleted?.help ?? '',
+          visibilityTime: toastVisibilityTime,
         });
         getTemplates();
       })
@@ -456,6 +458,7 @@ const TallyInvite = props => {
           ListEmptyComponent={fetching ? <></> : <EmptyContent />}
           progressViewOffset={150}
         />
+
         <FloatingActionButton onPress={() => setShowCommentModal(true)} />
       </View>
 

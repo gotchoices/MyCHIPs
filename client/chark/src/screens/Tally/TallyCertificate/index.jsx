@@ -11,7 +11,7 @@ import Button from '../../../components/Button';
 import DefaultCertificate from './DefaultCertificate';
 import CustomCertificateSelection from '../../../components/CustomCertificateSelection';
 
-import { colors } from '../../../config/constants';
+import { colors, toastVisibilityTime } from '../../../config/constants';
 import useSocket from '../../../hooks/useSocket';
 import { updateHoldCert } from '../../../services/tally';
 import { setCertificate, resetCertificate, setConnect, setBirth, setPlace, setState, setCertificateChangeTrigger, setFile } from '../../../redux/workingTalliesSlice';
@@ -113,6 +113,7 @@ const TallyCertificate = (props) => {
         return Toast.show({
           type: 'error',
           text1: talliesMessageText?.nocert?.help ?? '',
+          visibilityTime: toastVisibilityTime,
         });
       }
 
@@ -183,7 +184,8 @@ const TallyCertificate = (props) => {
         )
         Toast.show({
           type: 'success',
-          text1: charkMsgText?.updated?.help ?? ''
+          text1: charkMsgText?.updated?.help ?? '',
+          visibilityTime: toastVisibilityTime,
         });
       } catch(err) {
         showError(err);

@@ -17,7 +17,7 @@ import BackIcon from '../../../../assets/svg/ic_back.svg';
 import Spinner from '../../../components/Spinner';
 import CustomCertificateSelection from '../../../components/CustomCertificateSelection';
 
-import { colors } from '../../../config/constants';
+import { colors, toastVisibilityTime } from '../../../config/constants';
 import {
   fetchCertificate,
   setPlace,
@@ -136,6 +136,7 @@ const CustomCertificate = (props) => {
         return Toast.show({
           type: 'error',
           text1: talliesMeMessageText?.nocert?.help ?? '',
+          visibilityTime: toastVisibilityTime,
         });
       }
 
@@ -198,7 +199,8 @@ const CustomCertificate = (props) => {
         await processTicket(wm, ticketPayload);
         Toast.show({
           type: 'success',
-          text1: talliesMeMessageText?.requested?.title ?? ''
+          text1: talliesMeMessageText?.requested?.title ?? '',
+          visibilityTime: toastVisibilityTime,
         });
         props.navigation.navigate('Home')
       } catch(err) {

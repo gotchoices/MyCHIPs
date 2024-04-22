@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, RefreshControl } from "react-native";
-import { colors } from "../../../config/constants";
+import { colors, toastVisibilityTime } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
 import { fetchChitHistory, updateChitState } from "../../../services/tally";
 import Button from "../../../components/Button";
@@ -80,7 +80,11 @@ const ChitDetail = (props) => {
                 chit_uuid
               }
             ).then((data) => {
-              Toast.show({ type: 'success', text1: charkText?.updated?.help ?? '' });
+              Toast.show({
+                type: 'success',
+                text1: charkText?.updated?.help ?? '',
+                visibilityTime: toastVisibilityTime,
+              });
               _fetchChitDetails();
             }).catch(err => {
               showError(err);
@@ -110,7 +114,11 @@ const ChitDetail = (props) => {
                 chit_uuid
               }
             ).then((data) => {
-              Toast.show({ type: 'success', text1: charkText?.updated?.help ?? '' });
+              Toast.show({
+                type: 'success',
+                text1: charkText?.updated?.help ?? '',
+                visibilityTime: toastVisibilityTime,
+              });
               _fetchChitDetails();
             }).catch(err => {
               showError(err);

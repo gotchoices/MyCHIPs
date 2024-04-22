@@ -72,3 +72,5 @@ export const KeyConfig = {
   namedCurve: 'P-521',
   hash: {name: 'SHA-384'}
 };
+
+export const toastVisibilityTime = 10000;

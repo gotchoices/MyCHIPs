@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Keyboard,
@@ -12,7 +11,7 @@ import {
 import { useSelector } from "react-redux";
 import { ChitIcon, SwapIcon } from "../../components/SvgAssets/SvgAssets";
 import Button from "../../components/Button";
-import { colors } from "../../config/constants";
+import { colors, toastVisibilityTime } from "../../config/constants";
 import { getCurrency } from "../../services/user";
 import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
@@ -92,6 +91,7 @@ const Receive = props => {
       return Toast.show({
         type: 'error',
         text1: "Can't input negative chit.",
+        visibilityTime: toastVisibilityTime,
       });
     }
 
@@ -99,6 +99,7 @@ const Receive = props => {
       return Toast.show({
         type: 'error',
         text1: 'Please provide an amount',
+        visibilityTime: toastVisibilityTime,
       });
     }
 

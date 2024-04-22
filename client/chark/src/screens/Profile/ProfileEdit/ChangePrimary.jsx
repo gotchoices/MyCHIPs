@@ -12,7 +12,7 @@ import Toast from 'react-native-toast-message';
 
 import Button from '../../../components/Button';
 
-import { colors } from '../../../config/constants';
+import { colors, toastVisibilityTime } from '../../../config/constants';
 import { setUserChangeTrigger } from '../../../redux/profileSlice';
 import useMessageText from '../../../hooks/useMessageText';
 
@@ -33,6 +33,7 @@ const ChangePrimary = (props) => {
       Toast.show({
         type: 'success',
         text1: charkText?.updated?.help ?? '',
+        visibilityTime: toastVisibilityTime,
       });
       dispatch(
         setUserChangeTrigger()

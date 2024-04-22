@@ -4,12 +4,13 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { colors } from '../../../../config/constants';
+import { colors, toastVisibilityTime } from '../../../../config/constants';
 import { request } from '../../../../services/profile';
 import { random } from '../../../../utils/common';
 import useMessageText from '../../../../hooks/useMessageText';
 import useSocket from '../../../../hooks/useSocket';
 import { fetchAddresses, setUserChangeTrigger } from '../../../../redux/profileSlice';
+import { showError } from '../../../../utils/error';
 
 import AddressInput from './AddressInput';
 import HelpText from '../../../../components/HelpText';
@@ -154,6 +155,7 @@ const Address = (props) => {
       Toast.show({
         type: 'success',
         text1: charkText?.updated?.help ?? '',
+        visibilityTime: toastVisibilityTime,
       });
       Keyboard.dismiss();
       updateAddressList();
@@ -162,11 +164,7 @@ const Address = (props) => {
         setUserChangeTrigger()
       );
     }).catch(err => {
-      Toast.show({
-        type: 'error',
-        text1: err.message,
-        position: 'bottom',
-      });
+      showError(err);
     }).finally(() => {
       setUpdating(false);
     })

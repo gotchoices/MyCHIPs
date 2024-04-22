@@ -7,6 +7,7 @@ import Button from '../../../components/Button';
 import useSocket from '../../../hooks/useSocket';
 import { rejectChit } from '../../../services/chit';
 import { showError } from '../../../utils/error';
+import { toastVisibilityTime } from '../../../config/constants';
 
 const RejectButton = (props) => {
   const { wm } = useSocket();
@@ -27,6 +28,7 @@ const RejectButton = (props) => {
       Toast.show({
         type: "success",
         text1: text?.rejected?.help,
+        visibilityTime: toastVisibilityTime,
       });
     } catch(err) {
       showError(err);

@@ -1,7 +1,6 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   StyleSheet,
-  ScrollView,
   View,
   TextInput,
   Text,
@@ -11,7 +10,7 @@ import {
 } from 'react-native';
 import {useSelector} from 'react-redux';
 
-import {colors} from '../../../config/constants';
+import { colors, toastVisibilityTime } from '../../../config/constants';
 import Button from '../../../components/Button';
 import {getCurrency} from '../../../services/user';
 import useSocket from '../../../hooks/useSocket';
@@ -102,6 +101,7 @@ const RequestDetail = props => {
       return Toast.show({
         type: 'error',
         text1: "Can't input negative chit.",
+        visibilityTime: toastVisibilityTime,
       });
     }
 
@@ -109,6 +109,7 @@ const RequestDetail = props => {
       return Toast.show({
         type: 'error',
         text1: 'Please provide an amount',
+        visibilityTime: toastVisibilityTime,
       });
     }
 

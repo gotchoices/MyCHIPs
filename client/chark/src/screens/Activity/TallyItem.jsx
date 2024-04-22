@@ -15,7 +15,7 @@ import OfferButton from '../Tally/OfferButton';
 import Button from '../../components/Button';
 
 import useSocket from '../../hooks/useSocket';
-import { colors } from '../../config/constants';
+import { colors, toastVisibilityTime } from '../../config/constants';
 import { refuseTally } from '../../services/tally';
 import useMessageText from '../../hooks/useMessageText';
 import { showError } from '../../utils/error';
@@ -63,6 +63,7 @@ const TallyItem = (props) => {
       Toast.show({
         type: "success",
         text1: talliesMessageText?.rejected?.help ?? '',
+        visibilityTime: toastVisibilityTime,
       });
     } catch(err) {
       showError(err);
