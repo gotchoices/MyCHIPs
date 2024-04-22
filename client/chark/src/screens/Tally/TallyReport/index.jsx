@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import Toast from 'react-native-toast-message';
 
 import useSocket from '../../../hooks/useSocket';
 import { colors } from '../../../config/constants';
@@ -10,6 +9,7 @@ import { getTallyReport } from '../../../services/user';
 import useMessageText from '../../../hooks/useMessageText';
 import Header from "../Header";
 import Activity from '../Activity';
+import { showError } from '../../../utils/error';
 
 import { TabularIcon } from '../../../components/SvgAssets/SvgAssets';
 
@@ -23,11 +23,7 @@ const TallyReport = (props) => {
     getTallyReport(wm).then((data) => {
       setGraph(data);
     }).catch(err => {
-      console.log('Error==> ', err)
-      Toast.show({
-        type: 'error',
-        text1: err.message,
-      })
+      showError(err);
     })
   }, [setGraph])
 

@@ -1,5 +1,7 @@
 import Toast from 'react-native-toast-message';
 
+import { toastVisibilityTime } from "../config/constants";
+
 export const showError = (err) => {
   const title = err?.lang?.title;
   const description = err?.lang?.help;
@@ -18,6 +20,7 @@ export const showError = (err) => {
 
   return Toast.show({
     type: 'error',
+    visibilityTime: toastVisibilityTime,
     ...obj,
   })
 }

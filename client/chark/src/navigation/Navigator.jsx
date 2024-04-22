@@ -14,7 +14,7 @@ import {
   setShowCreateSignatureModal,
 } from "../redux/profileSlice";
 import { hasNotification } from "../redux/activitySlice";
-import { colors } from "../config/constants";
+import { colors, toastVisibilityTime } from "../config/constants";
 
 import Home from "../screens/Home";
 import Invite from "../screens/Invite";
@@ -258,6 +258,7 @@ const Navigator = () => {
     Toast.show({
       type: 'success',
       text1: 'Key is generated successfully now you can perform the required action.',
+      visibilityTime: toastVisibilityTime,
     });
   }
 

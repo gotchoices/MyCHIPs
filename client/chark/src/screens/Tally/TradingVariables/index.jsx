@@ -17,6 +17,7 @@ import { showError } from '../../../utils/error';
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
 import { KeyNotFoundError } from '../../../utils/Errors';
+import { toastVisibilityTime } from '../../../config/constants';
 
 const TradingVariables = (props) => {
   const { tally_seq, tally_ent, chad, tally_type, tally_uuid } = props.route?.params ?? {};
@@ -83,6 +84,7 @@ const TradingVariables = (props) => {
       Toast.show({
         type: 'success',
         text1: charkMessageText?.updated?.help ?? '',
+        visibilityTime: toastVisibilityTime,
       })
     }).catch((err) => {
       if(err instanceof KeyNotFoundError) {

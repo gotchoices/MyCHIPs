@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Toast from 'react-native-toast-message';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { colors } from '../../../config/constants';
+import { colors, toastVisibilityTime } from '../../../config/constants';
 import { request } from '../../../services/profile';
 import useSocket from '../../../hooks/useSocket';
 import useMessageText from '../../../hooks/useMessageText';
@@ -165,6 +165,7 @@ const Comm = (props) => {
       Toast.show({
         type: 'success',
         text1: charkText?.updated?.help ?? '',
+        visibilityTime: toastVisibilityTime,
       });
       updateCommunicationList();
       setSeqToRemove([]);

@@ -14,6 +14,7 @@ import { request } from '../../../services/profile';
 import useSocket from '../../../hooks/useSocket';
 import useMessageText from '../../../hooks/useMessageText';
 import { setPersonal, setUserChangeTrigger } from '../../../redux/profileSlice';
+import { showError } from '../../../utils/error';
 
 import HelpTextInput from '../../../components/HelpTextInput';
 import Button from '../../../components/Button';
@@ -60,12 +61,7 @@ const PersonalBio = (props) => {
       );
       Keyboard.dismiss();
     }).catch(err => {
-      Toast.show({
-        type: 'error',
-        text1: err.message,
-        position: 'bottom',
-      });
-
+      showError(err);
     }).finally(() => {
       setUpdating(false);
     })

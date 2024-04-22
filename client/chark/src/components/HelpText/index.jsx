@@ -27,7 +27,7 @@ const HelpText = (props) => {
               content={
                 <Text>{props.helpText}</Text>
               }
-              placement="top"
+              placement={props.placement ?? 'top'}
               onClose={() => setIsVisible(false)}
             >
               <TouchableWithoutFeedback 

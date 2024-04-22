@@ -17,7 +17,7 @@ import stringify from 'json-stable-stringify';
 import moment from 'moment';
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 
-import { colors } from "../../../config/constants";
+import { colors, toastVisibilityTime } from "../../../config/constants";
 import Button from "../../../components/Button";
 import { getCurrency } from "../../../services/user";
 import useSocket from "../../../hooks/useSocket";
@@ -155,6 +155,7 @@ const PaymentDetail = (props) => {
       return Toast.show({
         type: 'error',
         text1: "Can't input negative chit.",
+        visibilityTime: toastVisibilityTime,
       });
     }
 
@@ -162,6 +163,7 @@ const PaymentDetail = (props) => {
       return Toast.show({
         type: 'error',
         text1: 'Please provide an amount',
+        visibilityTime: toastVisibilityTime,
       });
     }
 

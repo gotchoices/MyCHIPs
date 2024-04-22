@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, TextInput, View, Text, Alert } from "react-native";
-import { colors } from "../../config/constants";
+import { colors, toastVisibilityTime } from "../../config/constants";
 import Button from "../../components/Button";
 import { updateCID } from "../../services/profile";
 import useSocket from "../../hooks/useSocket";
@@ -29,11 +29,10 @@ const UpdateCID = (props) => {
         }
       }
     ).then(data => {
-      console.log("SUCCESS_RESPONSE ==> ", data);
-
       Toast.show({
         type: 'success',
         text1: charkText?.updated?.help ?? '',
+        visibilityTime: toastVisibilityTime,
       });
       props.success(cid.toString());
 

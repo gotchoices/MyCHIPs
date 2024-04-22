@@ -98,9 +98,10 @@ const TallyReviewView = props => {
 
           <View style={styles.topCenterWrapper}>
             <HelpText
-              helpText={tallyType === 'foil' ? holdCIDAgent : partCIDAgent}
+              helpText={tallyTypeText?.foil?.help ?? ''}
               label={tallyTypeText?.foil?.title ?? ''}
               style={styles.headerText}
+              placement="bottom"
             />
 
             {tallyType === 'foil' ? (
@@ -178,7 +179,7 @@ const TallyReviewView = props => {
 
           <View style={styles.bottomCenterWrapper}>
             <HelpText
-              helpText={tallyType === 'stock' ? holdCIDAgent : partCIDAgent}
+              helpText={tallyTypeText?.stock?.help ?? ''}
               label={tallyTypeText?.stock?.title ?? ''}
               style={styles.headerText}
             />

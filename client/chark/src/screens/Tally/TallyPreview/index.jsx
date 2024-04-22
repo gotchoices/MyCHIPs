@@ -12,7 +12,7 @@ import {
   Text,
 } from "react-native";
 
-import { colors } from "../../../config/constants";
+import { colors, toastVisibilityTime } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
 import useInvite from "../../../hooks/useInvite";
 import { useTalliesMeText } from "../../../hooks/useLanguage";
@@ -138,6 +138,7 @@ const TallyPreview = (props) => {
       return Toast.show({
         type: "error",
         text1: talliesMeMessageText?.noterms?.help,
+        visibilityTime: toastVisibilityTime,
       });
     }
 
@@ -170,6 +171,7 @@ const TallyPreview = (props) => {
         Toast.show({
           type: "success",
           text1: charkMessageText?.updated?.help ?? '',
+          visibilityTime: toastVisibilityTime,
         });
       })
       .catch((err) => {
@@ -210,10 +212,7 @@ const TallyPreview = (props) => {
     wm.request("_tpt_ref" + Math.random(), "update", spec, (data, err) => {
       setUpdating(false);
       if (err) {
-        return Toast.show({
-          type: "error",
-          text1: err?.message ?? "Error updating tally",
-        });
+        return showError(err);
       }
 
       setTally(data);
@@ -231,6 +230,7 @@ const TallyPreview = (props) => {
       Toast.show({
         type: "success",
         text1: charkMessageText?.updated?.help,
+        visibilityTime: toastVisibilityTime,
       });
 
       setTriggerInviteFetch((c) => {
@@ -278,6 +278,7 @@ const TallyPreview = (props) => {
     Toast.show({
       type: "success",
       text1: talliesMeMessageText?.accepted?.title ?? '',
+      visibilityTime: toastVisibilityTime,
     });
     props.navigation.goBack();
   }

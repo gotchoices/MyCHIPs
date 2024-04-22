@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 import Button from '../../components/Button';
 
 import useSocket from '../../hooks/useSocket';
-import { colors, keyServices } from '../../config/constants';
+import { colors, toastVisibilityTime } from '../../config/constants';
 import { createSignature } from '../../utils/message-signature';
 import { offerTally } from '../../services/tally';
 import { setShowCreateSignatureModal } from '../../redux/profileSlice';
@@ -48,6 +48,7 @@ const OfferButton = (props) => {
         return Toast.show({
           type: 'success',
           text1: 'New key cannot used for signing the tally',
+          visibilityTime: toastVisibilityTime,
         })
       }
 
