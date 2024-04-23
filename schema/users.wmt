@@ -10,9 +10,9 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
     {off		{Offline}		{Account completely off line.  No trades possible.}}
   }}
   {peer_cid		{CHIP ID}		{An ID string or name, unique to this user on its own CHIP service provider's system.  Similar to the name portion of an email address: <CHIP_ID>@<Provider_host_or_IP>}}
-  {peer_agent		{Peer Agent}		{The agent address where traffic is handled for this user}}
-  {peer_psig		{Peer Public Key}	{The peer's public key, known to other trading partners and used for signing transactions}}
-  {peer_named		{Birth Name}		{The peer's name at birth, used in the certificate identity record}}
+  {peer_agent		{Agent}			{The agent address where traffic is handled for this user}}
+  {peer_psig		{Public Key}		{The user's public key, known to other trading partners and used for verifying transactions}}
+  {peer_named		{Birth Name}		{The user's name at birth, used in the certificate identity record}}
   {user_hid		{Hashed ID}		{An obscured version of the ID by which might be given out as a more anonymous destination for a transaction}}
   {user_cmt		{User Comments}		{Administrative comments about this user}}
   {_lift_check		{Last Lift Check}	{Date/time when system last tried a clearing lift for this user}}
