@@ -21,7 +21,7 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {cancel	{Cancel}		{Abort the current operation}}
   {custom	{Custom}		{Customize my settings}}
   {save		{Save}			{Save the current changes}}
-  {sure		{Are you Sure}		{Confirm that you want to proceed}}
+  {sure		{Are you Sure?}		{Confirm that you want to proceed}}
   {proceed	{Continue}		{I understand, please proceed}}
   {edit		{Edit}			{Modify the current information}}
   {updated	{Updated}		{Changes have been written to the database}}
