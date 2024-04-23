@@ -29,7 +29,6 @@ import FloatingActionButton from '../../components/FloadingActionButton';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import CommentContent from './CommentContent';
 import SuccessContent from '../../components/SuccessContent';
-import {GenerateKeysDialog} from '../Tally/TallyPreview/GenerateKeysDialog';
 import TallyEntryModal from './TallyEntryModal';
 
 import useMessageText from '../../hooks/useMessageText';
@@ -38,7 +37,6 @@ import {fetchTemplates} from '../../redux/workingTalliesSlice';
 import {fetchImagesByDigest} from '../../redux/avatarSlice';
 import {request} from '../../services/request';
 import {random} from '../../utils/common';
-import {GenerateKeysAlertModal} from '../../components/GenerateKeyAlertModal';
 import {getTallyName} from '../../utils/user';
 import { showError } from '../../utils/error';
 
@@ -88,7 +86,6 @@ const TallyInvite = props => {
 
   const {searchValue, setSearchValue, filteredData} = useSearchData(data);
   const {wm, ws, tallyNegotiation} = useSocket();
-  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
 
   /*
    * fromOffer: used to navigate after offering tally from tally preview
@@ -99,7 +96,6 @@ const TallyInvite = props => {
   const {filter} = useSelector(state => state.profile);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showTemplateSuccess, setShowTemplateSuccess] = useState(false);
-  const [showKeyModal, setShowKeyModal] = useState(false);
   const [showAcceptSuccess, setShowAcceptSuccess] = useState(false);
   const [showOfferSuccess, setShowOfferSuccess] = useState({
     show: false,
@@ -428,7 +424,7 @@ const TallyInvite = props => {
             <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
               <FilterSecondIcon />
               <Text style={styles.filterText}>
-                {talliesColText?.status?.title}
+                {talliesColText?.status?.title ?? ''}
               </Text>
             </TouchableOpacity>
           </View>
@@ -521,35 +517,6 @@ const TallyInvite = props => {
           postAccept={postAccept}
         />
       </BottomSheetModal>
-
-      <GenerateKeysAlertModal
-        visible={showKeyModal}
-        onDismiss={() => setShowKeyModal(false)}
-        onError={err => {
-          Alert.alert('Error', err);
-        }}
-        onKeySaved={() => {
-          setShowKeyModal(false);
-          Alert.alert(
-            'Success',
-            'Key is generated successfully now you can accept tally.',
-          );
-        }}
-      />
-
-      <GenerateKeysDialog
-        visible={showGenerateKeyDialog}
-        onDismiss={() => setShowGenerateKeyDialog(false)}
-        onError={err => {
-          Alert.alert('Error', err);
-        }}
-        onKeySaved={() => {
-          Alert.alert(
-            'Success',
-            'Key is generated successfully now you can accept tally.',
-          );
-        }}
-      />
     </>
   );
 };

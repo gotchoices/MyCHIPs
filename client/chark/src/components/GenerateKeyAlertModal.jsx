@@ -16,6 +16,7 @@ import {
 import Button from "./Button";
 import { colors, KeyConfig } from "../config/constants";
 import { WarningIcon } from "./SvgAssets/SvgAssets";
+import useMessageText from '../hooks/useMessageText';
 
 export const GenerateKeysAlertModal = ({
   visible,
@@ -30,14 +31,12 @@ export const GenerateKeysAlertModal = ({
 
   const [isRequesting, setIsRequesting] = useState(false);
 
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
+
   const closeModal = () => {
     setIsRequesting(false);
     onDismiss();
-  };
-
-  const handleBackButtonClick = () => {
-    closeModal();
-    return true;
   };
 
   const storeKeys = (publicKey, privateKey) => {
@@ -123,29 +122,23 @@ export const GenerateKeysAlertModal = ({
                   },
                 ]}
               >
-                Generating a new key is a destructive action.
+                {charkText?.keywarn?.title ?? ''}
               </Text>
 
               <Text style={styles.font}>
-                When you open a tally it is signed with a key and
-                needs that key to operate.
-              </Text>
-
-              <Text style={styles.font}>
-                It’s recommended to export and save your keys before
-                you generate new ones.
+                {charkText?.keywarn?.help ?? ''}
               </Text>
 
               <View style={styles.buttonWrapper}>
                 <Button
-                  title={"I understand"}
+                  title={charkText?.proceed?.title ?? ''}
                   onPress={generateKeys}
                   textColor={colors.blue2}
                   style={styles.secondaryButton}
                 />
 
                 <Button
-                  title={"Cancel"}
+                  title={charkText?.cancel?.title ?? ''}
                   onPress={onDismiss}
                   style={styles.button}
                 />

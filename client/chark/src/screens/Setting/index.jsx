@@ -5,9 +5,6 @@ import {
   TouchableWithoutFeedback,
   Text,
   StyleSheet,
-  Image,
-  Platform,
-  NativeModules,
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -78,13 +75,13 @@ const Setting = props => {
       if (available) {
         return rnBiometrics
           .simplePrompt({
-            promptMessage: 'Confirm biometrics to manage keys',
+            promptMessage: charkText?.keybio?.title ?? 'Biometric Validation',
           })
           .then(() => {
             props.navigation.navigate('KeyManagement');
           })
           .catch(err => {
-            alert('Biometrics failed');
+            alert(charkText?.biofail?.help ?? 'Unable to access your private key because your biometric validation failed.');
           });
       }
 
@@ -101,7 +98,7 @@ const Setting = props => {
 
         <Text style={styles.name}>{personal?.cas_name}</Text>
 
-        <Button title={charkText?.profile?.title} onPress={onProfilePress} />
+        <Button title={charkText?.profile?.title ?? ''} onPress={onProfilePress} />
       </View>
 
       <View style={styles.menu}>

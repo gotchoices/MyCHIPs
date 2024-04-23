@@ -25,14 +25,12 @@ import Spinner from "../../../components/Spinner";
 import TallyEditView from "../TallyEditView";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { reviseTally } from "../../../services/tally";
-import { GenerateKeysDialog } from "./GenerateKeysDialog";
 import { UpdateHoldCert } from "./UpdateHoldCert";
 import CenteredModal from "../../../components/CenteredModal";
 import IconButton from "../../../components/IconButton";
 import TickIcon from "../../../../assets/svg/tick.svg";
 import CrossIcon from "../../../../assets/svg/cross.svg";
 import ShareIcon from "../../../../assets/svg/ic_share.svg";
-import { GenerateKeysAlertModal } from "../../../components/GenerateKeyAlertModal";
 import AcceptButton from '../AcceptButton';
 import OfferButton from '../OfferButton';
 import { fetchOpenTallies } from "../../../redux/openTalliesSlice";
@@ -47,11 +45,9 @@ const TallyPreview = (props) => {
   const { setTriggerInviteFetch } = useInvite();
   const { certificateChangeTrigger } = useSelector(state => state.workingTallies);
 
-  const [showDialog, setShowDialog] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [tallyContracts, setTallyContracts] = useState([]);
   const [updateCert, setUpdateCert] = useState(false);
-  const [showKeyModal, setShowKeyModal] = useState(false);
 
   const {
     loading,
@@ -250,10 +246,6 @@ const TallyPreview = (props) => {
     });
   };
 
-  const dismissGenerateKey = () => {
-    setShowDialog(false);
-  };
-
   const onViewContract = () => {
     props.navigation.navigate("TallyContract", { tally_seq });
   };
@@ -439,37 +431,6 @@ const TallyPreview = (props) => {
           </View>
         )}
       </KeyboardAvoidingView>
-
-
-      <GenerateKeysAlertModal
-        visible={showKeyModal}
-        onDismiss={() => setShowKeyModal(false)}
-        onError={(err) => {
-          Alert.alert("Error", err);
-        }}
-        onKeySaved={() => {
-          setShowKeyModal(false);
-          Alert.alert(
-            "Success",
-            "Key is generated successfully now you can accept tally."
-          );
-        }}
-      />
-
-      <GenerateKeysDialog
-        visible={showDialog}
-        onDismiss={dismissGenerateKey}
-        onError={(err) => {
-          Alert.alert("Error", err);
-        }}
-        onKeySaved={() => {
-          Alert.alert(
-            "Success",
-            "Key is generated successfully now you can accept tally."
-          );
-        }}
-      />
-
 
       <CenteredModal isVisible={updateCert} onClose={onDismissCertUpdate}>
         <UpdateHoldCert

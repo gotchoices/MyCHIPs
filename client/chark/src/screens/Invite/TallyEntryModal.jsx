@@ -51,7 +51,7 @@ const TallyEntryModal = (props) => {
 
         <View style={styles.partLimit}>
           <Text style={{ marginRight: 5, color: colors.gray6 }}>
-            {partLimitText?.title} ${negotiationData.data?.limit} 
+            {partLimitText?.title ?? ''} ${negotiationData.data?.limit ?? ''} 
           </Text>
           <GreenTickIcon />
         </View>

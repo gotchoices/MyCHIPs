@@ -13,6 +13,18 @@ const KeyManagement = (props) => {
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
 
+  const commonText = {
+    public: charkText?.public,
+    private: charkText?.private,
+    keywarn: charkText?.keywarn,
+    import: charkText?.import,
+    export: charkText?.export,
+    nokey: charkText?.nokey,
+    biofail: charkText?.biofail,
+    keybio: charkText?.keybio,
+    keypass: charkText?.keypass,
+  };
+
   useEffect(() => {
     if(charkText?.keys?.title) {
       props.navigation.setOptions({ title: charkText?.keys?.title })
@@ -26,20 +38,20 @@ const KeyManagement = (props) => {
     >
       <View style={{ marginBottom: 30 }}>
         <Text style={styles.description}>
-          Tallies are linked to keys. When establishing a tally 
-          that tally can only operate with the key that it was 
-          created with. Make sure to export your current
-          active key when performing destructive actions.
+          {charkText?.keys?.help ?? ''}
         </Text>
       </View>
 
-      <ActiveKey />
+      <ActiveKey text={commonText} />
 
-      <GenerateKey />
+      <GenerateKey text={commonText} />
 
-      <ImportKey navigation={props.navigation} importText={charkText?.import?.title ?? ''} />
+      <ImportKey 
+        navigation={props.navigation} 
+        text={commonText}
+      />
 
-      <Export exportText={charkText?.export?.title ?? ''}/>
+      <Export text={commonText} />
     
     </ScrollView>
   )
