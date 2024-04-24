@@ -15,3 +15,10 @@ export class DifferentSigningKeyError extends Error {
   }
 }
 
+
+export class BiometricsMismatchError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'BiometricsMismatchError'
+  }
+}

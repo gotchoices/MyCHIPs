@@ -12,7 +12,7 @@ import {keyServices} from '../../config/constants';
 import {retrieveKey} from '../../utils/keychain-store';
 import {setPrivateKey} from '../../redux/profileSlice';
 
-import ReactNativeBiometrics from 'react-native-biometrics';
+import {promptBiometrics} from '../../services/biometrics';
 
 const Export = props => {
   const dispatch = useDispatch();
@@ -22,26 +22,14 @@ const Export = props => {
 
   const {privateKey} = useSelector(state => state.profile);
 
-  const getKey = async () => {
-    const rnBiometrics = new ReactNativeBiometrics();
+  const getKey = async() => {
+    try {
+     await promptBiometrics('Confirm biometrics to generate key')
 
-    rnBiometrics.isSensorAvailable().then(result => {
-      const {available, error} = result;
-      if (available) {
-        return rnBiometrics
-          .simplePrompt({
-            promptMessage: 'Confirm biomets to generate key',
-          })
-          .then(() => {
-            return exportKey();
-          })
-          .catch(err => {
-            alert('Biometrics failed');
-          });
-      }
-
-      return exportKey();
-    });
+      exportKey();
+    } catch (err) {
+      alert(err);
+    }
   };
 
   const exportKey = async () => {
@@ -57,7 +45,9 @@ const Export = props => {
       }
 
       setPassphraseModal(true);
-    } catch (err) {}
+    } catch (err) {
+      alert(err);
+    }
   };
 
   return (

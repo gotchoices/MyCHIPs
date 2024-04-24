@@ -16,7 +16,7 @@ import ExportModal from '../Setting/GenerateKey/ExportModal';
 import SuccessContent from '../../components/SuccessContent';
 import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
 
-import ReactNativeBiometrics from 'react-native-biometrics';
+import {promptBiometrics} from '../../services/biometrics';
 
 const GenerateKey = () => {
   const subtle = window.crypto.subtle;
@@ -46,25 +46,13 @@ const GenerateKey = () => {
   };
 
   const onAccept = async () => {
-    const rnBiometrics = new ReactNativeBiometrics();
+    try {
+      await promptBiometrics('Confirm biometrics to generate key');
 
-    rnBiometrics.isSensorAvailable().then(result => {
-      const {available, error} = result;
-      if (available) {
-        return rnBiometrics
-          .simplePrompt({
-            promptMessage: 'Confirm biomets to generate key',
-          })
-          .then(() => {
-            return generateKey();
-          })
-          .catch(err => {
-            alert('Biometrics failed');
-          });
-      }
-
-      return generateKey();
-    });
+      generateKey();
+    } catch (err) {
+      alert(err);
+    }
   };
 
   const generateKey = async () => {

@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useSelector} from 'react-redux';
 
-import { colors } from '../../config/constants';
+import {colors} from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import {useExchange} from '../../hooks/useLanguage';
 
@@ -27,9 +27,7 @@ import Avatar from '../../components/Avatar';
 import useMessageText from '../../hooks/useMessageText';
 import useTitle from '../../hooks/useTitle';
 
-import ReactNativeBiometrics from 'react-native-biometrics';
-
-const rnBiometrics = new ReactNativeBiometrics();
+import {promptBiometrics} from '../../services/biometrics';
 
 const Setting = props => {
   const [isLangModalVisible, setIsLangModalVisible] = useState(false);
@@ -49,7 +47,7 @@ const Setting = props => {
     props.navigation.navigate('Profile');
   };
 
-  useTitle(props.navigation, charkText?.settings?.title)
+  useTitle(props.navigation, charkText?.settings?.title);
 
   useEffect(() => {
     if (charkText?.setting?.title) {
@@ -70,26 +68,6 @@ const Setting = props => {
   };
   const cancelSelectCurrency = () => {
     setIsSelectCurrencyVisible(false);
-  };
-
-  const promptBiometrics = () => {
-    rnBiometrics.isSensorAvailable().then(result => {
-      const {available, error} = result;
-      if (available) {
-        return rnBiometrics
-          .simplePrompt({
-            promptMessage: 'Confirm biometrics to manage keys',
-          })
-          .then(() => {
-            props.navigation.navigate('KeyManagement');
-          })
-          .catch(err => {
-            alert('Biometrics failed');
-          });
-      }
-
-      return props.navigation.navigate('KeyManagement');
-    });
   };
 
   return (
@@ -143,7 +121,14 @@ const Setting = props => {
       <View style={[styles.menu, {marginTop: 10}]}>
         <TouchableOpacity
           style={{width: '100%'}}
-          onPress={() => promptBiometrics()}>
+          onPress={async() => {
+            try {
+              await promptBiometrics('Confirm biometrics to manage keys');
+              props.navigation.navigate('KeyManagement');
+            } catch (err) {
+              alert(err);
+            }
+          }}>
           <Text style={styles.menuTitle}>{charkText?.keys?.title ?? ''}</Text>
         </TouchableOpacity>
       </View>

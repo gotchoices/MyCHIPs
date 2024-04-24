@@ -12,6 +12,7 @@ import { createSignature, verifySignature } from '../../../../utils/message-sign
 import { keyServices } from '../../../../config/constants';
 import { updatePublicKey } from '../../../../services/profile';
 import useSocket from '../../../../hooks/useSocket';
+import { promptBiometrics } from '../../../../services/biometrics';
 
 const PostGenerate = (props) => {
   const encoder = new TextEncoder();
@@ -39,6 +40,8 @@ const PostGenerate = (props) => {
 
 
   const signMessage = async () => {
+    await promptBiometrics("Use biometrics to create a signature")
+    
     createSignature(message).then(signature => {
       console.log("Signature ==> ", signature);
       setSignature(signature);
@@ -52,6 +55,9 @@ const PostGenerate = (props) => {
   const verifyMessage = async () => {
     const creadentials = await retrieveKey(keyServices.publicKey);
     console.log("PUBLIC_KEY ==> ", creadentials.password);
+
+    await promptBiometrics("Use biometrics to verify your signature")
+
     verifySignature(
       signature,
       message,

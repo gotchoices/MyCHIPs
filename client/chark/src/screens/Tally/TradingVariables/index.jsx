@@ -18,6 +18,7 @@ import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
 import { KeyNotFoundError } from '../../../utils/Errors';
 import { toastVisibilityTime } from '../../../config/constants';
+import { promptBiometrics } from '../../../services/biometrics';
 
 const TradingVariables = (props) => {
   const { tally_seq, tally_ent, chad, tally_type, tally_uuid } = props.route?.params ?? {};
@@ -44,7 +45,7 @@ const TradingVariables = (props) => {
     }).catch(console.log)
   }, [wm, tally_seq, setTrade])
 
-  const applySettings = (request) => {
+  const applySettings = async (request) => {
     const { target, bound, reward, clutch } = parse(request.url ?? '');
 
     const _chad = `chip://${chad.cid}:${chad.agent}`
@@ -68,6 +69,9 @@ const TradingVariables = (props) => {
     }
 
     const message = stringify(chitJson);
+
+    await promptBiometrics("Use biometrics to create a signature")
+   
     createSignature(message).then((signature) => {
       const payload = {
         signature,

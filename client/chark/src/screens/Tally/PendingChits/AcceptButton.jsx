@@ -15,6 +15,7 @@ import { createSignature } from '../../../utils/message-signature';
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
 import { showError } from '../../../utils/error';
 import { KeyNotFoundError } from '../../../utils/Errors';
+import { promptBiometrics } from '../../../services/biometrics';
 
 const AcceptButton = (props) => {
   const { wm } = useSocket();
@@ -29,6 +30,8 @@ const AcceptButton = (props) => {
     const message = stringify(props.json);
     setDisabled(true);
     try {
+
+      await promptBiometrics("Use biometrics to create a signature")
       const signature = await createSignature(message);
       await acceptChit(wm, {
         signature,

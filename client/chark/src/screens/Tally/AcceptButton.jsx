@@ -17,6 +17,7 @@ import { KeyNotFoundError } from '../../utils/Errors';
 import { showError } from '../../utils/error';
 import { comparePublicKey } from '../../services/tally';
 import Toast from 'react-native-toast-message'
+import { promptBiometrics } from '../../services/biometrics';
 
 const AcceptButton = (props) => {
   const tally = props.tally;
@@ -52,6 +53,7 @@ const AcceptButton = (props) => {
         })
       }
 
+      await promptBiometrics("Use biometrics to create a signature")
       const signature = await createSignature(message);
       await acceptTally(wm, {
         signature,

@@ -36,6 +36,7 @@ import { KeyNotFoundError } from '../../../utils/Errors';
 import { ChitIcon, SwapIcon } from "../../../components/SvgAssets/SvgAssets";
 import BottomSheetModal from "../../../components/BottomSheetModal";
 import SuccessModal from "../Success";
+import { promptBiometrics } from "../../../services/biometrics";
 
 const PaymentDetail = (props) => {
   const { chit_ent, tally_uuid, chit_seq, tally_type, chad, distributedPayment } = props.route?.params;
@@ -186,6 +187,8 @@ const PaymentDetail = (props) => {
 
     try {
       const json = stringify(chitJson);
+
+      await promptBiometrics("Use biometrics to create a signature")
       const signature = await createSignature(json)
 
       const payload = {
