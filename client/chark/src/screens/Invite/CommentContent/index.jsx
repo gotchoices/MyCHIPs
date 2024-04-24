@@ -66,7 +66,7 @@ const CommentContent = props => {
       return amount;
     }
 
-    return 1.0;
+    return 1.000;
   };
 
   const calculateSendingAmount = (value, setLimit) => {
