@@ -460,7 +460,8 @@ const TallyInvite = props => {
 
       <BottomSheetModal
         isVisible={showCommentModal}
-        onClose={() => setShowCommentModal(false)}>
+        onClose={() => setShowCommentModal(false)}
+      >
         <CommentContent
           text={commonText}
           onNext={item => {

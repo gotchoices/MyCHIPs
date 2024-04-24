@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   searchInput: {
+    width: '100%',
     padding: 10,
   },
   filter: {

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useId } from 'react';
 import { View, Linking, Modal } from 'react-native'
 import qs from 'query-string';
 import { useSelector } from 'react-redux';
-import Toast from 'react-native-toast-message';
 import { useDispatch } from 'react-redux';
 
 import Tally from '../Tally';
@@ -11,13 +10,11 @@ import { parse } from '../../utils/query-string';
 import { getLinkHost } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import { setPersonal } from '../../redux/profileSlice';
-import { createLiftsPay } from '../../services/pay'
 import useTitle from '../../hooks/useTitle'
 
 import CenteredModal from '../../components/CenteredModal';
 import UpdateCID from '../UpdateCID';
 import { useCharkText } from "../../hooks/useLanguage";
-import { showError } from "../../utils/error";
 
 const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
 const tallyUri = new Set(['invite', 'mychips.org/invite'])
