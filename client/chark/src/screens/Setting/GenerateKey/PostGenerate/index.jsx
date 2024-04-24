@@ -3,24 +3,21 @@ import { TextEncoder, TextDecoder } from 'web-encoding';
 import { Button, StyleSheet, View, Text, ScrollView, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import { isKeyStored, retrieveKey, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
+import { isKeyStored, storePrivateKey, storePublicKey } from '../../../../utils/keychain-store';
 
 import CenteredModal from '../../../../components/CenteredModal';
 import ExportModal from '../ExportModal';
 import PassphraseModal from '../PassphraseModal';
-import { createSignature, verifySignature } from '../../../../utils/message-signature';
-import { keyServices } from '../../../../config/constants';
 import { updatePublicKey } from '../../../../services/profile';
 import useSocket from '../../../../hooks/useSocket';
+import useMessageText from '../../../../hooks/useMessageText';
 
 const PostGenerate = (props) => {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-  const message = "My message is verified";
-  const data = encoder.encode(message);
-
   const { user } = useSelector(state => state.currentUser);
   const { wm } = useSocket();
+
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const user_ent = user?.curr_eid;
   const publicKey = props.publicKey;
@@ -29,7 +26,6 @@ const PostGenerate = (props) => {
   const [passphrase, setPassphrase] = useState(undefined);
   const [showModal, setShowModal] = useState(false);
   const [passphraseModal, setPassphraseModal] = useState(false);
-  const [signature, setSignature] = useState()
 
   useEffect(() => {
     if (passphrase) {
@@ -38,36 +34,6 @@ const PostGenerate = (props) => {
   }, [passphrase])
 
 
-  const signMessage = async () => {
-    createSignature(message).then(signature => {
-      console.log("Signature ==> ", signature);
-      setSignature(signature);
-      Alert.alert("Success", 'Message signed success');
-    }).catch(e => {
-      console.log("Exception ==> ", e)
-      Alert.alert("Error", e.toString());
-    });
-  }
-
-  const verifyMessage = async () => {
-    const creadentials = await retrieveKey(keyServices.publicKey);
-    console.log("PUBLIC_KEY ==> ", creadentials.password);
-    verifySignature(
-      signature,
-      message,
-      creadentials.password
-    ).then(verified => {
-      if (verified) {
-        Alert.alert("Success", `Message verified: ${verified} \nDecoded Message: ${decoder.decode(data)}`);
-      } else {
-        Alert.alert("Error", `Failed to verify message`);
-      }
-    }).catch(ex => {
-      console.log("Why Failed==>", ex);
-      Alert.alert("Error", ex.message);
-    });
-  }
-
   const checkIfKeyStored = async () => {
     const { keyStored, message } = await isKeyStored();
     if (keyStored) {
@@ -75,8 +41,8 @@ const PostGenerate = (props) => {
         "Generate Keys",
         message,
         [
-          { text: "Cancel" },
-          { text: "Proceed", onPress: storeKeys }
+          { text: charkText?.cancel?.title ?? ''},
+          { text: charkText?.proceed?.title ?? '', onPress: storeKeys }
         ]
       );
     } else {
@@ -122,7 +88,7 @@ const PostGenerate = (props) => {
           <View style={styles.row}>
             {
               !!publicKey && !!privateKey && (
-                <Button onPress={onExportKeys} title='Export Key' />
+                <Button onPress={onExportKeys} title={charkText?.export?.title ?? ''} />
               )
             }
             <View style={{ width: 16 }} />
@@ -132,22 +98,10 @@ const PostGenerate = (props) => {
             />
           </View>
 
-          {/* <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
-            <Button
-              onPress={signMessage}
-              title='Sign Message'
-            />
-            <View style={{ width: 16 }} />
-            <Button
-              onPress={verifyMessage}
-              title='Verify Message'
-            />
-          </View> */}
-
           <View style={[styles.row, { marginTop: 1, marginBottom: 12 }]}>
             <Button
               onPress={props.onClose}
-              title='Cancel'
+              title={charkText?.cancel?.title ?? ''}
             />
           </View>
         </View>

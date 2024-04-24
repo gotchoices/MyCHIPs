@@ -351,7 +351,7 @@ const PaymentDetail = (props) => {
       >
         <TextInput
           ref={ref}
-          placeholder={chitsText?.col?.memo?.title}
+          placeholder={chitsText?.col?.memo?.title ?? ''}
           value={memo}
           onChangeText={setMemo}
         />

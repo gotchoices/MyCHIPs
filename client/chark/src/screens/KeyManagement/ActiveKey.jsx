@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View, Text, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 
 import { colors, keyServices } from '../../config/constants';
 import { retrieveKey } from '../../utils/keychain-store';
 import { setPrivateKey, setPublicKey } from '../../redux/profileSlice';
 
-const ActiveKey = () => {
+const ActiveKey = (props) => {
   const dispatch = useDispatch();
   const { publicKey, privateKey } = useSelector(state => state.profile);
 
@@ -24,7 +25,7 @@ const ActiveKey = () => {
     <>
       <View>
         <Text style={styles.headerText}>
-          active_public_key
+          {props?.text?.public?.title ?? ''}
         </Text>
 
         <View style={styles.keySection}>
@@ -36,7 +37,7 @@ const ActiveKey = () => {
 
       <View style={{ marginTop: 30 }}>
         <Text style={styles.headerText}>
-          active_private_key
+          {props?.text?.private?.title ?? ''}
         </Text>
 
         <View style={styles.keySection}>
@@ -70,5 +71,9 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   }
 });
+
+ActiveKey.propTypes = {
+  text: PropTypes.object,
+}
 
 export default ActiveKey;

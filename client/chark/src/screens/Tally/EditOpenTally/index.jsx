@@ -34,7 +34,7 @@ const EditOpenTally = (props) => {
     return statusValues?.find(s => s.value === 'open');
   }, [statusValues])
 
-  useTitle(props.navigation, openText ? `${talliesMeMsgText?.detail?.title ?? ''} - ${openText?.title} `: null)
+  useTitle(props.navigation, openText ? `${talliesMeMsgText?.detail?.title ?? ''} - ${openText?.title ?? ''} `: null)
 
   // fields: ['tally_uuid', 'tally_date', 'status', 'target', 'bound', 'reward', 'clutch', 'part_cert'],
   useEffect(() => {

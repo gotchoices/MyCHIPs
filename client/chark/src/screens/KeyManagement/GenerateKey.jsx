@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {View, Text, StyleSheet, Alert} from 'react-native';
+import PropTypes from 'prop-types';
 
 import Button from '../../components/Button';
 import SigningKeyWarning from '../../components/SigningKeyWarning';
@@ -18,7 +19,7 @@ import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
 
 import ReactNativeBiometrics from 'react-native-biometrics';
 
-const GenerateKey = () => {
+const GenerateKey = (props) => {
   const subtle = window.crypto.subtle;
   const dispatch = useDispatch();
 
@@ -53,13 +54,13 @@ const GenerateKey = () => {
       if (available) {
         return rnBiometrics
           .simplePrompt({
-            promptMessage: 'Confirm biomets to generate key',
+            promptMessage: props.text?.keybio?.title ?? 'Biometric Validation',
           })
           .then(() => {
             return generateKey();
           })
           .catch(err => {
-            alert('Biometrics failed');
+            alert(props.text?.biofail?.help ?? 'Unable to access your private key because your biometric validation failed.');
           });
       }
 
@@ -105,10 +106,9 @@ const GenerateKey = () => {
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.generate}>generate_text</Text>
+        <Text style={styles.generate}>{props.text?.keywarn?.title ?? ''}</Text>
         <Text style={styles.description}>
-          Generating a new key can be a destructive action. Remember to save
-          your current active key by exporting it to a safe place.
+          {props.text?.keywarn?.help ?? ''}
         </Text>
 
         <Button
@@ -132,8 +132,8 @@ const GenerateKey = () => {
             }
           }}
           onCancel={onGenerateCancel}
-          title="Generating a new key is a destructive action"
-          description={`When you open a tally it is signed with a key and needs that key to operate.\n\nIt’s recommended to export and save your keys before you generate new ones.`}
+          title={props.text?.keywarn?.title ?? ''}
+          description={props.text?.keywarn?.help ?? ''}
         />
       </BottomSheetModal>
 
@@ -162,8 +162,6 @@ const GenerateKey = () => {
         }}>
         <PassphraseModal
           action="generate"
-          title="Please export your current key before generating a new one."
-          subTitle="Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key."
           onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
@@ -207,5 +205,9 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
 });
+
+GenerateKey.propTypes = {
+  text: PropTypes.object,
+}
 
 export default GenerateKey;

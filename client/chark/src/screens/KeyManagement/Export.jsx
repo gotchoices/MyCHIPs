@@ -30,13 +30,13 @@ const Export = props => {
       if (available) {
         return rnBiometrics
           .simplePrompt({
-            promptMessage: 'Confirm biomets to generate key',
+            promptMessage: props.text?.keybio?.title ?? 'Biometric Validation',
           })
           .then(() => {
             return exportKey();
           })
           .catch(err => {
-            alert('Biometrics failed');
+            alert(props.text?.biofail?.help ?? 'Unable to access your private key because your biometric validation failed.');
           });
       }
 
@@ -53,7 +53,7 @@ const Export = props => {
         dispatch(setPrivateKey(key));
       }
       if (!key) {
-        Alert.alert('Export Key', 'Seems like you have no saved keys.');
+        Alert.alert(props.text?.export?.title ?? '', props.text?.nokey?.help);
       }
 
       setPassphraseModal(true);
@@ -63,15 +63,14 @@ const Export = props => {
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.exportText}>{props.exportText}</Text>
+        <Text style={styles.exportText}>{props.text?.export?.title ?? ''}</Text>
         <Text style={styles.exportDescription}>
-          Generating a new key can be a destructive action. Remember to save
-          your current active key by exporting it to a safe place.
+          {props?.text?.keywarn?.help ?? ''}
         </Text>
 
         <Button
           style={styles.exportBtn}
-          title={props.exportText}
+          title={props.text?.export?.title ?? ''}
           onPress={getKey}
         />
       </View>

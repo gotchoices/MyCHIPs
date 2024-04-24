@@ -15,6 +15,7 @@ import {
 } from "../redux/profileSlice";
 import { hasNotification } from "../redux/activitySlice";
 import { colors, toastVisibilityTime } from "../config/constants";
+import { showError } from '../utils/error';
 
 import Home from "../screens/Home";
 import Invite from "../screens/Invite";
@@ -30,7 +31,6 @@ import TallyReport from "../screens/Tally/TallyReport";
 import ChitHistory from "../screens/Tally/ChitHistory";
 import TallyPreview from "../screens/Tally/TallyPreview";
 import ProfileEdit from "../screens/Profile/ProfileEdit";
-import ImportKeyScreen from "../screens/ImportKeyScreen";
 import TallyRequest from "../screens/Tally/TallyRequest";
 import PendingChits from "../screens/Tally/PendingChits";
 import InviteProvider from "../components/InviteProvider";
@@ -220,11 +220,6 @@ function SettingStackScreen() {
         options={{ title: "Edit Profile" }}
       />
       <SettingStack.Screen
-        name="ImportKey"
-        component={ImportKeyScreen}
-        options={{ title: "Import Key" }}
-      />
-      <SettingStack.Screen
         name="KeyManagement"
         component={KeyManagement}
         options={{ title: "Key Management" }}
@@ -325,7 +320,7 @@ const Navigator = () => {
         onDismiss={onDismissSignatureModal}
         onKeySaved={onKeySaved}
         onError={(err) => {
-          Alert.alert("Error", err);
+          showError(err)
         }}
       />
     </>

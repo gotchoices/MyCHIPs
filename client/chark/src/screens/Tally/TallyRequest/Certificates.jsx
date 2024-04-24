@@ -95,7 +95,7 @@ const Certificates = props => {
   return (
     <View>
       <View style={styles.header}>
-        <Text style={styles.headerMain}>{charkText?.certshare?.title}</Text>
+        <Text style={styles.headerMain}>{charkText?.certshare?.title ?? ''}</Text>
 
         <Text style={styles.headerDescription}>
           {charkText?.certshare?.help}
@@ -105,7 +105,7 @@ const Certificates = props => {
       <View style={styles.content}>
         <View>
           <View style={styles.section1}>
-            <Text>{charkText?.certtpts?.title}</Text>
+            <Text>{charkText?.certtpts?.title ?? ''}</Text>
 
             <TouchableWithoutFeedback onPress={props.onCustomPressed}>
               <View style={styles.filter}>

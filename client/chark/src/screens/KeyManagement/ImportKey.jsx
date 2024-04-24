@@ -61,13 +61,13 @@ const ImportKey = props => {
       if (available) {
         return rnBiometrics
           .simplePrompt({
-            promptMessage: 'Confirm biomets to generate key',
+            promptMessage: props.text?.keybio?.title ?? 'Biometric Validation',
           })
           .then(() => {
             return importKeys();
           })
           .catch(err => {
-            alert('Biometrics failed');
+            alert(props.text?.biofail?.help ?? 'Unable to access your private key because your biometric validation failed.');
           });
       }
 
@@ -184,15 +184,14 @@ const ImportKey = props => {
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.importText}>{props?.importText}</Text>
+        <Text style={styles.importText}>{props?.text?.keywarn?.title ?? ''}</Text>
         <Text style={styles.importDescription}>
-          Importing a new key can be a destructive action. Remember to save your
-          current active key by exporting it to a safe place.
+          {props?.text?.keywarn?.help ?? ''}
         </Text>
 
         <Button
           style={styles.importBtn}
-          title={props?.importText}
+          title={props?.text?.import?.title ?? ''}
           onPress={onImportClick}
         />
       </View>
@@ -200,8 +199,8 @@ const ImportKey = props => {
       <BottomSheetModal isVisible={showImportWarning} onClose={onImportCancel}>
         <SigningKeyWarning
           loading={false}
-          title="Importing a new key is a destructive action"
-          description={`When you open a tally it is signed with a key and needs that key to operate.\n\nIt’s recommended to export and save your keys before you Import new ones.`}
+          title={props?.text?.keywarn?.title ?? ''}
+          description={props?.text?.keywarn?.help ?? ''}
           onAccept={onAccept}
           onCancel={onImportCancel}
         />
@@ -214,8 +213,6 @@ const ImportKey = props => {
         }}>
         <PassphraseModal
           action="import"
-          title="Please export your current key before generating a new one."
-          subTitle="Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key."
           onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
@@ -255,7 +252,7 @@ const ImportKey = props => {
           cancel={() => {
             setPrevPassphraseModal(false);
           }}
-          buttonTitle={'Import'}
+          buttonTitle={props.text?.import?.title ?? ''}
         />
       </CenteredModal>
     </>
