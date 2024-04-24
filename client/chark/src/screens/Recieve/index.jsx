@@ -185,8 +185,6 @@ const Receive = props => {
     <KeyboardAwareScrollView
       style={styles.container}
       enableOnAndroid
-      extraHeight={150}
-      extraScrollHeight={50}
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.centerWrapper}>
         {isSwitched ? (
