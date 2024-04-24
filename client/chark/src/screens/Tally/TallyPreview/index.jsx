@@ -6,7 +6,6 @@ import {
   StyleSheet,
   RefreshControl,
   Keyboard,
-  Alert,
   Platform,
   KeyboardAvoidingView,
   Text,
@@ -383,6 +382,7 @@ const TallyPreview = (props) => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.contentContainer}

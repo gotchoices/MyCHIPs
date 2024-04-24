@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect} from "react";
 import PropTypes from 'prop-types';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import Button from "../../../components/Button";
 import CustomIcon from "../../../components/CustomIcon";

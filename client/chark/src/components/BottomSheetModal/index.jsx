@@ -1,20 +1,28 @@
 import React from "react"
 import { Modal, StyleSheet, View, Text } from "react-native"
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const BottomSheetModal = (props) => {
-  return <Modal
-    transparent={true}
-    animationType="slide"
-    visible={props.isVisible}
-    onRequestClose={props.onClose}
-    statusBarTranslucent={true}
-  >
-    <View style={styles.container} >
-      <View style={styles.content}>
-        {props.children}
-      </View>
-    </View>
-  </Modal>
+  return (
+    <Modal
+      transparent={true}
+      animationType="slide"
+      visible={props.isVisible}
+      onRequestClose={props.onClose}
+    >
+      <KeyboardAwareScrollView 
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled" 
+        contentContainerStyle={{flexGrow: 1}}
+      >
+        <View style={styles.container} >
+          <View style={styles.content}>
+            {props.children}
+          </View>
+        </View>
+      </KeyboardAwareScrollView>
+    </Modal>
+  )
 }
 
 const styles = StyleSheet.create({
