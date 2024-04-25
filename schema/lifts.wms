@@ -195,7 +195,8 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v_dist} {
     begin
 --raise notice 'Lift_notify R:%', lift.request;
 
-      select into lrec json, payor_auth, circuit, find, origin, find_v, origin_v, referee_v,
+      select into lrec json, payor_auth, payor_ent, circuit, find, origin, 
+        find_v, origin_v, referee_v,
         inp_chad, bot_chad, bot_tally,
         top_chad, out_chad, top_tally
         from mychips.lifts_v_dist
@@ -206,8 +207,7 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v_dist} {
         jmerge = jmerge || jsonb_build_object(
           'init', jsonb_build_object(
             'auth',		lrec.payor_auth
-          , 'find',		lrec.find
-          , 'org',		lrec.origin));
+          , 'find',		lrec.find));
 
       elsif lift.request in ('found','void') then	-- Outgoing message will be downstream
         channel = 'ma_' || (lrec.bot_chad->>'agent');
@@ -227,12 +227,13 @@ function {mychips.lift_notify(lift mychips.lifts)} {mychips.lifts_v_dist} {
       jret = jsonb_build_object('target', 'lift'
         , 'action',	lift.request
         , 'sequence',	lift.lift_seq
-        , 'outc',	lrec.out_chad
-        , 'topc',	lrec.top_chad
-        , 'topt',	lrec.top_tally
-        , 'inpc',	lrec.inp_chad
-        , 'botc',	lrec.bot_chad
-        , 'bott',	lrec.bot_tally
+        , 'orig',	lrec.payor_ent
+--        , 'outc',	lrec.out_chad
+--        , 'topc',	lrec.top_chad
+--        , 'topt',	lrec.top_tally
+--        , 'inpc',	lrec.inp_chad
+--        , 'botc',	lrec.bot_chad
+--        , 'bott',	lrec.bot_tally
         , 'object',	lrec.json
       ) || jmerge;
 

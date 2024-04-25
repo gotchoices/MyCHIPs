@@ -308,7 +308,7 @@ describe("Create simulated network", function() {
       let t = `  subgraph cluster_${s.idx} {\n    label = "Site: ${s.idx}, Agent: ${s.agent}"\n`
       Object.values(userData).forEach(u => {	//log.debug("U-check:", u.cid, u.site.idx)
         if (u.site.idx == s.idx) {
-          t += `    ${u.cid} [label="${u.cid}"];\n`
+          t += `    ${u.cid} [label="${u.id}\n${u.cid}"];\n`
         }
       text += t + `\n  }\n\n`
       })

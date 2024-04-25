@@ -2,78 +2,6 @@
 #Copyright MyCHIPs.org; See license in root of this package
 #----------------------------------------------------------------
 
-# View showing a single entry for each credit relationship (for lift algorithm, pathway views)
-#OBSOLETE: (use tallies_v_edg instead)
-#----------------------------------------------------------------
-view mychips.tallies_v_net {mychips.tallies_v} {with
-  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
-    from mychips.tallies_v where liftable and part_ent notnull
-  ),
-  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
-    from mychips.tallies_v where liftable and part_ent isnull
-  )
-  select 			-- Internal tallies with both stock and foil
-    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
-  , t.part_ent					as inp		-- partner controls lift
-  , t.tally_ent					as out
-  , t.target, t.bound, t.reward
-  , coalesce(p.clutch, 0)			as margin
-  , t.net_pc
-  , greatest(t.target - t.net_pc,0)		as min
-  , t.bound - t.net_pc				as max
-  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
-  , case when t.tally_type = 'foil' then -1 else 1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
-  , false					as inv
-  , t.bound - t.net_pc				as canlift
-    from	t_loc as t
-    join 	t_loc as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
-
-  union select 			-- Tallies with foreign peers, lifting toward us
-    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
-  , t.part_ent					as inp
-  , t.tally_ent					as out
-  , t.target, t.bound, t.reward
-  , 0						as margin
-  , t.net_pc
-  , greatest(t.target - t.net_pc,0)		as min
-  , t.bound - t.net_pc				as max
-  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
-  , case when t.tally_type = 'foil' then -1 else 1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
-  , false					as inv
-  , t.bound - t.net_pc				as canlift
-    from	t_for as t
-
-  union select 			-- Tallies with foreign peers, lifting toward them
-    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
-  , t.tally_ent					as inp
-  , t.part_ent					as out
-  , 0 as target, 0 as bound
-  , 0 as reward, 0 as margin				-- Assume zero costs from other side
-  , -t.net_pc as net_pc
-  , expr($BigInt)				as min	-- Other side of tally is in charge of these
-  , expr($BigInt)				as max
-  , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
-  , case when t.tally_type = 'foil' then 1 else -1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
-  , true					as inv
-  , expr($BigInt)				as canlift	-- Let the other side limit lifts
-    from	t_for as t
-}
-
-#OBSOLETE:
-#index {mychips_tallies_x_vnet_inside} mychips.tallies {
-#  create index mychips_tallies_x_vnet_inside on mychips.tallies (part_ent, status, net_pc)
-#    where -- part_ent notnull and
-#      (status = 'open' or (status = 'close' and net_pc != 0))	-- Match tallies_v.liftable
-#} {drop index if exists mychips.mychips_tallies_x_vnet_inside}
-#index {mychips_tallies_x_vnet_outside} mychips.tallies {
-#  create index mychips_tallies_x_vnet_outside on mychips.tallies(part_ent, status, net_pc)
-#    where part_ent isnull
-#      and (status = 'open' or (status = 'close' and net_pc != 0))	-- Match tallies_v.liftable
-#} {drop index if exists mychips.mychips_tallies_x_vnet_outside}
-
 # View showing one entry for each tally capable of a lift
 #----------------------------------------------------------------
 view mychips.tallies_v_edg {mychips.tallies_v} {with
@@ -87,7 +15,7 @@ view mychips.tallies_v_edg {mychips.tallies_v} {with
   ,  coalesce((part_sets->'reward')::float, 0) as p_reward
     from mychips.tallies_v where liftable and part_ent isnull
   )
-  select 			-- Internal tallies with both stock and foil
+  select 			-- All tallies
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.tally_ent					as out
   , t.part_ent					as inp
@@ -102,7 +30,7 @@ view mychips.tallies_v_edg {mychips.tallies_v} {with
   , false					as inv
     from	t_all as t
 
-  union select 			-- Tallies with foreign peers, lifting toward them
+  union select 			-- Tallies with foreign peers, lifting away
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.part_ent					as out
   , t.tally_ent					as inp
@@ -248,3 +176,76 @@ view mychips.routes_v_query {mychips.routes_v_paths mychips.routes_v mychips.rou
                                      r.dst_cid = tp.inp_cid and r.dst_agent = tp.inp_agent
   where tp.segment
 }
+
+# View showing a single entry for each credit relationship (for lift algorithm, pathway views)
+#OBSOLETE: (use tallies_v_edg instead)
+#----------------------------------------------------------------
+view mychips.tallies_v_net {mychips.tallies_v} {with
+  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
+    from mychips.tallies_v where liftable and part_ent notnull
+  ),
+  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
+    from mychips.tallies_v where liftable and part_ent isnull
+  )
+  select 			-- Internal tallies with both stock and foil
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.part_ent					as inp		-- partner controls lift
+  , t.tally_ent					as out
+  , t.target, t.bound, t.reward
+  , coalesce(p.clutch, 0)			as margin
+  , t.net_pc
+  , greatest(t.target - t.net_pc,0)		as min
+  , t.bound - t.net_pc				as max
+  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
+  , case when t.tally_type = 'foil' then -1 else 1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , false					as inv
+  , t.bound - t.net_pc				as canlift
+    from	t_loc as t
+    join 	t_loc as p on t.tally_uuid = p.tally_uuid and t.tally_ent != p.tally_ent
+
+  union select 			-- Tallies with foreign peers, lifting toward us
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.part_ent					as inp
+  , t.tally_ent					as out
+  , t.target, t.bound, t.reward
+  , 0						as margin
+  , t.net_pc
+  , greatest(t.target - t.net_pc,0)		as min
+  , t.bound - t.net_pc				as max
+  , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
+  , case when t.tally_type = 'foil' then -1 else 1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , false					as inv
+  , t.bound - t.net_pc				as canlift
+    from	t_for as t
+
+  union select 			-- Tallies with foreign peers, lifting toward them
+    t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
+  , t.tally_ent					as inp
+  , t.part_ent					as out
+  , 0 as target, 0 as bound
+  , 0 as reward, 0 as margin				-- Assume zero costs from other side
+  , -t.net_pc as net_pc
+  , expr($BigInt)				as min	-- Other side of tally is in charge of these
+  , expr($BigInt)				as max
+  , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
+  , case when t.tally_type = 'foil' then 1 else -1 end as sign
+  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , true					as inv
+  , expr($BigInt)				as canlift	-- Let the other side limit lifts
+    from	t_for as t
+}
+
+#OBSOLETE:
+#index {mychips_tallies_x_vnet_inside} mychips.tallies {
+#  create index mychips_tallies_x_vnet_inside on mychips.tallies (part_ent, status, net_pc)
+#    where -- part_ent notnull and
+#      (status = 'open' or (status = 'close' and net_pc != 0))	-- Match tallies_v.liftable
+#} {drop index if exists mychips.mychips_tallies_x_vnet_inside}
+#index {mychips_tallies_x_vnet_outside} mychips.tallies {
+#  create index mychips_tallies_x_vnet_outside on mychips.tallies(part_ent, status, net_pc)
+#    where part_ent isnull
+#      and (status = 'open' or (status = 'close' and net_pc != 0))	-- Match tallies_v.liftable
+#} {drop index if exists mychips.mychips_tallies_x_vnet_outside}
+

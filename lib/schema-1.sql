@@ -4482,7 +4482,7 @@ create view mychips.tallies_v_edg as with
   ,  coalesce((part_sets->'reward')::float, 0) as p_reward
     from mychips.tallies_v where liftable and part_ent isnull
   )
-  select 			-- Internal tallies with both stock and foil
+  select 			-- All tallies
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.tally_ent					as out
   , t.part_ent					as inp
@@ -4497,7 +4497,7 @@ create view mychips.tallies_v_edg as with
   , false					as inv
     from	t_all as t
 
-  union select 			-- Tallies with foreign peers, lifting toward them
+  union select 			-- Tallies with foreign peers, lifting away
     t.tally_ent, t.tally_seq, t.tally_type, t.part_ent, t.tally_uuid as uuid
   , t.part_ent					as out
   , t.tally_ent					as inp
@@ -5643,7 +5643,8 @@ create function mychips.lift_notify(lift mychips.lifts) returns boolean language
     begin
 
 
-      select into lrec json, payor_auth, circuit, find, origin, find_v, origin_v, referee_v,
+      select into lrec json, payor_auth, payor_ent, circuit, find, origin, 
+        find_v, origin_v, referee_v,
         inp_chad, bot_chad, bot_tally,
         top_chad, out_chad, top_tally
         from mychips.lifts_v_dist
@@ -5654,8 +5655,7 @@ create function mychips.lift_notify(lift mychips.lifts) returns boolean language
         jmerge = jmerge || jsonb_build_object(
           'init', jsonb_build_object(
             'auth',		lrec.payor_auth
-          , 'find',		lrec.find
-          , 'org',		lrec.origin));
+          , 'find',		lrec.find));
 
       elsif lift.request in ('found','void') then	-- Outgoing message will be downstream
         channel = 'ma_' || (lrec.bot_chad->>'agent');
@@ -5675,12 +5675,13 @@ create function mychips.lift_notify(lift mychips.lifts) returns boolean language
       jret = jsonb_build_object('target', 'lift'
         , 'action',	lift.request
         , 'sequence',	lift.lift_seq
-        , 'outc',	lrec.out_chad
-        , 'topc',	lrec.top_chad
-        , 'topt',	lrec.top_tally
-        , 'inpc',	lrec.inp_chad
-        , 'botc',	lrec.bot_chad
-        , 'bott',	lrec.bot_tally
+        , 'orig',	lrec.payor_ent
+
+
+
+
+
+
         , 'object',	lrec.json
       ) || jmerge;
 
@@ -7390,16 +7391,21 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','certopts','eng','Certificate Options','Select what information is contained in a certificate'),
   ('mychips','chark','certshare','eng','Certificate Sharing','Decide what personal information will you share with the other party.  You can create a custom certificate or use one from any existing draft tallies you might have.'),
   ('mychips','chark','certtpts','eng','Template Certificates','Select a certificate from an existing tally template'),
+  ('mychips','chark','confirm','eng','Please Confirm','The user is asked to re-enter a value for confirmation'),
   ('mychips','chark','custom','eng','Custom','Customize my settings'),
   ('mychips','chark','deleted','eng','Deleted','The item has been deleted from the database'),
   ('mychips','chark','edit','eng','Edit','Modify the current information'),
+  ('mychips','chark','enter','eng','Please Enter','The user is asked to enter a value'),
+  ('mychips','chark','entercid','eng','Enter CHIP ID','Choose a string of characters by which your trading partners will address you (similar to an email address)'),
   ('mychips','chark','export','eng','Export','Export the item to an external format'),
+  ('mychips','chark','fail','eng','Operation Failed','The proposed action did not succeed'),
   ('mychips','chark','filter','eng','Filter','Settings to control display of records in the list preview'),
   ('mychips','chark','import','eng','Import','Import the item from an external format'),
   ('mychips','chark','keybio','eng','Biometric Validation','Your private key is kept encrypted on your device for protection from others.  It can only be accessed by providing your biometric validation.'),
+  ('mychips','chark','keygen','eng','Generate Key','Generate a new keypair for signing tallies and transactions'),
   ('mychips','chark','keypass','eng','Key Pass Phrase','Your exported key is protected by a pass phrase which you must remember in order to import the key again later.  This will prevent others from discovering your secret key.'),
   ('mychips','chark','keys','eng','Manage Keys','A cryptographic key pair (public and private) is required in order to digitally sign tallies and transactions.  Once generated, make sure you export and save your key and save it in a safe place or you will lose the ability to transact on existing tallies.'),
-  ('mychips','chark','keywarn','eng','Overwrite Keys?','Generating or importing a key pair will discard your existing keys.  If you have open tallies created with the old keys, you will not be able to transact on those tallies.'),
+  ('mychips','chark','keywarn','eng','Overwrite Key?','Generating or importing a key pair will discard your existing key.  If you have open tallies created with the old key, you will not be able to transact on those tallies.'),
   ('mychips','chark','language','eng','Language','What language the app will use'),
   ('mychips','chark','less','eng','Less Details','Show less information'),
   ('mychips','chark','link','eng','Link','Generate a deep link for this function'),
@@ -7408,6 +7414,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','newtally','eng','New Tally','Creating a new tally template'),
   ('mychips','chark','next','eng','Next','Proceed to the next step'),
   ('mychips','chark','nokey','eng','No Signing Key','You have not yet created a digital signing key.  Proceed to create one.'),
+  ('mychips','chark','none','eng','None','No data found for this query'),
   ('mychips','chark','private','eng','Private Key','This part of the key pair must be kept secret and never shared.  You must also never lose it or you will not be able to transact existing tallies created using the key.'),
   ('mychips','chark','proceed','eng','Continue','I understand, please proceed'),
   ('mychips','chark','profile','eng','Personal Data','View/modify personal information about the user'),
@@ -7418,8 +7425,10 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','selall','eng','Select All','Select all possible items'),
   ('mychips','chark','settings','eng','Settings','View/modify application preferences'),
   ('mychips','chark','share','eng','Share','Share this item by some external medium'),
+  ('mychips','chark','success','eng','Success','The requested operation completed as intended'),
   ('mychips','chark','sure','eng','Are you Sure?','Confirm that you want to proceed'),
   ('mychips','chark','updated','eng','Updated','Changes have been written to the database'),
+  ('mychips','chark','warn','eng','Warning','The proposed action could have adverse consequences'),
   ('mychips','chark','working','eng','Working Tallies','Draft and void templates you may use to tally with other users'),
   ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a chit'),
   ('mychips','chits','BLL','eng','Bad Lift Sequence','Only lift chits should include a lift sequence number'),
@@ -11001,12 +11010,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendor_agents','mychips','tallies_v_sum','vendor_agents','f','f'),
   ('mychips','users_v_tallysum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
-  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
-  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
-  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
-  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
-  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
-  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -11158,19 +11161,6 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
-  ('wm','language','col','wm','language','col','f','t'),
-  ('wm','language','fr_help','wm','language','fr_help','f','f'),
-  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
-  ('wm','language','fr_title','wm','language','fr_title','f','f'),
-  ('wm','language','help','wm','table_text','help','t','f'),
-  ('wm','language','language','wm','table_text','language','t','f'),
-  ('wm','language','obj','wm','language','obj','f','f'),
-  ('wm','language','sch','wm','language','sch','f','t'),
-  ('wm','language','sorter','wm','language','sorter','f','f'),
-  ('wm','language','tab','wm','language','tab','f','t'),
-  ('wm','language','tag','wm','language','tag','f','t'),
-  ('wm','language','title','wm','table_text','title','t','f'),
-  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),
