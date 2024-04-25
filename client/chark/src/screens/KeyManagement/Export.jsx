@@ -12,7 +12,7 @@ import {keyServices} from '../../config/constants';
 import {retrieveKey} from '../../utils/keychain-store';
 import {setPrivateKey} from '../../redux/profileSlice';
 
-import ReactNativeBiometrics from 'react-native-biometrics';
+import {promptBiometrics} from '../../services/biometrics';
 
 const Export = props => {
   const dispatch = useDispatch();
@@ -22,26 +22,14 @@ const Export = props => {
 
   const {privateKey} = useSelector(state => state.profile);
 
-  const getKey = async () => {
-    const rnBiometrics = new ReactNativeBiometrics();
+  const getKey = async() => {
+    try {
+     await promptBiometrics('Confirm biometrics to generate key')
 
-    rnBiometrics.isSensorAvailable().then(result => {
-      const {available, error} = result;
-      if (available) {
-        return rnBiometrics
-          .simplePrompt({
-            promptMessage: props.text?.keybio?.title ?? 'Biometric Validation',
-          })
-          .then(() => {
-            return exportKey();
-          })
-          .catch(err => {
-            alert(props.text?.biofail?.help ?? 'Unable to access your private key because your biometric validation failed.');
-          });
-      }
-
-      return exportKey();
-    });
+      exportKey();
+    } catch (err) {
+      alert(err);
+    }
   };
 
   const exportKey = async () => {
@@ -53,24 +41,27 @@ const Export = props => {
         dispatch(setPrivateKey(key));
       }
       if (!key) {
-        Alert.alert(props.text?.export?.title ?? '', props.text?.nokey?.help);
+        Alert.alert('Export Key', 'Seems like you have no saved keys.');
       }
 
       setPassphraseModal(true);
-    } catch (err) {}
+    } catch (err) {
+      alert(err);
+    }
   };
 
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.exportText}>{props.text?.export?.title ?? ''}</Text>
+        <Text style={styles.exportText}>{props.exportText}</Text>
         <Text style={styles.exportDescription}>
-          {props?.text?.keywarn?.help ?? ''}
+          Generating a new key can be a destructive action. Remember to save
+          your current active key by exporting it to a safe place.
         </Text>
 
         <Button
           style={styles.exportBtn}
-          title={props.text?.export?.title ?? ''}
+          title={props.exportText}
           onPress={getKey}
         />
       </View>

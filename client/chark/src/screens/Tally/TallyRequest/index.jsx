@@ -1,15 +1,16 @@
-import React, { useState } from 'react'
-import { useDispatch } from 'react-redux';
-import { View, StyleSheet } from 'react-native';
+import React, {useState} from 'react';
+import {useDispatch} from 'react-redux';
+import {View, StyleSheet} from 'react-native';
 
 import RequestStart from './RequestStart';
 import Certificates from './Certificates';
 import CustomCertificate from './CustomCertificate';
 
 import useMessageText from '../../../hooks/useMessageText';
-import { startRequest } from '../../../redux/certificateTalliesSlice';
+import {startRequest} from '../../../redux/certificateTalliesSlice';
+import {promptBiometrics} from '../../../services/biometrics';
 
-const TallyRequest = (props) => {
+const TallyRequest = props => {
   const invite = props.route?.params ?? {};
   const dispatch = useDispatch();
 
@@ -20,9 +21,9 @@ const TallyRequest = (props) => {
     customCertificate: false,
     myCertificate: false,
     needCustom: true,
-  })
+  });
 
-  const { messageText } = useMessageText();
+  const {messageText} = useMessageText();
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
   const talliesMeColText = messageText?.tallies_v_me?.col;
   const charkMessageText = messageText?.chark?.msg;
@@ -31,60 +32,76 @@ const TallyRequest = (props) => {
     invited: talliesMeMessageText?.invited,
     next: charkMessageText?.next,
     hold_cert: talliesMeColText?.hold_cert,
-  }
+  };
+
+  const setCertificateOptionTrue = needCustom => {
+    setVisibility({
+      requestStart: false,
+      certificateOptions: true,
+      customCertificate: false,
+      myCertificate: false,
+      needCustom,
+    });
+  };
+
+  const setCustomCertificateTrue = needCustom => {
+    setVisibility({
+      requestStart: false,
+      certificateOptions: false,
+      customCertificate: true,
+      myCertificate: false,
+      needCustom,
+    });
+  };
+
+  const biometricsAuth = async needCustom => {
+    await promptBiometrics('Use biometrics for certificate management');
+
+    setCustomCertificateTrue(needCustom);
+  };
 
   const showCorrespondingView = (view, needCustom = false) => {
-    switch(view) {
+    switch (view) {
       case 'certificateOptions':
-        setVisibility({
-          requestStart: false,
-          certificateOptions: true,
-          customCertificate: false,
-          myCertificate: false,
-          needCustom,
-        })
+        setCertificateOptionTrue(needCustom);
+
         break;
       case 'customCertificate':
-        setVisibility({
-          requestStart: false,
-          certificateOptions: false,
-          customCertificate: true,
-          myCertificate: false,
-          needCustom,
-        })
+        biometricsAuth(needCustom);
+
         break;
-      //case 'myCertificate':
+        //case 'myCertificate':
         //setVisibility({
-          //requestStart: false,
-          //certificateOptions: false,
-          //customCertificate: false,
-          //myCertificate: true,
-          //needCustom: false,
+        //requestStart: false,
+        //certificateOptions: false,
+        //customCertificate: false,
+        //myCertificate: true,
+        //needCustom: false,
         //})
         break;
       default:
         break;
     }
-  }
+  };
 
   const onStart = () => {
     dispatch(startRequest());
     showCorrespondingView('certificateOptions');
-  }
+  };
 
   const onItemPressed = (tally_ent, tally_seq) => {
     //showCorrespondingView('myCertificate');
-    setTallyInfo({ tally_ent, tally_seq })
+    setTallyInfo({tally_ent, tally_seq});
     showCorrespondingView('customCertificate', false);
-  }
+  };
 
   const onCustomPressed = () => {
     showCorrespondingView('customCertificate', true);
-  }
+  };
 
   const onCertificateDone = () => {
     showCorrespondingView('myCertificate');
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -99,7 +116,7 @@ const TallyRequest = (props) => {
       )}
 
       {visibility.certificateOptions && (
-        <Certificates 
+        <Certificates
           onCustomPressed={onCustomPressed}
           onItemPressed={onItemPressed}
           tally_ent={tallyInfo?.tally_ent}
@@ -108,7 +125,7 @@ const TallyRequest = (props) => {
       )}
 
       {visibility.customCertificate && (
-        <CustomCertificate 
+        <CustomCertificate
           navigation={props.navigation}
           cert={invite}
           onDone={onCertificateDone}
@@ -119,7 +136,7 @@ const TallyRequest = (props) => {
         />
       )}
 
-    {/*}
+      {/*}
     {visibility.myCertificate && (
         <MyCertificate 
           sendCertificate={sendCertificate}
@@ -128,14 +145,14 @@ const TallyRequest = (props) => {
       )}
     {*/}
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-  }
-})
+  },
+});
 
 export default TallyRequest;

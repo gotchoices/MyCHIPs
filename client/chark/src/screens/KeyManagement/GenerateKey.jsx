@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {View, Text, StyleSheet, Alert} from 'react-native';
-import PropTypes from 'prop-types';
 
 import Button from '../../components/Button';
 import SigningKeyWarning from '../../components/SigningKeyWarning';
@@ -17,9 +16,9 @@ import ExportModal from '../Setting/GenerateKey/ExportModal';
 import SuccessContent from '../../components/SuccessContent';
 import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
 
-import ReactNativeBiometrics from 'react-native-biometrics';
+import {promptBiometrics} from '../../services/biometrics';
 
-const GenerateKey = (props) => {
+const GenerateKey = () => {
   const subtle = window.crypto.subtle;
   const dispatch = useDispatch();
 
@@ -47,25 +46,13 @@ const GenerateKey = (props) => {
   };
 
   const onAccept = async () => {
-    const rnBiometrics = new ReactNativeBiometrics();
+    try {
+      await promptBiometrics('Confirm biometrics to generate key');
 
-    rnBiometrics.isSensorAvailable().then(result => {
-      const {available, error} = result;
-      if (available) {
-        return rnBiometrics
-          .simplePrompt({
-            promptMessage: props.text?.keybio?.title ?? 'Biometric Validation',
-          })
-          .then(() => {
-            return generateKey();
-          })
-          .catch(err => {
-            alert(props.text?.biofail?.help ?? 'Unable to access your private key because your biometric validation failed.');
-          });
-      }
-
-      return generateKey();
-    });
+      generateKey();
+    } catch (err) {
+      alert(err);
+    }
   };
 
   const generateKey = async () => {
@@ -106,9 +93,10 @@ const GenerateKey = (props) => {
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.generate}>{props.text?.keywarn?.title ?? ''}</Text>
+        <Text style={styles.generate}>generate_text</Text>
         <Text style={styles.description}>
-          {props.text?.keywarn?.help ?? ''}
+          Generating a new key can be a destructive action. Remember to save
+          your current active key by exporting it to a safe place.
         </Text>
 
         <Button
@@ -132,8 +120,8 @@ const GenerateKey = (props) => {
             }
           }}
           onCancel={onGenerateCancel}
-          title={props.text?.keywarn?.title ?? ''}
-          description={props.text?.keywarn?.help ?? ''}
+          title="Generating a new key is a destructive action"
+          description={`When you open a tally it is signed with a key and needs that key to operate.\n\nIt’s recommended to export and save your keys before you generate new ones.`}
         />
       </BottomSheetModal>
 
@@ -162,6 +150,8 @@ const GenerateKey = (props) => {
         }}>
         <PassphraseModal
           action="generate"
+          title="Please export your current key before generating a new one."
+          subTitle="Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key."
           onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
@@ -205,9 +195,5 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
 });
-
-GenerateKey.propTypes = {
-  text: PropTypes.object,
-}
 
 export default GenerateKey;

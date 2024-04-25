@@ -22,7 +22,7 @@ import {
 import {updatePublicKey} from '../../services/profile';
 import useSocket from '../../hooks/useSocket';
 
-import ReactNativeBiometrics from 'react-native-biometrics';
+import {promptBiometrics} from '../../services/biometrics';
 
 const ImportKey = props => {
   const [showImportWarning, setShowImportWarning] = useState(false);
@@ -54,25 +54,12 @@ const ImportKey = props => {
   };
 
   const onImportKey = async () => {
-    const rnBiometrics = new ReactNativeBiometrics();
-
-    rnBiometrics.isSensorAvailable().then(result => {
-      const {available, error} = result;
-      if (available) {
-        return rnBiometrics
-          .simplePrompt({
-            promptMessage: props.text?.keybio?.title ?? 'Biometric Validation',
-          })
-          .then(() => {
-            return importKeys();
-          })
-          .catch(err => {
-            alert(props.text?.biofail?.help ?? 'Unable to access your private key because your biometric validation failed.');
-          });
-      }
-
-      return importKeys();
-    });
+    try {
+      await promptBiometrics('Confirm biometrics to generate key');
+      importKeys();
+    } catch (err) {
+      alert(err);
+    }
   };
 
   const importKeys = async () => {
@@ -184,14 +171,15 @@ const ImportKey = props => {
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.importText}>{props?.text?.keywarn?.title ?? ''}</Text>
+        <Text style={styles.importText}>{props?.importText}</Text>
         <Text style={styles.importDescription}>
-          {props?.text?.keywarn?.help ?? ''}
+          Importing a new key can be a destructive action. Remember to save your
+          current active key by exporting it to a safe place.
         </Text>
 
         <Button
           style={styles.importBtn}
-          title={props?.text?.import?.title ?? ''}
+          title={props?.importText}
           onPress={onImportClick}
         />
       </View>
@@ -199,8 +187,8 @@ const ImportKey = props => {
       <BottomSheetModal isVisible={showImportWarning} onClose={onImportCancel}>
         <SigningKeyWarning
           loading={false}
-          title={props?.text?.keywarn?.title ?? ''}
-          description={props?.text?.keywarn?.help ?? ''}
+          title="Importing a new key is a destructive action"
+          description={`When you open a tally it is signed with a key and needs that key to operate.\n\nIt’s recommended to export and save your keys before you Import new ones.`}
           onAccept={onAccept}
           onCancel={onImportCancel}
         />
@@ -213,6 +201,8 @@ const ImportKey = props => {
         }}>
         <PassphraseModal
           action="import"
+          title="Please export your current key before generating a new one."
+          subTitle="Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key."
           onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
@@ -252,7 +242,7 @@ const ImportKey = props => {
           cancel={() => {
             setPrevPassphraseModal(false);
           }}
-          buttonTitle={props.text?.import?.title ?? ''}
+          buttonTitle={'Import'}
         />
       </CenteredModal>
     </>

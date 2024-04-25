@@ -16,6 +16,7 @@ import CertificateInformation from './CertificateInformation';
 import EyeIcon from '../../../assets/svg/eye_icon.svg';
 import {colors} from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
+import {promptBiometrics} from '../../services/biometrics';
 
 const TallyEditView = props => {
   const tally = props.tally;
@@ -84,8 +85,10 @@ const TallyEditView = props => {
   };
   console.log(tallyContracts);
 
-  const onViewCertificate = args => {
-    return () =>
+  const onViewCertificate = async args => {
+    try {
+      await promptBiometrics('Use biometrics to view certificate');
+
       props.navigation.navigate('TallyCertificate', {
         title: args.title,
         cert: args.cert,
@@ -93,6 +96,9 @@ const TallyEditView = props => {
         tally_seq: tally.tally_seq,
         tally_ent: tally.tally_ent,
       });
+    } catch (err) {
+      alert(err);
+    }
   };
 
   return (
@@ -153,10 +159,12 @@ const TallyEditView = props => {
             name={partName}
             chipAddress={partChipAddress}
             email={partEmail}
-            onViewDetails={onViewCertificate({
-              title: talliesMeText?.part_cert?.title ?? '',
-              cert: tally?.part_cert ?? {},
-            })}
+            onViewDetails={() =>
+              onViewCertificate({
+                title: talliesMeText?.part_cert?.title ?? '',
+                cert: tally?.part_cert ?? {},
+              })
+            }
             certText={certText ?? {}}
           />
         )}
@@ -167,10 +175,12 @@ const TallyEditView = props => {
             name={holdName}
             chipAddress={holdChipAddress}
             email={holdEmail}
-            onViewDetails={onViewCertificate({
-              title: charkMsgText?.certopts?.title,
-              cert: tally?.hold_cert ?? {},
-            })}
+            onViewDetails={() =>
+              onViewCertificate({
+                title: charkMsgText?.certopts?.title,
+                cert: tally?.hold_cert ?? {},
+              })
+            }
             certText={certText ?? {}}
           />
         )}

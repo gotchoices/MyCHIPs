@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect } from "react"
-import { View, Text, StyleSheet } from "react-native"
+import React, {useMemo, useEffect} from 'react';
+import {View, Text, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 
 import Header from './Header';
@@ -7,17 +7,17 @@ import Button from '../../../components/Button';
 import BackIcon from '../../../../assets/svg/ic_back.svg';
 import DefaultCertificate from '../TallyCertificate/DefaultCertificate';
 
-import { colors } from '../../../config/constants';
+import {colors} from '../../../config/constants';
+import {promptBiometrics} from '../../../services/biometrics';
 
-const MyCertificate = (props) => {
-
+const MyCertificate = props => {
   const onBack = () => {
     //if(props.fromCustom) {
-      //props.showCorrespondingView('customCertificate')
+    //props.showCorrespondingView('customCertificate')
     //} else {
-      props.showCorrespondingView('certificateOptions')
+    props.showCorrespondingView('certificateOptions');
     //}
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -35,12 +35,20 @@ const MyCertificate = (props) => {
 
         <Button
           title="Send Certificate"
-          onPress={props.sendCertificate}
+          onPress={async () => {
+            try {
+              await promptBiometrics('Use biometrics to send your certificate');
+              
+              props.sendCertificate();
+            } catch (err) {
+              alert(err);
+            }
+          }}
         />
       </View>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -72,6 +80,6 @@ MyCertificate.propTypes = {
   sendCertificate: PropTypes.func.isRequired,
   fromCustom: PropTypes.bool.isRequired,
   showCorrespondingView: PropTypes.func.isRequired,
-}
+};
 
 export default MyCertificate;
