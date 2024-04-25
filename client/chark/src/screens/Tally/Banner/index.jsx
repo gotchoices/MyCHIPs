@@ -20,6 +20,7 @@ import {
   VisualIcon,
 } from '../../../components/SvgAssets/SvgAssets';
 import Activity from '../Activity';
+import { getDecimalValue, getIntegerValue } from '../../../utils/user';
 
 const Banner = props => {
   const {avatar, personal} = useSelector(state => state.profile);
@@ -80,9 +81,15 @@ const Banner = props => {
         </TouchableOpacity>
 
         <View style={styles.textWrapper}>
-          {hasPendingTotal && (
+          {/* {hasPendingTotal && (
             <Text style={styles.pending}>
               {pendingText?.title ?? ''} {props.totalPendingNet}
+            </Text>
+          )} */}
+
+          {!!props.currencyCode && (
+            <Text style={styles.amount}>
+              {props.currencyCode} {props.totalNetDollar}
             </Text>
           )}
 
@@ -90,15 +97,21 @@ const Banner = props => {
             <ChitIcon color={isNetNegative ? colors.red : colors.green} />
             <Text
               style={isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet}>
-              {props.totalNet}
+              {getIntegerValue(props.totalNet)}
+            </Text>
+            <Text
+              style={[
+                isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet,
+                {
+                  textDecorationLine: 'underline',
+                  lineHeight: 16,
+                  fontSize: 16,
+                  paddingBottom: 10,
+                },
+              ]}>
+              {getDecimalValue(props.totalNet)}
             </Text>
           </View>
-
-          {!!props.currencyCode && (
-            <Text style={styles.amount}>
-              {props.totalNetDollar} {props.currencyCode}
-            </Text>
-          )}
         </View>
       </View>
     </View>
