@@ -21,6 +21,7 @@ import {
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
 import { colors } from "../../../../config/constants";
+import useMessageText from '../../../../hooks/useMessageText';
 
 const CustomButton = (props) => {
   const onPress =() => {
@@ -43,6 +44,8 @@ const ExportModal = (props) => {
 
   const passphrase = props.passphrase;
   const [encryptedData, setEncryptedData] = useState(undefined);
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   useEffect(() => {
     encryptJSON(props.privateKey, passphrase).then(result => {
@@ -126,10 +129,12 @@ const ExportModal = (props) => {
     }
   }
 
+  const shareQRText = (charkText?.share?.title ?? '') + ' ' +(charkText?.qr?.title ?? '');
+
   if (!encryptedData) {
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <ActivityIndicator style={{ marginBottom: 24 }} />
-      <Button onPress={props.cancel} title='Cancel' />
+      <Button onPress={props.cancel} title={charkText?.cancel?.title ?? ''} />
     </View>
   }
 
@@ -139,7 +144,7 @@ const ExportModal = (props) => {
       <View style={styles.row}>
         <CustomButton
           onPress={onShareFile}
-          title={'Share File'}
+          title={charkText?.share?.title ?? ''}
         />
       </View>
 
@@ -164,7 +169,7 @@ const ExportModal = (props) => {
       <View style={[styles.row, { marginBottom: 15 }]}>
         <CustomButton
           onPress={onShareQR}
-          title={'Share QR'}
+          title={shareQRText ?? ''}
         />
       </View>
 
@@ -181,7 +186,7 @@ const ExportModal = (props) => {
         <TouchableWithoutFeedback onPress={onKeyAction}>
           <View style={styles.secondaryButton}>
             <Text style={styles.title}>
-              {props.action === 'import' && 'Import_Key'}
+              {props.action === 'import' && (charkText?.import?.title ?? '')}
               {props.action === 'generate' && 'Generate_Key'}
             </Text>
             <Text style={[styles.title, { fontSize: 10 }]}>
@@ -194,7 +199,7 @@ const ExportModal = (props) => {
       <View style={[styles.row, { marginTop: 15 }]}>
         <CustomButton
           onPress={props.cancel}
-          title={'Cancel'}
+          title={charkText?.cancel?.title ?? ''}
         />
       </View>
 

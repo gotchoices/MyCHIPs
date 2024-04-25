@@ -19,11 +19,15 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {language	{Language}		{What language the app will use}}
   {next		{Next}			{Proceed to the next step}}
   {cancel	{Cancel}		{Abort the current operation}}
+  {none		{None}			{No data found for this query}}
   {custom	{Custom}		{Customize my settings}}
+  {warn		{Warning}		{The proposed action could have adverse consequences}}
+  {fail		{Operation Failed}	{The proposed action did not succeed}}
   {save		{Save}			{Save the current changes}}
-  {sure		{Are you Sure}		{Confirm that you want to proceed}}
+  {sure		{Are you Sure?}		{Confirm that you want to proceed}}
   {proceed	{Continue}		{I understand, please proceed}}
   {edit		{Edit}			{Modify the current information}}
+  {success	{Success}		{The requested operation completed as intended}}
   {updated	{Updated}		{Changes have been written to the database}}
   {deleted	{Deleted}		{The item has been deleted from the database}}
   {import	{Import}		{Import the item from an external format}}
@@ -32,15 +36,19 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {share	{Share}			{Share this item by some external medium}}
   {qr		{QR Code}		{Generate a scannable QR code}}
   {add		{Add}			{Add a new record}}
+  {enter	{Please Enter}		{The user is asked to enter a value}}
+  {confirm	{Please Confirm}	{The user is asked to re-enter a value for confirmation}}
   {certopts	{Certificate Options}	{Select what information is contained in a certificate}}
   {certshare	{Certificate Sharing}	{Decide what personal information will you share with the other party.  You can create a custom certificate or use one from any existing draft tallies you might have.}}
   {certtpts	{Template Certificates}	{Select a certificate from an existing tally template}}
-  {nokey	{No Signing Key}	{You have not yet created a digital signing key.  Proceed to create one.}}
   {keys		{Manage Keys}		{A cryptographic key pair (public and private) is required in order to digitally sign tallies and transactions.  Once generated, make sure you export and save your key and save it in a safe place or you will lose the ability to transact on existing tallies.}}
-  {keywarn	{Overwrite Keys?}	{Generating or importing a key pair will discard your existing keys.  If you have open tallies created with the old keys, you will not be able to transact on those tallies.}}
+  {keygen	{Generate Key}		{Generate a new keypair for signing tallies and transactions}}
+  {nokey	{No Signing Key}	{You have not yet created a digital signing key.  Proceed to create one.}}
+  {keywarn	{Overwrite Key?}	{Generating or importing a key pair will discard your existing key.  If you have open tallies created with the old key, you will not be able to transact on those tallies.}}
   {private	{Private Key}		{This part of the key pair must be kept secret and never shared.  You must also never lose it or you will not be able to transact existing tallies created using the key.}}
   {public	{Public Key}		{This part of the key pair is safely shared with your trading partners.  They will use it to validate your tallies and transactons.}}
   {keypass	{Key Pass Phrase}	{Your exported key is protected by a pass phrase which you must remember in order to import the key again later.  This will prevent others from discovering your secret key.}}
   {keybio	{Biometric Validation}	{Your private key is kept encrypted on your device for protection from others.  It can only be accessed by providing your biometric validation.}}
   {biofail	{Biometric Failure}	{Unable to access your private key because your biometric validation failed.}}
+  {entercid	{Enter CHIP ID}		{Choose a string of characters by which your trading partners will address you (similar to an email address)}}
 }

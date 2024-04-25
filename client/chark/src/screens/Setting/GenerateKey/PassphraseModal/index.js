@@ -6,110 +6,110 @@ import {
   View,
   Keyboard,
   Text,
-  TouchableWithoutFeedback,
 } from "react-native";
-import Button from "../../../../components/Button";
+import Toast from 'react-native-toast-message';
 import PropTypes from 'prop-types'
 
-import { colors } from "../../../../config/constants";
+import Button from '../../../../components/Button';
+import CustomToast from '../../../../components/Toast';
+
+import { colors, toastVisibilityTime } from "../../../../config/constants";
+import useMessageText from "../../../../hooks/useMessageText";
 
 const PassphraseModal = (props) => {
-  const [passprase, setPassphrase] = useState(undefined);
-  const [confimrPassprase, setConfirmPassphrase] = useState(
+  const [passphrase, setPassphrase] = useState(undefined);
+  const [confirmPassphrase, setConfirmPassphrase] = useState(
     undefined
   );
+  const [errors, setErrors] = useState(new Set());
 
-  const onConfirmPassphrase = () => {
-    if (passprase && confimrPassprase) {
-      if (passprase !== confimrPassprase) {
-        return Alert.alert("Error", "Your passphrase doesnot match.");
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
+
+  const onExport = () => {
+    Keyboard.dismiss();
+    if (passphrase && confirmPassphrase) {
+      if (passphrase !== confirmPassphrase) {
+        setErrors(prev => new Set(prev).add('passphrase').add('confirmPassphrase'))
+        return;
       }
 
-      Keyboard.dismiss();
-      props.onPassphraseConfirmed(passprase);
-    } else {
-      Alert.alert("Error", "Please enter passphrase to continue");
-    }
-  };
+      props.onPassphraseConfirmed(passphrase);
+    } else if(props.action === 'export') {
+      isInputsValid();
+    } else if(props.onWithoutExport){
+      let isValid = true;
+      if(passphrase || confirmPassphrase) {
+        isValid = isInputsValid();
+      }
 
-  const onWithoutExport = () => {
-    if(props.onWithoutExport) {
+      if(!isValid) return;
       props.onWithoutExport();
     }
   }
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Export Key</Text>
+  const removeErrors = () => {
+    setErrors(new Set());
+  }
 
-      <Text style={styles.text}>
-      {props.title? props.title:  'Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key.'}
-      </Text>
-
-    {props.subTitle &&
-      <Text style={styles.text}>
-      {props.subTitle}
-      </Text>
+  const isInputsValid = () => {
+    if(!passphrase && !confirmPassphrase) {
+      setErrors(prev => new Set().add('passphrase').add('confirmPassphrase'))
+      return false
+    } else if(passphrase && !confirmPassphrase) {
+      setErrors(prev => new Set().add('confirmPassphrase'))
+      return false
+    } else if(!passphrase && confirmPassphrase) {
+      setErrors(prev => new Set().add('passphrase'))
+      return false
     }
 
+    return true; 
+  }
+
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{charkText?.export?.title ?? ''}</Text>
+
+      <Text style={styles.text}>
+        {charkText?.keypass?.help ?? ''}
+      </Text>
+
       <TextInput
-        style={styles.textInput}
+        style={[styles.textInput, errors.has('passphrase') ? styles.errorInput : {}]}
         placeholder="Enter Passphrase"
-        value={passprase}
+        value={passphrase}
         onChangeText={setPassphrase}
+        onFocus={removeErrors}
         secureTextEntry={true}
       />
 
       <TextInput
-        value={confimrPassprase}
+        value={confirmPassphrase}
         secureTextEntry={true}
-        style={styles.textInput}
+        style={[styles.textInput, errors.has('confirmPassphrase') ? styles.errorInput : {}]}
         onChangeText={setConfirmPassphrase}
         placeholder="Confirm Passphrase"
+        onFocus={removeErrors}
       />
 
       <View style={styles.row}>
-        {['export', 'import_without'].includes(props.action) && (
-          <Button
-            style={styles.secondaryButton}
-            onPress={props.cancel}
-            title="Cancel"
-            textColor={colors.blue}
-          />
-        )}
-
-        {props.action === 'generate' && (
-          <Button
-            style={styles.secondaryButton}
-            onPress={onWithoutExport}
-            title="generate_without"
-            textColor={colors.blue}
-          />
-        )}
-
-        {props.action === 'import' && (
-          <Button
-            style={styles.secondaryButton}
-            onPress={onWithoutExport}
-            title="import_without"
-            textColor={colors.blue}
-          />
-        )}
+        <Button
+          style={styles.secondaryButton}
+          onPress={props.cancel}
+          title={charkText?.cancel?.title ?? ''}
+          textColor={colors.blue}
+        />
 
         <Button
           style={{ width: "45%" }}
-          onPress={onConfirmPassphrase}
-          title={props.buttonTitle?props.buttonTitle:"Export"}
+          onPress={onExport}
+          title={props?.buttonTitle ?? charkText?.export?.title ?? ''}
         />
       </View>
 
-      {['import', 'generate'].includes(props.action) && (
-        <View style={styles.backContainer}>
-          <TouchableWithoutFeedback onPress={props.cancel}>
-            <Text style={styles.back}>back_text</Text>
-          </TouchableWithoutFeedback>
-        </View>
-      )}
+      <CustomToast />
     </View>
   );
 };
@@ -133,6 +133,9 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     paddingHorizontal: 12,
     borderColor: "#BBBBBB",
+  },
+  errorInput: {
+    borderColor: colors.red,
   },
   row: {
     paddingVertical: 20,

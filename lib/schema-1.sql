@@ -984,6 +984,7 @@ create view wm.column_lang as select
   , tt.language
   , coalesce(ct.title, nt.title, cd.cdt_col)	as title
   , coalesce(ct.help, nt.help)			as help
+  , ct.title notnull				as exp
   , cd.cdt_sch in ('pg_catalog','information_schema') as system
   , cd.field
   from		wm.column_data	cd
@@ -7019,6 +7020,7 @@ insert into wm.column_text (ct_sch,ct_tab,ct_col,language,title,help) values
   ('wm','column_istyle','cs_value','eng','Given Style','The style, specified explicitly for this object'),
   ('wm','column_istyle','nat_value','eng','Native Style','The inherited style as specified by an ancestor object'),
   ('wm','column_lang','col','eng','Column','The name of the column the metadata applies to'),
+  ('wm','column_lang','exp','eng','Explicit','The language for this view column is specified explicitly'),
   ('wm','column_lang','nat','eng','Native','The (possibly ancestor) schema and table/view this language information descends from'),
   ('wm','column_lang','obj','eng','Object','The schema name and the table/view name'),
   ('wm','column_lang','sch','eng','Schema','The schema that holds the table or view this language data applies to'),
@@ -7416,7 +7418,7 @@ insert into wm.message_text (mt_sch,mt_tab,code,language,title,help) values
   ('mychips','chark','selall','eng','Select All','Select all possible items'),
   ('mychips','chark','settings','eng','Settings','View/modify application preferences'),
   ('mychips','chark','share','eng','Share','Share this item by some external medium'),
-  ('mychips','chark','sure','eng','Are you Sure','Confirm that you want to proceed'),
+  ('mychips','chark','sure','eng','Are you Sure?','Confirm that you want to proceed'),
   ('mychips','chark','updated','eng','Updated','Changes have been written to the database'),
   ('mychips','chark','working','eng','Working Tallies','Draft and void templates you may use to tally with other users'),
   ('mychips','chits','BCT','eng','Bad Chit Type','Not a valid type for a chit'),
@@ -10999,6 +11001,12 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','users_v_tallysum','vendor_agents','mychips','tallies_v_sum','vendor_agents','f','f'),
   ('mychips','users_v_tallysum','vendor_cids','mychips','tallies_v_sum','vendor_cids','f','f'),
   ('mychips','users_v_tallysum','vendors','mychips','tallies_v_sum','vendors','f','f'),
+  ('wm','column_ambig','col','wm','column_ambig','col','f','t'),
+  ('wm','column_ambig','count','wm','column_ambig','count','f','f'),
+  ('wm','column_ambig','natives','wm','column_ambig','natives','f','f'),
+  ('wm','column_ambig','sch','wm','column_ambig','sch','f','t'),
+  ('wm','column_ambig','spec','wm','column_ambig','spec','f','f'),
+  ('wm','column_ambig','tab','wm','column_ambig','tab','f','t'),
   ('wm','column_data','cdt_col','wm','column_data','cdt_col','f','t'),
   ('wm','column_data','cdt_sch','wm','column_data','cdt_sch','f','t'),
   ('wm','column_data','cdt_tab','wm','column_data','cdt_tab','f','t'),
@@ -11028,6 +11036,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','column_istyle','sw_name','wm','column_style','sw_name','f','t'),
   ('wm','column_istyle','sw_value','wm','column_style','sw_value','f','f'),
   ('wm','column_lang','col','wm','column_lang','col','f','t'),
+  ('wm','column_lang','exp','wm','column_lang','exp','f','f'),
   ('wm','column_lang','field','wm','column_data','field','f','f'),
   ('wm','column_lang','help','wm','column_text','help','t','f'),
   ('wm','column_lang','language','wm','column_text','language','t','f'),
@@ -11149,6 +11158,19 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('wm','fkeys_pub','tt_sch','wm','fkeys_pub','tt_sch','f','f'),
   ('wm','fkeys_pub','tt_tab','wm','fkeys_pub','tt_tab','f','f'),
   ('wm','lang','always','wm','lang','always','f','f'),
+  ('wm','language','col','wm','language','col','f','t'),
+  ('wm','language','fr_help','wm','language','fr_help','f','f'),
+  ('wm','language','fr_lang','wm','language','fr_lang','f','f'),
+  ('wm','language','fr_title','wm','language','fr_title','f','f'),
+  ('wm','language','help','wm','table_text','help','t','f'),
+  ('wm','language','language','wm','table_text','language','t','f'),
+  ('wm','language','obj','wm','language','obj','f','f'),
+  ('wm','language','sch','wm','language','sch','f','t'),
+  ('wm','language','sorter','wm','language','sorter','f','f'),
+  ('wm','language','tab','wm','language','tab','f','t'),
+  ('wm','language','tag','wm','language','tag','f','t'),
+  ('wm','language','title','wm','table_text','title','t','f'),
+  ('wm','language','type','wm','language','type','f','t'),
   ('wm','message_text','code','wm','message_text','code','f','t'),
   ('wm','message_text','help','wm','message_text','help','f','f'),
   ('wm','message_text','language','wm','message_text','language','f','t'),

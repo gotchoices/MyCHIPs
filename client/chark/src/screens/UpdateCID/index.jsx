@@ -6,6 +6,7 @@ import { updateCID } from "../../services/profile";
 import useSocket from "../../hooks/useSocket";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import useMessageText from '../../hooks/useMessageText';
+import CustomToast from '../../components/Toast';
 
 const UpdateCID = (props) => {
   const { wm } = useSocket();
@@ -16,8 +17,11 @@ const UpdateCID = (props) => {
 
   const onUpdate = () => {
     if (!cid) {
-      Alert.alert("Error", "Enter CID to continue");
-      return;
+      return Toast.show({
+        type: 'error',
+        text1: 'Enter CID to continue',
+        visibilityTime: toastVisibilityTime,
+      })
     }
     setDdisabled(true);
     updateCID(
@@ -50,25 +54,26 @@ const UpdateCID = (props) => {
     </View>
     <TextInput
       style={styles.textInput}
-      placeholder="Eg. name_lastname"
+      placeholder=""
       value={cid}
       onChangeText={setCid}
     />
     <View style={styles.row}>
       <Button
         onPress={props.cancel}
-        title="Cancel"
+        title={charkText?.cancel?.title ?? ''}
         style={styles.button}
         disabled={disabled}
       />
       <View style={{ width: 12 }} />
       <Button
         onPress={onUpdate}
-        title="Update CID"
+        title={charkText?.save?.title ?? ''}
         style={styles.button}
         disabled={disabled}
       />
     </View>
+    <CustomToast />
   </View>
 }
 
@@ -81,13 +86,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
+    marginBottom: 8,
     fontWeight: 'bold',
+    fontWeight: '400',
+    fontFamily: 'inter',
+    color: colors.black,
   },
   textInput: {
     width: '90%',
     marginVertical: 24,
     borderWidth: 1,
     padding: 10,
+    borderColor: colors.dimgray,
   },
   row: {
     flexDirection: 'row'
@@ -100,6 +110,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.lightgray,
   },
   button: {
+    borderRadius: 40,
     paddingHorizontal: 20,
   }
 })

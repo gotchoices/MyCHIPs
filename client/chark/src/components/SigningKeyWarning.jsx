@@ -6,8 +6,13 @@ import Button from './Button';
 import WarningIcon from '../../assets/svg/warning_icon.svg';
 
 import { colors } from '../config/constants';
+import useMessageText from '../hooks/useMessageText';
 
 const SigningKeyWarning = (props) => {
+  const { messageText } = useMessageText();
+
+  const charkText = messageText?.chark?.msg;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -22,14 +27,14 @@ const SigningKeyWarning = (props) => {
       
       <View style={styles.action}>
         <Button
-          title="I understand"
+          title={charkText?.proceed?.title ?? ''}
           textColor={colors.blue}
           style={styles.acceptBtn}
           onPress={props.onAccept}
         />
 
         <Button
-          title="Cancel"
+          title={charkText?.cancel?.title ?? ''}
           disabled={props.loading}
           style={styles.cancelBtn}
           onPress={props.onCancel}

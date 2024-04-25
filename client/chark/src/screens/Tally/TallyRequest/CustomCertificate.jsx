@@ -214,7 +214,7 @@ const CustomCertificate = (props) => {
   if(fetchingSingle) {
     return (
       <View style={styles.container}>
-        <Header headerText={charkMessageText?.certopts?.title}>
+        <Header headerText={charkMessageText?.certopts?.title ?? ''}>
           <BackIcon onPress={onBack} />
         </Header>
 
@@ -228,7 +228,7 @@ const CustomCertificate = (props) => {
   return (
     <View style={styles.container}>
       <ScrollView style={{ marginHorizontal: 2 }}>
-        <Header headerText={charkMessageText?.certopts?.title}>
+        <Header headerText={charkMessageText?.certopts?.title ?? ''}>
           <BackIcon onPress={onBack} />
         </Header>
 
