@@ -47,7 +47,7 @@ const TallyItem = props => {
         {hasPendingChit && (
           <View style={styles.pendingView}>
             <Text style={styles.pending}>
-              {pendingText?.title ?? ''} chips
+              {pendingText?.title ?? ''} Chips
             </Text>
           </View>
         )}
