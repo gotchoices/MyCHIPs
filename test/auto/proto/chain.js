@@ -34,9 +34,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
     }, ()=>{log.info("Main test DB connection 1 established"); done()})
   })
 
-  before('Launch two peer servers', function(done) {
-    serverO = new peerTest(aConO, dbcSO)
-    serverS = new peerTest(aConS, dbcSS)
+  before('Launch two peer servers', function(done) {	//Don't require real signatures
+    serverO = new peerTest(Object.assign(aConO,{test:true}), dbcSO)
+    serverS = new peerTest(Object.assign(aConS,{test:true}), dbcSS)
     done()
   })
 

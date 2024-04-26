@@ -1,3 +1,6 @@
+const { testLog } = require('../common')
+const log = testLog(__filename)
+
 const assert = require('assert');
 const crypto = require('crypto');
 const WebCrypto = require('crypto').webcrypto;
@@ -65,8 +68,6 @@ describe('TallyCrypto Class', () => {
         assert.strictEqual(publ.crv, 'P-521'); // crv should be "P-521"
         done()
       });
-
-
     });
 
     it('should handle errors gracefully and call the error log', (done) => {
@@ -75,16 +76,16 @@ describe('TallyCrypto Class', () => {
       const logErrorStub = sinon.stub(console, 'error');
       const tallyCrypto = new TallyCrypto(console);
 
-      tallyCrypto.generate((keys, priv, publ) => {
+      tallyCrypto.generate((keys, priv, publ, err) => {		//;log.debug('C:', err.message, keys, typeof keys)
         assert.strictEqual(keys, undefined);
         assert.strictEqual(priv, undefined);
         assert.strictEqual(publ, undefined);
+        assert.equal(err, error)
         subtleStub.restore();
         done()
       });
     });
   });
-
 
   describe('Sign method', () => {
     it('should sign a message and call the callback with the signature for string key', (done) => {
@@ -215,5 +216,5 @@ describe('TallyCrypto Class', () => {
         done();
       });
     });
-  });
+  });		/* */
 });

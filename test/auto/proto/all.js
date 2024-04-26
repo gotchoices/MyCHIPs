@@ -16,7 +16,7 @@ require('./chain.js')
 
 require('./net1.js')
 require('./sch-path.js')
-require('./net2.js')
+require('./net02.js')
 //require('./sch-route.js')	//Obsolete
 //require('./route.js')		//Obsolete
 

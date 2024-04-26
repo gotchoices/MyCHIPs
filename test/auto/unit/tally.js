@@ -1,7 +1,7 @@
 const assert = require('assert');
 
 const Tally = require('../../../lib/tally');
-const tally = new Tally()
+const tally = new Tally({})
 const { signCheck } = tally
 
 validTally = {
