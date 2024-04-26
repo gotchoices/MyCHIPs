@@ -8,6 +8,7 @@ le_dir=/etc/letsencrypt
 le_key=privkey.pem
 le_cert=fullchain.pem		#Need to include our_cert, R3, X1
 email="${mychips_admin}@${csp_host}"
+webroot="/home/admin/devel/mychips/pub/home"
 
 if [ ! -d $le_dir -o -z $(which certbot) ]; then
   echo '  Installing certbot certificate manager'
@@ -18,7 +19,11 @@ if [ -d "{$le_dir}/live" ]; then
   echo "  Found cert folder OK: $le_dir/live"
 else
   echo "Creating site certificate for: $csp_host"
-  certbot certonly -m "$email" --standalone --agree-tos -q -d $csp_host
+  certbot certonly -m "$email" --agree-tos -q -d $csp_host \
+    --webroot --webroot-path="$webroot"
+
+  mkdir $webroot/.well-known		#Must exist for renewal to work
+  chown ${mychips_admin} $webroot/.well-known
 
   echo "Trying dry-run certificate renewal"
   certbot renew --dry-run
