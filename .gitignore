@@ -12,3 +12,4 @@ test/sim/local
 .DS_Store
 .nyc_output/
 .idea
+.vs
