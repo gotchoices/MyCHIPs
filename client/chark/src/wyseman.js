@@ -17,12 +17,14 @@ console.log("Local set:", key, !!value)
 
   get: async function(key) {
     console.log("Local get:", key)
-    const data = await AsyncStorage.getItem(key);
-    if(data) {
-      return JSON.parse(data)
+    try {
+      const data = await AsyncStorage.getItem(key);
+      if(data) {
+        return JSON.parse(data)
+      }
+    } catch(err) {
+      console.log('Error getting cached local data', err.message)
     }
-
-    return;
   }
 }
 

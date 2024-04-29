@@ -170,7 +170,6 @@ export const getTallyListFilter = createAsyncThunk('profile/getTallyListFilter',
 
     try {
       filterTally = JSON.parse(data);
-      console.log(filterTally, 'asdkj')
     } catch (err) {
       console.log(err.message)
     }

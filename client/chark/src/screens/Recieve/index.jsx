@@ -26,6 +26,7 @@ const Receive = props => {
   const [memo, setMemo] = useState('');
   const [chit, setChit] = useState('');
   const [usd, setUSD] = useState();
+  const [chitInputError, setChitInputError] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
@@ -88,20 +89,14 @@ const Receive = props => {
     const net = round((chit ?? 0) * 1000, 0);
 
     if (net < 0) {
-      return Toast.show({
-        type: 'error',
-        text1: "Can't input negative chit.",
-        visibilityTime: toastVisibilityTime,
-      });
+      return setChitInputError(true);
     }
 
     if (net == 0) {
-      return Toast.show({
-        type: 'error',
-        text1: 'Please provide an amount',
-        visibilityTime: toastVisibilityTime,
-      });
+      return setChitInputError(true);
     }
+
+    setChitInputError(false);
 
     try {
       Keyboard.dismiss();
@@ -135,6 +130,7 @@ const Receive = props => {
      * @param {string} text - amount
      */
     return text => {
+      setChitInputError(false);
       const regex = /(\..*){2,}/;
       if (regex.test(text)) {
         return;
@@ -185,15 +181,16 @@ const Receive = props => {
     <KeyboardAwareScrollView
       style={styles.container}
       enableOnAndroid
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}>
       <View style={styles.centerWrapper}>
         {isSwitched ? (
           <>
             <View style={styles.row}>
-              <Text style={styles.text}>USD</Text>
+              <Text style={[styles.text, chitInputError ? styles.errorInput : {}]}>USD</Text>
               <TextInput
-                maxLength={8}
-                style={[styles.amount, {width: inputWidth}]}
+                maxLength={12}
+                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={usd}
@@ -215,10 +212,10 @@ const Receive = props => {
         ) : (
           <>
             <View style={styles.row}>
-              <ChitIcon color={colors.black} height={18} width={12} />
+              <ChitIcon color={chitInputError ? colors.red : colors.black} height={18} width={12} />
               <TextInput
-                maxLength={8}
-                style={[styles.amount, {width: inputWidth}]}
+                maxLength={12}
+                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={chit}
@@ -349,6 +346,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     textDecorationStyle: 'solid',
     textDecorationLine: 'underline',
+  },
+  errorInput: {
+    color: colors.red,
   },
 });
 
