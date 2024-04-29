@@ -16,6 +16,7 @@ import { v5 as uuidv5 } from 'uuid';
 import stringify from 'json-stable-stringify';
 import moment from 'moment';
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { colors, toastVisibilityTime } from "../../../config/constants";
 import Button from "../../../components/Button";
@@ -50,6 +51,7 @@ const PaymentDetail = (props) => {
   const [reference, setReference] = useState({});
   const [chit, setChit] = useState();
   const [inputWidth, setInputWidth] = useState(80);
+  const [chitInputError, setChitInputError] = useState(false);
 
   const [usd, setUSD] = useState();
 
@@ -153,21 +155,14 @@ const PaymentDetail = (props) => {
     const net = round((chit ?? 0) * 1000, 0);
 
     if (net < 0) {
-      return Toast.show({
-        type: 'error',
-        text1: "Can't input negative chit.",
-        visibilityTime: toastVisibilityTime,
-      });
+      return setChitInputError(true);
     }
 
     if (net == 0) {
-      return Toast.show({
-        type: 'error',
-        text1: 'Please provide an amount',
-        visibilityTime: toastVisibilityTime,
-      });
+      return setChitInputError(true);
     }
 
+    setChitInputError(false);
     setDisabled(true);
     const _chad = `chip://${chad.cid}:${chad.agent}`
     const date = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ')
@@ -232,6 +227,7 @@ const PaymentDetail = (props) => {
       * @param {string} text - amount
       */
     return (text) => {
+      setChitInputError(false);
       const regex = /(\..*){2,}/;
       if(regex.test(text)) {
         return;
@@ -279,8 +275,9 @@ const PaymentDetail = (props) => {
   }
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={styles.container}
+      enableOnAndroid
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}
     >
@@ -288,10 +285,10 @@ const PaymentDetail = (props) => {
         {isSwitched ? (
           <>
             <View style={styles.row}>
-              <Text style={styles.text}>USD</Text>
+              <Text style={[styles.text, chitInputError ? styles.errorInput : {}]}>USD</Text>
               <TextInput
-                maxLength={8}
-                style={[styles.amount, { width: inputWidth }]}
+                maxLength={12}
+                style={[styles.amount, { width: inputWidth }, chitInputError ? styles.errorInput : {}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={usd}
@@ -312,10 +309,10 @@ const PaymentDetail = (props) => {
         ) : (
           <>
             <View style={styles.row}>
-              <ChitIcon color={colors.black} height={18} width={12} />
+              <ChitIcon color={chitInputError ? colors.red : colors.black} height={18} width={12} />
               <TextInput
-                maxLength={8}
-                style={[styles.amount, { width: inputWidth }]}
+                maxLength={12}
+                style={[styles.amount, { width: inputWidth }, chitInputError ? styles.errorInput : {}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={chit}
@@ -381,7 +378,7 @@ const PaymentDetail = (props) => {
           }}
         />
       </BottomSheetModal>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -452,6 +449,9 @@ const styles = StyleSheet.create({
     right: 60,
     top: 40,
   },
+  errorInput: {
+    color: colors.red,
+  }
 });
 
 export default PaymentDetail;

@@ -33,6 +33,8 @@ const RequestDetail = props => {
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
   const editNetValue = Math.abs?.(editDetails?.net);
+  const [chitInputError, setChitInputError] = useState(false);
+  const [inputWidth, setInputWidth] = useState(80);
 
   const [memo, setMemo] = useState(editDetails?.memo ?? '');
   const [reference, setReference] = useState({});
@@ -94,26 +96,47 @@ const RequestDetail = props => {
     setChit(0);
   };
 
+  /**
+   * @param {string} type - chit or usd
+   */
+  const onAmountChange = type => {
+    /**
+     * @param {string} text - amount
+     */
+    return text => {
+      setChitInputError(false);
+      const regex = /(\..*){2,}/;
+      if (regex.test(text)) {
+        return;
+      }
+
+      const textLength = text.length;
+      setInputWidth(Math.max(Math.ceil(textLength * 20), 80));
+
+      if (type === 'chit') {
+        setChit(text);
+        totalNetDollar(text);
+      } else if (type === 'usd') {
+        setUSD(text);
+        totalChit(text);
+      }
+    };
+  };
+
   const onMakePayment = () => {
     const net = round((chit ?? 0) * 1000, 0);
 
     if (net < 0) {
-      return Toast.show({
-        type: 'error',
-        text1: "Can't input negative chit.",
-        visibilityTime: toastVisibilityTime,
-      });
+      return setChitInputError(true);
     }
 
     if (net == 0) {
-      return Toast.show({
-        type: 'error',
-        text1: 'Please provide an amount',
-        visibilityTime: toastVisibilityTime,
-      });
+      return setChitInputError(true);
     }
 
+    setChitInputError(false);
     setDisabled(true);
+
     Keyboard.dismiss();
     const payload = {
       reference: JSON.stringify(reference),
@@ -146,21 +169,20 @@ const RequestDetail = props => {
       enableOnAndroid
       extraHeight={150}
       extraScrollHeight={30}
-      contentContainerStyle={styles.contentContainer}>
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={styles.contentContainer}
+    >
       <View style={styles.centerWrapper}>
         {isSwitched ? (
           <>
             <View style={styles.row}>
-              <Text style={styles.text}>USD</Text>
+              <Text style={[styles.text, chitInputError ? styles.errorInput : {}]}>USD</Text>
               <TextInput
-                style={styles.amount}
+                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={usd}
-                onChangeText={text => {
-                  setUSD(text);
-                  totalChit(text);
-                }}
+                onChangeText={onAmountChange('usd')}
               />
             </View>
 
@@ -177,16 +199,13 @@ const RequestDetail = props => {
         ) : (
           <>
             <View style={styles.row}>
-              <ChitIcon color={colors.black} height={18} width={12} />
+              <ChitIcon color={chitInputError ? colors.red : colors.black} height={18} width={12} />
               <TextInput
-                style={styles.amount}
+                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
                 placeholder="0.00"
                 keyboardType="numeric"
                 value={chit}
-                onChangeText={text => {
-                  setChit(text);
-                  totalNetDollar(text);
-                }}
+                onChangeText={onAmountChange('chit')}
               />
             </View>
 
@@ -324,6 +343,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     textDecorationStyle: 'solid',
     textDecorationLine: 'underline',
+  },
+  errorInput: {
+    color: colors.red,
   },
 });
 

@@ -7,14 +7,24 @@
 
 const Message = require('wyseman/lib/client_msg')
 var log = console.log	//Print debug messages from library
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LocalStore = {
-  set: function(key, value) {
+  set: async function(key, value) {
 console.log("Local set:", key, !!value)
+  await AsyncStorage.setItem(key, JSON.stringify(value));
   },
 
-  get: function(key) {
-console.log("Local get:", key)
+  get: async function(key) {
+    console.log("Local get:", key)
+    try {
+      const data = await AsyncStorage.getItem(key);
+      if(data) {
+        return JSON.parse(data)
+      }
+    } catch(err) {
+      console.log('Error getting cached local data', err.message)
+    }
   }
 }
 
