@@ -1,89 +1,39 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Keyboard,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { ChitIcon, SwapIcon } from "../../components/SvgAssets/SvgAssets";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
 import Button from "../../components/Button";
-import { colors, toastVisibilityTime } from "../../config/constants";
-import { getCurrency } from "../../services/user";
+import ChitInput from '../../components/ChitInput';
+
+import { colors } from "../../config/constants";
 import useSocket from "../../hooks/useSocket";
 import { round } from "../../utils/common";
 import { receiveChit } from '../../services/chit';
-import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { showError } from '../../utils/error';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import { useChitsMeText } from '../../hooks/useLanguage';
 import useTitle from '../../hooks/useTitle';
 
 const Receive = props => {
   const [memo, setMemo] = useState('');
   const [chit, setChit] = useState('');
-  const [usd, setUSD] = useState();
+  const [usd, setUSD] = useState('');
   const [chitInputError, setChitInputError] = useState(false);
 
-  const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
-  const [inputWidth, setInputWidth] = useState(80);
-
-  const [isSwitched, setIsSwitched] = useState(false);
 
   const ref = useRef('');
   const {wm} = useSocket();
 
-  const {preferredCurrency} = useSelector(state => state.profile);
-  const [conversionRate, setConversionRate] = useState(undefined);
-  const currencyCode = preferredCurrency.code;
-
   const chitsMeText = useChitsMeText(wm);
 
   useTitle(props.navigation, chitsMeText?.col?.request?.title)
-
-  useEffect(() => {
-    if (currencyCode) {
-      setLoading(true);
-      getCurrency(wm, currencyCode)
-        .then(data => {
-          setConversionRate(parseFloat(data?.rate ?? 1));
-        })
-        .catch(err => {
-          console.log('EXCEPTION ==> ', err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [currencyCode]);
-
-  const totalNetDollar = text => {
-    const convertedChit = parseInt(text);
-    if (conversionRate && convertedChit) {
-      const total = convertedChit * conversionRate;
-      const totalValue = round(total, 2);
-
-      return setUSD(totalValue);
-    }
-
-    setUSD(0);
-  };
-
-  const totalChit = text => {
-    const convertedUSD = parseInt(text);
-    if (conversionRate && convertedUSD) {
-      const total = convertedUSD / conversionRate;
-      const totalValue = round(total, 2);
-
-      return setChit(totalValue);
-    }
-
-    setChit(0);
-  };
 
   const onReceive = async () => {
     const net = round((chit ?? 0) * 1000, 0);
@@ -122,131 +72,21 @@ const Receive = props => {
     }
   };
 
-  /**
-   * @param {string} type - chit or usd
-   */
-  const onAmountChange = type => {
-    /**
-     * @param {string} text - amount
-     */
-    return text => {
-      setChitInputError(false);
-      const regex = /(\..*){2,}/;
-      if (regex.test(text)) {
-        return;
-      }
-
-      const textLength = text.length;
-      setInputWidth(Math.max(Math.ceil(textLength * 20), 80));
-
-      if (type === 'chit') {
-        setChit(text);
-        totalNetDollar(text);
-      } else if (type === 'usd') {
-        setUSD(text);
-        totalChit(text);
-      }
-    };
-  };
-
-  const checkChipDecimalPlace = () => {
-    let newValue = '';
-    if (chit) {
-      const [precision, decimalPlace] = chit.split('.');
-      if (decimalPlace) {
-        const decimalLength = decimalPlace.length;
-        const remainingLength = Math.max(3 - decimalLength, 0);
-        newValue = chit + Array(remainingLength).fill('0').join('');
-        setChit(newValue);
-      } else {
-        newValue = precision + '.000';
-        setChit(newValue);
-      }
-    }
-
-    if (newValue) {
-      setInputWidth(Math.max(Math.ceil(newValue.length * 20), 80));
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <ActivityIndicator size={'large'} />
-      </View>
-    );
-  }
-
   return (
     <KeyboardAwareScrollView
       style={styles.container}
       enableOnAndroid
       keyboardShouldPersistTaps="handled"
-      contentContainerStyle={styles.contentContainer}>
-      <View style={styles.centerWrapper}>
-        {isSwitched ? (
-          <>
-            <View style={styles.row}>
-              <Text style={[styles.text, chitInputError ? styles.errorInput : {}]}>USD</Text>
-              <TextInput
-                maxLength={12}
-                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={usd}
-                onChangeText={onAmountChange('usd')}
-                onBlur={checkChipDecimalPlace}
-              />
-            </View>
-
-            {currencyCode && chit ? (
-              <View
-                style={[styles.row, {alignSelf: 'flex-end', marginRight: 20}]}>
-                <ChitIcon color={colors.black} height={18} width={12} />
-                <Text style={[styles.text, {marginLeft: 10}]}>{chit}</Text>
-              </View>
-            ) : (
-              <></>
-            )}
-          </>
-        ) : (
-          <>
-            <View style={styles.row}>
-              <ChitIcon color={chitInputError ? colors.red : colors.black} height={18} width={12} />
-              <TextInput
-                maxLength={12}
-                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={chit}
-                onChangeText={onAmountChange('chit')}
-                onBlur={checkChipDecimalPlace}
-              />
-            </View>
-
-            {currencyCode && usd ? (
-              <View
-                style={[styles.row, {alignSelf: 'flex-end', marginRight: 0}]}>
-                <Text style={styles.text}>
-                  {usd} {currencyCode}
-                </Text>
-              </View>
-            ) : (
-              <></>
-            )}
-          </>
-        )}
-      </View>
-
-      {currencyCode ? (
-        <TouchableOpacity
-          style={styles.icon}
-          onPress={() => setIsSwitched(!isSwitched)}>
-          <SwapIcon />
-        </TouchableOpacity>
-      ) : (
-        <></>
-      )}
+      contentContainerStyle={styles.contentContainer}
+    >
+      <ChitInput
+        chit={chit}
+        setChit={setChit}
+        usd={usd}
+        setUSD={setUSD}
+        hasError={chitInputError}
+        setHasError={setChitInputError}
+      />
 
       <TouchableOpacity
         style={styles.input}
@@ -258,10 +98,6 @@ const Receive = props => {
           onChangeText={setMemo}
         />
       </TouchableOpacity>
-
-      {/* <TouchableOpacity onPress={addReference}>
-        <Text style={styles.link}>Add Reference</Text>
-      </TouchableOpacity> */}
 
       <View style={styles.buttonView}>
         <Button
