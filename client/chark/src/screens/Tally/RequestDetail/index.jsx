@@ -1,53 +1,40 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
   TextInput,
-  Text,
-  Alert,
   TouchableOpacity,
   Keyboard,
 } from 'react-native';
-import {useSelector} from 'react-redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-import { colors, toastVisibilityTime } from '../../../config/constants';
+import { colors } from '../../../config/constants';
 import Button from '../../../components/Button';
-import {getCurrency} from '../../../services/user';
 import useSocket from '../../../hooks/useSocket';
 import {round} from '../../../utils/common';
-import {insertChit, updateChitDetails} from '../../../services/tally';
+import {insertChit } from '../../../services/tally';
 import {useChitsMeText} from '../../../hooks/useLanguage';
-import {Toast} from 'react-native-toast-message/lib/src/Toast';
 import useTitle from '../../../hooks/useTitle';
 import { showError } from '../../../utils/error';
 
-import {ChitIcon, SwapIcon} from '../../../components/SvgAssets/SvgAssets';
 import BottomSheetModal from '../../../components/BottomSheetModal';
 import SuccessModal from '../Success';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import ChitInput from '../../../components/ChitInput';
 
 const RequestDetail = props => {
   const {tally_uuid, chit_seq, tally_type, editDetails} = props.route?.params;
   const {wm} = useSocket();
-  const {preferredCurrency} = useSelector(state => state.profile);
-  const [conversionRate, setConversionRate] = useState(undefined);
-  const currencyCode = preferredCurrency.code;
   const editNetValue = Math.abs?.(editDetails?.net);
   const [chitInputError, setChitInputError] = useState(false);
-  const [inputWidth, setInputWidth] = useState(80);
 
   const [memo, setMemo] = useState(editDetails?.memo ?? '');
   const [reference, setReference] = useState({});
   const [chit, setChit] = useState(
     editNetValue ? editNetValue?.toString() : '',
   );
-  const [usd, setUSD] = useState();
+  const [usd, setUSD] = useState('');
 
-  const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
-
-  const [isSwitched, setIsSwitched] = useState(false);
-
   const [showSuccess, setShowSuccess] = useState(false);
 
   const ref = useRef('');
@@ -55,73 +42,6 @@ const RequestDetail = props => {
   const chitsText = useChitsMeText(wm);
 
   useTitle(props.navigation, chitsText?.msg?.dirreq?.title)
-
-  useEffect(() => {
-    if (currencyCode) {
-      setLoading(true);
-      getCurrency(wm, currencyCode)
-        .then(data => {
-          setConversionRate(parseFloat(data?.rate ?? 0));
-        })
-        .catch(err => {
-          console.log('EXCEPTION ==> ', err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [currencyCode]);
-
-  const totalNetDollar = text => {
-    const convertedChit = parseInt(text);
-    if (conversionRate && convertedChit) {
-      const total = convertedChit * conversionRate;
-      const totalValue = round(total, 2);
-
-      return setUSD(totalValue);
-    }
-
-    setUSD(0);
-  };
-
-  const totalChit = text => {
-    const convertedUSD = parseInt(text);
-    if (conversionRate && convertedUSD) {
-      const total = convertedUSD / conversionRate;
-      const totalValue = round(total, 2);
-
-      return setChit(totalValue);
-    }
-
-    setChit(0);
-  };
-
-  /**
-   * @param {string} type - chit or usd
-   */
-  const onAmountChange = type => {
-    /**
-     * @param {string} text - amount
-     */
-    return text => {
-      setChitInputError(false);
-      const regex = /(\..*){2,}/;
-      if (regex.test(text)) {
-        return;
-      }
-
-      const textLength = text.length;
-      setInputWidth(Math.max(Math.ceil(textLength * 20), 80));
-
-      if (type === 'chit') {
-        setChit(text);
-        totalNetDollar(text);
-      } else if (type === 'usd') {
-        setUSD(text);
-        totalChit(text);
-      }
-    };
-  };
 
   const onMakePayment = () => {
     const net = round((chit ?? 0) * 1000, 0);
@@ -172,66 +92,14 @@ const RequestDetail = props => {
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}
     >
-      <View style={styles.centerWrapper}>
-        {isSwitched ? (
-          <>
-            <View style={styles.row}>
-              <Text style={[styles.text, chitInputError ? styles.errorInput : {}]}>USD</Text>
-              <TextInput
-                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={usd}
-                onChangeText={onAmountChange('usd')}
-              />
-            </View>
-
-            {currencyCode && chit ? (
-              <View
-                style={[styles.row, {alignSelf: 'flex-end', marginRight: 20}]}>
-                <ChitIcon color={colors.black} height={18} width={12} />
-                <Text style={[styles.text, {marginLeft: 10}]}>{chit}</Text>
-              </View>
-            ) : (
-              <></>
-            )}
-          </>
-        ) : (
-          <>
-            <View style={styles.row}>
-              <ChitIcon color={chitInputError ? colors.red : colors.black} height={18} width={12} />
-              <TextInput
-                style={[styles.amount, {width: inputWidth}, chitInputError ? styles.errorInput : {}]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={chit}
-                onChangeText={onAmountChange('chit')}
-              />
-            </View>
-
-            {currencyCode && usd ? (
-              <View
-                style={[styles.row, {alignSelf: 'flex-end', marginRight: 20}]}>
-                <Text style={styles.text}>
-                  {usd} {currencyCode}
-                </Text>
-              </View>
-            ) : (
-              <></>
-            )}
-          </>
-        )}
-      </View>
-
-      {currencyCode ? (
-        <TouchableOpacity
-          style={styles.icon}
-          onPress={() => setIsSwitched(!isSwitched)}>
-          <SwapIcon />
-        </TouchableOpacity>
-      ) : (
-        <></>
-      )}
+      <ChitInput
+        chit={chit}
+        setChit={setChit}
+        usd={usd}
+        setUSD={setUSD}
+        hasError={chitInputError}
+        setHasError={setChitInputError}
+      />
 
       <TouchableOpacity
         style={styles.input}
@@ -243,12 +111,6 @@ const RequestDetail = props => {
           onChangeText={setMemo}
         />
       </TouchableOpacity>
-
-      {/*}
-      <TouchableOpacity onPress={addReference}>
-        <Text style={styles.link}>Add Reference</Text>
-      </TouchableOpacity>
-      {*/}
 
       <View style={styles.buttonView}>
         <Button
@@ -281,15 +143,6 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     backgroundColor: colors.white,
   },
-  amount: {
-    width: 80,
-    paddingLeft: 10,
-    fontSize: 26,
-    paddingVertical: 20,
-    fontWeight: '500',
-    fontFamily: 'inter',
-    color: colors.black,
-  },
   contentContainer: {
     flex: 1,
     padding: 16,
@@ -313,11 +166,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.blue,
   },
-  centerWrapper: {
-    marginBottom: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   buttonView: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -332,20 +180,6 @@ const styles = StyleSheet.create({
   text: {
     fontWeight: '500',
     color: colors.gray300,
-  },
-  icon: {
-    position: 'absolute',
-    right: 60,
-    top: 40,
-  },
-  link: {
-    color: colors.blue,
-    alignSelf: 'flex-end',
-    textDecorationStyle: 'solid',
-    textDecorationLine: 'underline',
-  },
-  errorInput: {
-    color: colors.red,
   },
 });
 

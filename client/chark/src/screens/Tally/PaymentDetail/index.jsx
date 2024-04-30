@@ -2,25 +2,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from 'react-redux';
 import {
   StyleSheet,
-  ScrollView,
   View,
   TextInput,
-  ActivityIndicator,
-  Text,
-  Alert,
   TouchableOpacity,
   Keyboard,
 } from "react-native";
-import { useSelector } from "react-redux";
 import { v5 as uuidv5 } from 'uuid';
 import stringify from 'json-stable-stringify';
 import moment from 'moment';
-import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-import { colors, toastVisibilityTime } from "../../../config/constants";
+import { colors } from "../../../config/constants";
 import Button from "../../../components/Button";
-import { getCurrency } from "../../../services/user";
 import useSocket from "../../../hooks/useSocket";
 import { round } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
@@ -34,31 +27,24 @@ import { createSignature } from "../../../utils/message-signature";
 import { setShowCreateSignatureModal } from '../../../redux/profileSlice';
 import { KeyNotFoundError } from '../../../utils/Errors';
 
-import { ChitIcon, SwapIcon } from "../../../components/SvgAssets/SvgAssets";
 import BottomSheetModal from "../../../components/BottomSheetModal";
 import SuccessModal from "../Success";
 import { promptBiometrics } from "../../../services/biometrics";
+import ChitInput from '../../../components/ChitInput';
 
 const PaymentDetail = (props) => {
   const { chit_ent, tally_uuid, chit_seq, tally_type, chad, distributedPayment } = props.route?.params;
   const { wm } = useSocket();
-  const { preferredCurrency } = useSelector((state) => state.profile);
-  const [conversionRate, setConversionRate] = useState(undefined);
-  const currencyCode = preferredCurrency.code;
   const dispatch = useDispatch();
 
   const [memo, setMemo] = useState();
   const [reference, setReference] = useState({});
-  const [chit, setChit] = useState();
-  const [inputWidth, setInputWidth] = useState(80);
+  const [chit, setChit] = useState('');
   const [chitInputError, setChitInputError] = useState(false);
 
-  const [usd, setUSD] = useState();
+  const [usd, setUSD] = useState('');
 
-  const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
-
-  const [isSwitched, setIsSwitched] = useState(false);
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -77,59 +63,9 @@ const PaymentDetail = (props) => {
 
   useEffect(() => {
     if(distributedPayment) {
-      setChit(distributedPayment.units ?? 0)
       setMemo(distributedPayment.memo ?? 0)
-      totalNetDollar(distributedPayment.units ?? 0)
-      const textLength = distributedPayment?.units?.length;
-      setInputWidth(Math.max(Math.ceil(textLength * 20), 80))
     }
   }, [distributedPayment])
-
-  useEffect(() => {
-    if(distributedPayment?.units) {
-      totalNetDollar(distributedPayment.units ?? 0)
-    }
-  }, [distributedPayment?.units, conversionRate])
-
-  useEffect(() => {
-    if (currencyCode) {
-      setLoading(true);
-      getCurrency(wm, currencyCode)
-        .then((data) => {
-          setConversionRate(parseFloat(data?.rate ?? 0));
-        })
-        .catch((err) => {
-          console.log("EXCEPTION ==> ", err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [currencyCode]);
-
-  const totalNetDollar = (text) => {
-    const convertedChit = parseInt(text);
-    if (conversionRate && convertedChit) {
-      const total = convertedChit * conversionRate;
-      const totalValue = round(total, 2);
-
-      return setUSD(totalValue);
-    }
-
-    setUSD(0);
-  };
-
-  const totalChit = (text) => {
-    const convertedUSD = parseInt(text);
-    if (conversionRate && convertedUSD) {
-      const total = convertedUSD / conversionRate;
-      const totalValue = round(total, 2);
-
-      return setChit(totalValue);
-    }
-
-    setChit(0);
-  };
 
   const onDistributedPayment = async () => {
     Keyboard.dismiss();
@@ -219,61 +155,6 @@ const PaymentDetail = (props) => {
     }
   }
 
-  /**
-    * @param {string} type - chit or usd
-    */
-  const onAmountChange = (type) => {
-    /**
-      * @param {string} text - amount
-      */
-    return (text) => {
-      setChitInputError(false);
-      const regex = /(\..*){2,}/;
-      if(regex.test(text)) {
-        return;
-      }
-
-      const textLength = text.length;
-      setInputWidth(Math.max(Math.ceil(textLength * 20), 80))
-
-      if(type === 'chit') {
-        setChit(text);
-        totalNetDollar(text);
-      } else if(type === 'usd') {
-        setUSD(text);
-        totalChit(text);
-      }
-    }
-  }
-
-  const checkChipDecimalPlace = () => {
-    let newValue = '';
-    if(chit) {
-      const [precision, decimalPlace] = chit.split('.');
-      if(decimalPlace) {
-        const decimalLength = decimalPlace.length;
-        const remainingLength = Math.max(3 - decimalLength, 0);
-        newValue = chit + Array(remainingLength).fill('0').join('');
-        setChit(newValue)
-      } else {
-        newValue = precision + '.000'
-        setChit(newValue);
-      }
-    }
-
-    if(newValue) {
-      setInputWidth(Math.max(Math.ceil(newValue.length * 20), 80))
-    }
-  }
-
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} />
-      </View>
-    );
-  }
-
   return (
     <KeyboardAwareScrollView
       style={styles.container}
@@ -281,69 +162,15 @@ const PaymentDetail = (props) => {
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.contentContainer}
     >
-      <View style={styles.centerWrapper}>
-        {isSwitched ? (
-          <>
-            <View style={styles.row}>
-              <Text style={[styles.text, chitInputError ? styles.errorInput : {}]}>USD</Text>
-              <TextInput
-                maxLength={12}
-                style={[styles.amount, { width: inputWidth }, chitInputError ? styles.errorInput : {}]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={usd}
-                onChangeText={onAmountChange('usd')}
-                onBlur={checkChipDecimalPlace}
-              />
-            </View>
-
-            {currencyCode && chit ? (
-        <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
-                <ChitIcon color={colors.black} height={18} width={12} />
-                <Text style={[styles.text,{marginLeft:10}]}>{chit}</Text>
-              </View>
-            ) : (
-              <></>
-            )}
-          </>
-        ) : (
-          <>
-            <View style={styles.row}>
-              <ChitIcon color={chitInputError ? colors.red : colors.black} height={18} width={12} />
-              <TextInput
-                maxLength={12}
-                style={[styles.amount, { width: inputWidth }, chitInputError ? styles.errorInput : {}]}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={chit}
-                onChangeText={onAmountChange('chit')}
-                onBlur={checkChipDecimalPlace}
-              />
-            </View>
-
-            {currencyCode && usd ? (
-            <View style={[styles.row,{alignSelf:'flex-end',marginRight:20}]}>
-                <Text style={styles.text}>
-                  {usd} {currencyCode}
-                </Text>
-              </View>
-            ) : (
-              <></>
-            )}
-          </>
-        )}
-      </View>
-
-      {currencyCode ? (
-        <TouchableOpacity
-          style={styles.icon}
-          onPress={() => setIsSwitched(!isSwitched)}
-        >
-          <SwapIcon />
-        </TouchableOpacity>
-      ) : (
-        <></>
-      )}
+      <ChitInput
+        chit={chit}
+        setChit={setChit}
+        usd={usd}
+        setUSD={setUSD}
+        hasError={chitInputError}
+        setHasError={setChitInputError}
+        distributedPayment={distributedPayment}
+      />
 
       <TouchableOpacity
         style={styles.input}
