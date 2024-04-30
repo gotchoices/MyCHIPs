@@ -16,6 +16,7 @@ import {
 import { hasNotification } from "../redux/activitySlice";
 import { colors, toastVisibilityTime } from "../config/constants";
 import { showError } from '../utils/error';
+import useMessageText from '../hooks/useMessageText';
 
 import Home from "../screens/Home";
 import Invite from "../screens/Invite";
@@ -234,6 +235,8 @@ const Navigator = () => {
   const user_ent = user?.curr_eid;
   const { wm } = useSocket();
   const dispatch = useDispatch();
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   useEffect(() => {
     dispatch(fetchAvatar({ wm, user_ent }));
@@ -252,7 +255,7 @@ const Navigator = () => {
     dispatch(setShowCreateSignatureModal(false))
     Toast.show({
       type: 'success',
-      text1: 'Key is generated successfully now you can perform the required action.',
+      text1: charkText?.success?.help,
       visibilityTime: toastVisibilityTime,
     });
   }
