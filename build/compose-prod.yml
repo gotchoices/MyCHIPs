@@ -2,7 +2,6 @@
 #- UNFINISHED, UNTESTED!
 #- Make production version of compose-dev that runs out of /app folder
 #- 
-version: '3.7'
 
 services:
   mychips:
@@ -15,11 +14,10 @@ services:
       dockerfile: build/docker-mychips
     environment:
       NODE_DEBUG: warn
-      MYCHIPS_DBHOST: postgres
     working_dir: /app
     volumes:
       - "../test/local/docker/${MYCHIPS_HOST}.log:/var/tmp/mychips"
-      - "../test/local/docker/pki:${MYCHIPS_DEVDIR}/${MYCHIPS_DIR:-mychips}/pki/local"
+      - "../test/local/docker/${MYCHIPS_HOST}_pki:/app/pki/local"
     depends_on:
       - postgres
     ports:

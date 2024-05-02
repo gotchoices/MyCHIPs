@@ -5,7 +5,6 @@
 #TODO:
 #- Implement encryption between mychips and postgres
 #- 
-version: '3.7'
 
 services:
   mychips:
