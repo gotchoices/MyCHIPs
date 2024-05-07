@@ -1,15 +1,13 @@
-#This version ignores the copy of mychips in the /app folder and instead
-#mounts the local source tree under a development folder (/usr/local/devel).
-#This allows one to make and test changes in mychips and the four wyattERP
-#libraries without having to rebuild the docker images.
-#TODO:
-#- Implement encryption between mychips and postgres
-#- 
+# This version ignores the static image of mychips in the /app folder and instead
+# mounts the local source tree under a development folder (/usr/local/devel).
+# This allows one to make and test changes in mychips and the various support
+# libraries without having to rebuild the docker images.
 
 services:
   mychips:
     image: gotchoices/mychips:18
-    command: bash -c "PATH=$${PATH}:${MYCHIPS_DEVDIR}/node_modules/.bin npm run develop && npm start"
+#    command: bash -c "tail -f /dev/null"
+    command: bash -c "npm run develop && npm start"
     container_name: $MYCHIPS_HOST
     hostname: $MYCHIPS_HOST
     build:
@@ -22,7 +20,8 @@ services:
     volumes:
       - "../..:${MYCHIPS_DEVDIR}"
       - "../test/local/docker/${MYCHIPS_HOST}.log:/var/tmp/mychips"
-#      - "~/.inputrc:/root/.inputrc"
+      - "${MY_INPUTRC:-/dev/null}:${MY_INPUTRC+/root/.inputrc}${MY_INPUTRC-/root/.inputrc-ignore}:ro"
+#      - "~/.inputrc:/root/.inputrc:ro"
 #      - "~/.bashrc:/root/.bashrc"
     depends_on:
       - postgres

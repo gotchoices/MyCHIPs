@@ -8,22 +8,25 @@
 This is a quick and simple way to launch MyCHIPs for simple testing and evaluation.
 This is easier on Mac (and perhaps Windows) than on Linux because docker under Linux 
 has certain additional [permission issues](https://docs.docker.com/engine/install/linux-postinstall/).
+If you're on Linux already, consider just using the native installation method.
 
 You will need node/npm installed and docker running on your host system.
 
-To launch a single server/database pair in development mode:
+To launch a single server/database pair (mychips0 and postgres0) in regular mode:
 ```
   npm run docker
 ```
 This will probably take a while on first run as it has to build images.
 It should be faster on subsequent runs.
-Once containers are launched, it will run until you interrupt it with a CTRL-C.
-You can also use this command to stop and remove the containers:
+
+Once containers are launched, they should run in the background until you stop them as follows:
 ```
   npm run docker-stop
 ```
-The server is configured from the file build/config.sh for either a production or development run-time profile.
-The hostname specified there for the MyCHIPs server (mychips0) will have to resolve to your system.
+It may also be helpful to examine logs of the containers as is explained below.
+
+The server is configured from the file build/common.env for both the regular and development run-time profile.
+The hostname specified there (mychips0) must resolve on your system to an IP number.
 For testing, you can solve this with a line in /etc/hosts (or C:\Windows\System32\drivers\etc\hosts) as follows:
 ```
   127.0.0.1	mychips0
@@ -32,7 +35,7 @@ We will use this hostname in the browser URL bar to run the admin web app.
 This is also what will get built into the SSL certificates so everything has to 
 use the same hostname for the browser to be happy over https.
 
-Once the server pair is running, we would like to connect to it using the admin UI.
+Once the container pair is running, we would like to connect to it using the admin UI.
 But the backend will not allow this without an authorized connection token.
 You can create one using the following bootstrap command:
 ```
@@ -71,7 +74,6 @@ The MyCHIPs server should be creating logs which you can view with:
 If you can't find these logs, check:
 - Is the mychips0.log folder created with permissions that allow the container to log to it?
 - Is the mychips0.log folder getting properly mounted under the container (at /var/tmp/mychips)?
-- Is the mychips main folder getting properly mounted under the container (at /usr/local/devel)?
 
 The PostgreSQL server creates logs you can view with this command:
 ```
@@ -96,13 +98,16 @@ There is also a build profile for running a development docker instance that can
 ```
   npm run docker-dev
 ```
-This is more useful if you want to modify the server code.
+This is more useful if you want to modify the server code or any of the support packages.
 
 In this case, the docker container will not use the version of the MyCHIPs it was built with (in the container's /app folder).
-Rather, it will use the MYCHIPS_ROOTNAME variable (defined in build/config.sh) to mount the local repo folder on the docker container at the spot defined by MYCHIPS_DEVDIR.
+Rather, it will use the MYCHIPS_ROOTNAME variable (defined using build/devconfig.js) to mount the local repo folder on the docker container at the spot defined by MYCHIPS_DEVDIR.
 The container will run the server out of that folder so changes you make to the source code will be used by the container.
 
-In order to use the development method, you will need to also install the WyattERP support libraries as explained in [this section](work-hacking.md).
+In order to use the development method, you will need to also install the ChipNet Suite and the WyattERP support libraries as explained in [this section](work-hacking.md).
+Keep in mind that if you ran "npm install" on the host system, in any of the packages, you have created node_modules folders according to the needs of the host--not necessarily the Linux running inside the docker containers.
+If these folders are not found, the container will properly run "npm install" on its own (via the bin/develop script).
+So if you're not sure, it may be wise to delete them (node_modules folders) on the host before launching the containers.
 
 Note: this method also draws site certificates and the like from the mychips/pki folder
 (not local/docker/pki).

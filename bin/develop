@@ -12,21 +12,30 @@
 #    export PATH="$PATH:$HOME/devel/node_modules/.bin"
 #
 
+deps="chipcrypt chipcryptbase chipcode chipnet wylib wyseman wyclif wyselib"
 appdir="$(git rev-parse --show-toplevel)"		#MyCHIPs home directory
 devdir="$(dirname "$appdir")"
 #echo "appdir:$appdir devdir:$devdir"; exit 0
+
+for m in $deps; do
+  if [ ! -d $devdir/$m/node_modules ]; then
+    echo "Installing $m dependencies"
+    ( cd $devdir/$m && npm install )
+  fi
+done
 
 #Make sure we have a node_modules installed (docker will need this checked)
 if ! cd $appdir; then
   echo "Can't find mychips folder"
 fi
 if [ ! -d node_modules ]; then
+  echo "Installing default mychips dependencies"
   npm install
 fi
 
-for m in wylib wyseman wyclif wyselib; do
+for m in $deps; do
   if [ ! -d $devdir/$m ]; then
-    echo "Warning: can't find source code for module: $m"
+    echo "Warning: can't find source code for module: $m; skipping"
     continue
   fi
   
@@ -36,22 +45,26 @@ for m in wylib wyseman wyclif wyselib; do
   fi
   
   if [ ! -d $devdir/node_modules/$m ]; then
-    echo "Will access $m from source: $devdir/$m"
+    echo "Will configure $m access from source: $devdir/$m"
     ( cd $devdir && npm install $m/ )
+#  else
+#    echo "Already accessing $m from source: $devdir/$m"
   fi
   
 done
 
+#Obsolete: use npx now
 #If this file is sourced (not run in a subshell), this script will set PATH:
-nodebin="$devdir/node_modules/.bin"
-IFS=: read -r -a patha <<< "$PATH"
-if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
-  export PATH="${PATH}:$nodebin"
-fi
+#nodebin="$devdir/node_modules/.bin"
+#IFS=: read -r -a patha <<< "$PATH"
+#if [[ ! -z "$nodebin" && ! "${patha[@]}" =~ "$nodebin" ]]; then
+#  export PATH="${PATH}:$nodebin"
+#fi
 
 #Also build any development objects in the database schema
 if ! cd $appdir/schema; then
   echo "Can't find mychips/schema folder"
+  exit 1
 fi
 if [ ! -f /.dockerenv ]; then	#Disable as schema may not yet exist
   make dev			#;cd $appdir

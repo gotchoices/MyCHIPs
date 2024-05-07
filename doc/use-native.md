@@ -72,12 +72,15 @@ Other known dependencies (hopefully installed on your system by default) include
 ```
   bash, openssl, nodejs, others?
 ```
-Checkout MyCHIPs from github and install as [noted here](use-start.md#getting-started).
-After doing the "npm install," you may want to enable debugging mode as follows:
+Checkout MyCHIPs from github and install as [noted here](use-start.md#getting-started) and run:
+```
+  npm install
+```
+You may also want to enable debugging mode as follows:
 ```
   export NODE_DEBUG=debug
 ```
-  This will cause the server to write logging information in /var/tmp/mychips (or such other
+  This will cause the server to write detailed logging information in /var/tmp/mychips (or such other
   place as may be configured) so you watch the server progress with this command:
 ```
    tail -f /var/tmp/mychips/combined.log

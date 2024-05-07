@@ -14,46 +14,53 @@ If you will be working on any of the Wyatt-ERP source code, you will need to che
     git clone https://github.com/gotchoices/wyselib.git
     git clone https://github.com/gotchoices/wyclif.git
 ```
-By default, any running of "npm install" will install versions of these package in node_modules, which is not what we want here.
+You will also need the ChipNet suite as follows:
+```
+    cd MyCHIPs/..
+    git clone https://github.com/gotchoices/chipcrypt.git
+    git clone https://github.com/gotchoices/chipcryptbase.git
+    git clone https://github.com/gotchoices/chipcode.git
+    git clone https://github.com/gotchoices/chipnet.git
+```
 
-We will run the "npm develop" command (or bin/develop) to configure MyCHIPs to access these libraries from local source rather than from npmjs.org.
+By default, any running of "npm install" in the mychips folder will attempt to install versions of these package in node_modules (from npmjs.org), which is not what we want here.
 
-Specifically, bin/develop will remove the four WyattERP modules out of mychips/node_modules.
-It will then move to the folder above MyCHIPs and install each of the libraries like so:
+We will run the "npm develop" command (or bin/develop) to configure MyCHIPs to access these libraries from local source rather than installing from npmjs.org.
+
+Specifically, bin/develop will
+- remove the support modules out of mychips/node_modules; and then
+- move to the folder above MyCHIPs (devel); and then
+- install each of the libraries as in this example:
 ```
    npm install wyseman/		#for example
 ```
-So it expects to find these four modules installed in folders at the same level as the MyCHIPs folder.
-This installation process will also create a node_modules folder above MyCHIPs which will be accessed by MyCHIPs as regards these packages.
+The script expects to find the specified packages installed in folders at the same level as the MyCHIPs folder.
+This installation process will also create a node_modules folder above MyCHIPs which will be accessed to find the packages.
 
-Once set up in this way, you are able to edit/change things in the Wyatt code
-and the changes will be immediately accessible to the next run of MyCHIPs.
+Once set up in this way, you are able to edit/change things in the support libraries
+and the changes will be immediately accessible to the next run of MyCHIPs (even in a development mode docker container).
   
 **Beware:** If you do "npm install" or "npm update" in the mychips folder, it will
 reinstall the support libraries (from npmjs.org) into node_modules so you won't be running those
-out of the source folders anymore.  You will have to run "npm develop" again to
-clean them out (and restart the server).
+out of the source folders anymore.  You will have to:
+- run "npm develop" again to clean them out; and
+- restart the server.
 
 ### Schema Hacking
-If you are editing the database schema, you will likely need the following 
-package installations:
-```
-    dnf install rubygem-pg rubygem-tk gcc-c++
-    gem install json
-```
-See wyseman/INSTALL for more installation details.
+If you are editing the database schema, you will need access to the wyseman package
+(whether installed from npmjs.org or in a local source folder).
+See wyseman/INSTALL for more installation details and dependencies that may be required.
 
-When MyCHIPs runs for the first time, it will build a stock schema in the
-database if it can't find one.  But you can modify that schema on the fly
-from the sources in the schema folder.  This is done by:
+When MyCHIPs runs for the first time, it will check for the existence of a "mychips" database.
+If it doesn't find one, it will create a new one.
+It is also possible to modify the schema on the fly from the sources in the schema folder.
+This is done by:
 ```
     cd mychips/schema
     make objects
-```    
-This will also build a few more items in the database for tracking the state
-of the schema (so it knows which objects need to be rebuilt at any given time).
-So it may generate errors on the first run if your schema was 
-instantiated by MyCHIPs (as opposed to this manual build method).
+```
+
+See the wyseman documentation for more information on schema maintenance.
 
 ### Working on Wylib
 

@@ -16,7 +16,7 @@
 #	npm install -g n; \
 #	n install 16
 
-ARG version=18
+ARG version=20
 FROM node:${version}
 ENV DEBIAN_FRONTEND=noninteractive
 
