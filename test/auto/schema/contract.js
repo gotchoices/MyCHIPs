@@ -4,9 +4,9 @@
 //TODO:
 //- 
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, SchemaDir, dbClient, develop } = require('../common')
+const { DBName, DBAdmin, testLog, Schema, SchemaDir, dbClient, develop, dbConf } = require('../common')
 var log = testLog(__filename)
-const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
+const dbConfig = new dbConf(log)
 
 describe("Tally contract checks", function() {
   var db

@@ -82,7 +82,7 @@ function dockCleanup(done, tag = 'pg') {		//Take down docker process
 
 // -----------------------------------------------------------------------------
 function dropDB(done, dbName = DBName) {	//Destroy the test database
-  let config = {database:'template1', user: DBAdmin, connect: true}
+  let config = {database:'template1', user: DBAdmin, connect: true, host:DBHost, port:DBPort}
     , sql = Format('drop database if exists "%s";', dbName)
     , db = new dbClient(config, (chan, data) => {}, () => {
     db.query(sql, (e, res) => {if (e) done(e)
@@ -212,6 +212,12 @@ module.exports={
   },
   
   dbConf: function(log, listen, database = DBName, schema) {
-    Object.assign(this, {database, user: DBAdmin, connect: true, log, listen, schema})
+    Object.assign(this, {
+    database, 
+    user: DBAdmin, 
+    host: DBHost,
+    port: DBPort,
+    connect: true, log, listen, schema
+    })
   },
 }

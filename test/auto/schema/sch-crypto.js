@@ -9,12 +9,12 @@
 const Fs = require('fs')
 //const Bs58 = require('bs58')
 const assert = require("assert");
-const { DBName, DBAdmin, testLog, Schema, dbClient } = require('../common')
+const { DBName, DBAdmin, testLog, Schema, dbClient, dbConf } = require('../common')
 const WordFile = '/usr/share/dict/words'
 const Words = 6
 const Cycles = 10
 var log = testLog(__filename)
-const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
+const dbConfig = new dbConf(log)
 
 var encode_decode = function({encoder, decoder, checker}) {
   var db

@@ -1,12 +1,13 @@
-//Test certain multi-table views in the schema; Run only after impexp
+//Test certain multi-table views in the schema; run
+//After: impexp
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { DBName, DBAdmin, testLog, Schema, assert, dbClient } = require('../common')
+const { DBName, DBAdmin, testLog, Schema, assert, dbClient, dbConf } = require('../common')
 var log = testLog(__filename)
 const interTest = {}
-const dbConfig = {database:DBName, user:DBAdmin, connect:true, log, schema:Schema}
+const dbConfig = new dbConf(log)
 
 describe("View mychips.users_v", function() {
   var db
