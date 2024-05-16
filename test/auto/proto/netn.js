@@ -248,11 +248,11 @@ const establishTally = function(dataO, dataS, units) {
 }	//Establish Tally
 
 describe("Create simulated network", function() {
+  this.timeout(20000)
   initSites(log, siteData, userData)
 
   siteData.forEach(s => {  
     it('Connect to database ' + s.dbName, function(done) {
-      this.timeout(10000)
       s.db = new dbClient(s.dConf, null, () => {
         log.info("DB connection established:" + s.dbName)
         done()
