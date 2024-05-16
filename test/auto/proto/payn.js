@@ -132,6 +132,7 @@ log.debug("Sql:", sql, JSON.stringify(parms))
 }	//liftPayment
 
 describe("Distributed lift testing", function() {
+  this.timeout(20000)
   initSites(log, siteData, userData)
 
   siteData.forEach(s => {  

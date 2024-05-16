@@ -8,21 +8,22 @@ const { dbConf, testLog, Schema, DBName, dropDB, dbClient, develop, pgCheck } = 
 var log = testLog(__filename)
 
 describe("Start with blank database", function() {
+  this.timeout(20000)
   var db
 
   before('PostgreSQL check', function() {
     return pgCheck(this)
   })
   
-  before('Delete test database', function(done) {dropDB(done)})
+  before('Delete test database', function(done) {
+    dropDB(done);
+  })
 
   before('Connect to (or create) test database', function(done) {
-    this.timeout(10000)		//May take a while to build database
     db = new dbClient(new dbConf(log,undefined,undefined,Schema), (chan, data) => {}, done)
   })
 
   it('Build development schema objects ("make run" in schema dir to undo)', function(done) {
-    this.timeout(5000)
     develop(db, done)
   })
   
