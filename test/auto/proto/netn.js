@@ -1,4 +1,5 @@
-//Build simulated network of N databases, each containing users
+//Build simulated network of N databases, each containing users; run
+//After: ../schema/dbinit
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
