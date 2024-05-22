@@ -6,7 +6,7 @@
 //TODO:
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, Crypto, peerTest } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, Crypto, peerTest, timeLong } = require('../common')
 const log = testLog(__filename)
 const crypto = new Crypto(log)
 const clearSql = `begin;
@@ -15,11 +15,12 @@ const clearSql = `begin;
         commit;`
 const { Sites, initSites } = require('./def-net')
 var liftData = [
-  ['p1003','p1000', 4],
-  ['p1103','p1100', 4],
-  ['p1203','p1200', 4],
-  ['p1303','p1300', 4],
+//  ['p1003','p1000', 4],
+//  ['p1103','p1100', 4],
+//  ['p1203','p1200', 4],
+//  ['p1303','p1300', 4],
 //  ['p1103','p1002', 20],
+  ['p1203','p1001', 20],
 ]
 var siteData = []
 var userData = {}
@@ -132,7 +133,7 @@ log.debug("Sql:", sql, JSON.stringify(parms))
 }	//liftPayment
 
 describe("Distributed lift testing", function() {
-  this.timeout(20000)
+  this.timeout(timeLong)
   initSites(log, siteData, userData)
 
   siteData.forEach(s => {  

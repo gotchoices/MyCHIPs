@@ -23,6 +23,10 @@ const LibDir = Path.join(RootDir, 'lib')
 const Schema = Path.join(LibDir, 'schema.json')
 const SchemaDir = Path.join(LibDir, '../', 'schema')
 const libModule = (m) => Path.join(LibDir, m)
+const timeBase = process.env.MOCHA_TIMEBASE || 5;
+const timeLong = timeBase * 10000
+const timeMid = timeBase * 2000
+const timeShort = timeBase * 500
 
 const testLog = function(fname) {	//Initiate a logging service for a mocha test file
     let base = Path.parse(fname).name
@@ -190,6 +194,7 @@ module.exports={
   Format, assert, Bus, testLog, Schema, SchemaDir, Crypto, Stringify,
   pgCheck, dockCleanup, dropDB,
   importCheck, develop, peerTest, queryJson, mkUuid, libModule,
+  timeBase, timeLong, timeMid, timeShort,
 
   Data: function(file) {
     return Path.join(__dirname, 'data', file)
