@@ -15,10 +15,10 @@ more private than we can achieve with a <i>public</i> block chain.
 ### Identities
 One of the challenges with some credit-based systems relates to establishing a
 genuine identity for each of the participants.  For example, what if someone
-enters the system with a false identity, creates a bunch of credit-based money,
+enters a credit pool with a false identity, creates a bunch of credit-based money,
 and then leaves without standing behind those credits?
 
-This problem is largely avoided with MyCHIPs.  Only those people who connect
+This problem is largely mitigated with MyCHIPs.  Only those people who connect
 directly (share a [tally](learn-tally.md)) with each other need to be concerned with 
 the identity of their trading partners.  And users are encouraged to connect only 
 with people and companies they already have some degree of implicit trust in (such as 
@@ -34,7 +34,7 @@ But unless they can develop a sufficiently strong real-world reputation to earn 
 non-zero credit limit, they will be very limited in the kind of damage they can inflict.
 
 ### Resource Addresses
-Our regular Internet experience makes us familiar with a model where digital resources are
+Our historical Internet experience makes us familiar with a model where digital resources are
 accessed using some kind of public address such as a [URI](https://en.wikipedia.org/wiki/URI).
 A host address is an important part of the URI which may also include a port number.
 Host addresses are typically specified as a domain name or possibly an IP number.
@@ -60,7 +60,7 @@ MyCHIPs emphasizes two important objectives:
   a direct credit relationship.  But private users are more likely to want to stay
   that way--private.
 - Second, MyCHIPs is all about decentralization.  This is a conscious choice made to
-  optimize the freedom and independence of users.  Unfortunately, DNS, makes you rely on 
+  optimize the freedom and independence of users.  Unfortunately, DNS, relies on
   a centralized, hierarchical authority to vouch for the authenticity of each digital 
   resource you access.
   There are currently a limited number of these authorities established in a reliable 
@@ -70,18 +70,21 @@ MyCHIPs is designed to work with <i>or without</i> DNS.  And user addresses are 
 to be private unless and until the owner chooses to make them known.
 
 ### CHIP Addresses
-On the MyCHIPS network, entities (people and companies) are referred to by a
-CHIP Identifier (CID) which can best be thought of as a unique username on their
+On the MyCHIPS network, entities (people and companies) can be referred to by a
+CHIP User Identifier (CUID) which can best be thought of as a unique username on their
 host system.  It s analogous to the first part of an email address--the part prior
 to the '@' symbol.
 
-In most cases, the CID will be combined with an agent ID (or just "agent") that
-represents the public key of a server process that handles business on behalf of
-the MyCHIPs user.
+The CUID is combined with an agent ID (or just "agent") that represents the public key 
+of a server process that handles business on behalf of the MyCHIPs user.  This agent
+address is similar to a CID as used in a [Distributed Hash Table](https://en.wikipedia.org/wiki/Distributed_hash_table).
 
-Together, the CID and agent form a basic CHIP Address (CHAD) normally presented like this:
+In situations where an agent handles business for only a single user, the CUID may be omitted.
+
+Together, the CUID and agent form a basic CHIP Address (CHAD) normally presented like this:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE
+  6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE		(single-user site)
 ```
 Note: the term "agent" is used here in a different context than the 
 [agent-based model](sim-agent.md) that is used as part of the simulation environment
@@ -95,14 +98,13 @@ find a physical address on the Internet for the user.  That is by design to faci
 greater degree of privacy and decentralization.
 
 But a MyCHIPs user *will* have to divulge a physical address to his trading partners.
-So there is more we can add to the CHIP address to make it clear where other users can 
-connect.
+So there is more we can add to the CHIP address to make it clear where other users can connect.
 
 This additional information consists of a regular host address and a port number we will
 refer to as a portal.
 In web technology, this is sometimes called an "origin" and it is rendered like this:
 ```
-  mychips.org:57423
+  mychips.net:57423
 ```
 We can put these two pieces of information together, separated by an '@' symbol, to 
 form a more explicit CHAD such as:
@@ -121,7 +123,7 @@ The CHIP address (and other MyCHIPs message components) may optionally be encode
 For example, we might see a CHIP address presented as something like:
 ```
   {
-    cid: suzie,
+    cuid: suzie,
     agent: 6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE,
     host: mychips.org,
     port: 57423
@@ -131,8 +133,8 @@ Note: we expect a one-to-one relationship between an agent and its portal at any
 That is, an agent with a particular key value should be reachable on a single portal. 
 And a portal address should serve only one agent.
 
-### Obscured CID
-The CHIP address convention also allows a CHIP ID to be made more private by specifying it
+### Obscured CUID
+The CHIP address convention also allows a CHIP User ID to be made more private by specifying it
 as a hash that only the host site will recognize.  For example, a user might be
 asked to send money to an address such as:
 ```
@@ -147,7 +149,7 @@ payment to the correct destination.
 
 ### Exposed Addresses
 In some cases it may be helpful to be more clear about the affiliation associated 
-with a CID.  For example, it might be specified like this:
+with a CUID.  For example, it might be specified like this:
 ```
   suzie@mychips.org
 ```

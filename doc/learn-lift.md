@@ -202,7 +202,7 @@ It will be reliant on site A, site B, and probably a bunch of other sites to exe
 
 Sites typically will know nothing about the internal ID of users hosted on other sites.
 Information about the foreign peers at the end of a segment is derived from the partner certificate stored in the asociated tally.
-A CHIP address (cid:agent) is found there, but no local ID that can be used for linking segments.
+A CHIP address (cuid:agent) is found there, but no local ID that can be used for linking segments.
 
 So a lift segment can be defined as:
 - One or more local entities connected in a linear chain; and

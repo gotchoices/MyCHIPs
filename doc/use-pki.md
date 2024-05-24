@@ -82,7 +82,7 @@ Creating a new agent simply produces a new [noise protocol](learn-noise.md)
 private key and stores it in the pki/local folder.
 A default agent is identified by a symbolic link in the pki/local folder called "default_agent".
 
-In addition to a CHIP ID, each user must be assigned an agent ID (peer_agent field) in the mychips.users_v view.
+In addition to a CHIP User ID, each user must be assigned an agent ID.
 
 <div style="display: flex; justify-content: space-between;">
   <a href="README.md#contents">Back to Index</a>

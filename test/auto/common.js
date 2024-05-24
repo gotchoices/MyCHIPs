@@ -92,7 +92,6 @@ function dropDB(done, dbName = DBName) {	//Destroy the test database
     db.query(sql, (e, res) => {if (e) done(e)
       db.disconnect()
       setTimeout(done, 250)	//Give a little time for connection to settle
-      done()
     })
   })
 }

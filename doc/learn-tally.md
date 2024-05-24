@@ -501,7 +501,7 @@ any direct connection that can be trusted on-network.
 
 The actual payment will be accomplished by way of a [linear lift](learn-protocol.md#credit-lifts-explained).
 The invoice (issued from recipient to payor) should [include](learn-message.md#external-formats):
-  - The recipient CHIP ID (possibly [obscured](learn-users.md#obscured-cid))
+  - The recipient CHIP User ID (possibly [obscured](learn-users.md#obscured-cuid))
   - Recipient agent key
   - The amount due
   - A reference field (order or merchandise number, for example)
@@ -629,7 +629,7 @@ trickiest parts of the protocol.
 
 There are 4 possible pieces of information in the database that should be unique to
 a particular entity:
-- CHIP ID and Agent [(suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE)](learn-users.md#chip-addresses)
+- CHIP User ID and Agent [(suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE)](learn-users.md#chip-addresses)
 - Public signing key
 - Birth ID record (which could change in small ways and still represent the same person)
 - National tax ID (if provided)
@@ -660,7 +660,7 @@ very secure way.  It would certainly be nice to not have two different records i
 that have the same tax ID (i.e. Social Security number).  However, like the signing key,
 it is certainly possible for one person to have more than one CHIP account.  If an 
 implementation is going to insist on uniqueness here, it might have to support
-multiple CHIP ID's per entity.
+multiple CHIP User ID's per entity.
 
 More than anything, perhaps these issues expose a flaw in the original schema design.
 It assumed that host systems would maintain normalized entity records 
@@ -747,27 +747,22 @@ CHIPCert: {
 }
 ```
 
-At any given time, a given entity should ideally have a single:
-  - CHIP ID
-  - Agent ID
-  - Signature public key
+It is the responsibility of the user to maintain accurate data in its certificate.
+When a tally is executed, it will encapsulate the certificate data presented by the user.
+This version of the certificate will persist throughout the lift of the tally even if
+the user changes his certifiicate information elsewhere.
 
-Any time a site receives a certificate for a user it already has record of, it should
-validate the authenticity of the certificate using the public key it already has on file.
-If the information is authentic by this measure, the site should update any contact
-information from the certificate.
+In other words, a user's various tallies can have different versions of its certificate.
 
-If the public keys don't match, it should probably just create a new user or alert
-a human to determine the correct course of action.
-  
-If changes need to be made to the CHIP ID or Agent ID, this can be done automatically if
-duly authorized by a record signed by the peer's signature key.
+Also note that a tally is bound to the agents specified at the time it is signed.
+This implies that if a user wants to move its business to a different agent, it will
+need to create a second account, execute new tallies with its trading partners, and then
+move balances from the old account to the new one.
 
-If a user's signature key needs to be changed
-this should probably be done by:
-- disabling all old tallies with a close request by the partner holding a remaining 
+If a user's signature key needs to be changed, a similar process will have to be followed:
+- disable all old tallies with a close request by the partner holding a remaining 
   good signing key;
-- creating new tallies with the new signature key, and then moving remaining credits over 
+- create new tallies with the new signature key, and then moving remaining credits over 
   from the old tallies to the new tallies that include the new signature key.
 
 This way, trading partners will necessarily be involved in the process of moving to a
