@@ -58,11 +58,11 @@ view mychips.tokens_v {
   mychips.tokens mychips.tallies mychips.users_v json.cert
 } {select
     eval(fld_list $tokens::tokens_se t)
-  , u.peer_cid, u.peer_agent, u.std_name
+  , u.peer_cuid, u.peer_agent, u.std_name
   , t.expires <= current_timestamp as "expired"
   , t.expires > current_timestamp and used is null and a.status = 'draft' as "valid"
   , jsonb_build_object(
-       'cid', u.peer_cid
+       'cuid', u.peer_cuid
      , 'agent', u.peer_agent
      , 'host', u.peer_host
      , 'port', u.peer_port

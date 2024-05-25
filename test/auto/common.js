@@ -131,7 +131,7 @@ function peerTest(aConf, dConf) {		//Make a peer server with failure test modes
   let serv = new PeerCont(aConf, dConf)
     , oldTransmit = serv.peerTransmit.bind(serv)
     , newTransmit = function(msg, successCB, failureCB) {
-this.log.debug("Test peerTransmit", msg.from.cid, '->', msg.to.cid, msg.to.agent)
+this.log.debug("Test peerTransmit", msg.from.cuid, '->', msg.to.cuid, msg.to.agent)
         if (this.failSend) {				//Force transmission failure
           let c0 = this.failSend.charAt()
           if (c0 == 's' && successCB) successCB()	//Indicate success without sending
@@ -176,11 +176,11 @@ function queryJson(fileBase, db, sql, done, rows = 1, write = false) {
 }
 
 // -----------------------------------------------------------------------------
-function mkUuid(cid, agent, mix = 'x') {	//Build a unique identifier
-  let chad = 'chip://' + cid + ':' + agent
+function mkUuid(cuid, agent, mix = 'x') {	//Build a unique identifier
+  let chad = 'chip://' + cuid + ':' + agent
     , date = new Date().toISOString()
     , uuid = Uuid.v5(date+mix, Uuid.v5(chad, Uuid.v5.URL))
-//  , uuid = Uuid.v5(cid, Uuid.v5.DNS)	//Deterministic
+//  , uuid = Uuid.v5(cuid, Uuid.v5.DNS)	//Deterministic
 //console.log('date/mix:', date, 'uuid:', uuid)
   return uuid
 }

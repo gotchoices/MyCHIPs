@@ -29,11 +29,11 @@ describe("View mychips.users_v", function() {
       {pkey: 'id', table:'base.ent_v',record:{ent_name:'BaseOnly'}},
       {pkey: 'id', table:'base.ent_v',record:{ent_name:'BaseOnly', fir_name:'Also'}},
       {pkey: 'id', table:'mychips.users_v',
-        record:{ent_name:'Chirpies',peer_cid:'zzyzy',peer_agent:'FACADE',peer_host:'localhost',peer_port:12345}},
+        record:{ent_name:'Chirpies',peer_cuid:'zzyzy',peer_agent:'FACADE',peer_host:'localhost',peer_port:12345}},
 //      {pkey: 'id', table:'mychips.users_v',
-//        record:{ent_name:'Chippers',peer_cid:'zzyzz',peer_agent:'BEADEE',peer_host:'mychips.org', peer_port:54321}},
+//        record:{ent_name:'Chippers',peer_cuid:'zzyzz',peer_agent:'BEADEE',peer_host:'mychips.org', peer_port:54321}},
       {pkey: 'id', table:'mychips.users_v',
-        record:{ent_name:'Choppies',peer_cid:'zzyzu',user_host:'mychips.com',peer_agent:'Poodle',peer_host:'mychips.org', peer_port:12345}},
+        record:{ent_name:'Choppies',peer_cuid:'zzyzu',user_host:'mychips.com',peer_agent:'Poodle',peer_host:'mychips.org', peer_port:12345}},
     ]
 
     tests.forEach(({pkey, table, record}, ix) => {	//Test each record in array
@@ -64,8 +64,8 @@ describe("View mychips.users_v", function() {
 
     const tests = [
       {pkey:'id', pkval: 'p1000', table:'base.ent_v',record:{fir_name:'Fred'}},		//Native table
-      {pkey:'id', pkval: 'p1000', table:'mychips.users_v',record:{user_port:5555, peer_cid:'bubba'}},	//Add a user record
-      {pkey:'id', pkval: 'p1001', table:'mychips.users_v',record:{peer_cid:'poofie', user_host:'mychips.net'}},	//Add user and peer
+      {pkey:'id', pkval: 'p1000', table:'mychips.users_v',record:{user_port:5555, peer_cuid:'bubba'}},	//Add a user record
+      {pkey:'id', pkval: 'p1001', table:'mychips.users_v',record:{peer_cuid:'poofie', user_host:'mychips.net'}},	//Add user and peer
       {pkey:'id', pkval: 'p1001', table:'mychips.users_v',record:{peer_agent:'ZZYZX', peer_host:'mychips.org', peer_port:22332}},	//Add agent record
       {pkey:'agent', pkval: 'FACADE', table:'mychips.agents_v',record:{agent_host:'mychips.net', agent_port:7200}},
     ]
@@ -95,13 +95,13 @@ describe("View mychips.users_v", function() {
     it(`Delete user component only`, function(done) {
       let sql = `begin; 
         delete from mychips.users_v where id = 'p1001';
-        select fir_name,peer_cid,user_host from mychips.users_v where id = 'p1001';
+        select fir_name,peer_cuid,user_host from mychips.users_v where id = 'p1001';
         end;`
       db.query(sql, (err, res) => {if (err) {done(err)} else {
         assert.equal(res.length, 4)		//begin, delete, select, end
         let row = res[2].rows[0]
         assert.equal(row.fir_name, 'Also')	//base record remains
-//        assert.equal(row.peer_cid, 'poofie')	//peer record remains
+//        assert.equal(row.peer_cuid, 'poofie')	//peer record remains
         assert.ifError(row.user_host)		//user record gone
         done()
       }})

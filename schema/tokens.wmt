@@ -12,7 +12,7 @@ tabtext mychips.tokens	{Tokens}		{Tracks one-time connection tokens for foreign 
 } $glob::stampt]
 
 tabtext mychips.tokens_v	{User Tokens}	{Standardized view of user connection tokens} {
-  {chad		{CHIP Address}	{Data record containing CHIP ID, agent, host and port for this user}}
+  {chad		{CHIP Address}	{Data record containing CHIP User ID, agent, host and port for this user}}
   {expired	{Expired}	{True if the token expiration time has passed}}
   {valid	{Valid}		{True if the token is still valid for connecting}}
 }

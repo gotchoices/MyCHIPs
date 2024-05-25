@@ -26,15 +26,15 @@ class FindNewSpendingTarget implements Action {
         Math.random() < this.account.newSpendingTargetOdds)
     ) {
       //  we randomly choose to))
-      this.logger.debug(`${this.account.peer_cid} is finding a new spending target!`)
+      this.logger.debug(`${this.account.peer_cuid} is finding a new spending target!`)
       this.worldDBManager.findPeerAndUpdate(
-        this.account.peer_cid,
+        this.account.peer_cuid,
         this.account.spendingTargetCids,
         (newPeer: AccountData) => {
           this.logger.debug(
-            this.account.peer_cid,
+            this.account.peer_cuid,
             '  attempting new spending source with',
-            newPeer.peer_cid
+            newPeer.peer_cuid
           )
 
           this.myChipsDBManager.addConnectionRequest(

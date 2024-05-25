@@ -8,12 +8,12 @@ mychips.users:
   - [user_stat,		pdm,	10,	[2,4],		{ini: act}]
   - [user_host,		ent,	20,	[1,11],		{}]
   - [user_port,		number,	8,	[2,11],		{just: r}]
-  - [user_hid,		ent,	20,	[3,11],		{}]
   - [user_cmt,		mle,	[80,2],	[1,12,4],	{}]
+  - [user_named,	ent,	20,	[1,3],		{}]
   - [user_psig,		ent,	80,	[1,13,4],	{opt: 1}]
-  - [peer_cid,		ent,	12,	[1,5],		{}]
+  - [peer_cuid,		ent,	12,	[1,5],		{}]
+  - [peer_huid,		ent,	20,	[3,11],		{}]
   - [peer_agent,	ent,	12,	[2,5,2],	{}]
-  - [peer_named,	ent,	20,	[1,3],		{}]
   - [crt_by,     	ent,	10,	[1,98],		{opt: 1, wr: 0, sta: readonly}]
   - [crt_date,   	inf,	18,	[2,98],		{opt: 1, wr: 0, sta: readonly}]
   - [mod_by,     	ent,	10,	[1,99],		{opt: 1, wr: 0, sta: readonly}]
@@ -39,7 +39,7 @@ mychips.users_v:
   - [marital,		ent,	6,	{hide: 1}]
   - [json,		ent,	20,	{hide: 1}]
   - [agent_key,	ent,	20,	{hide: 1}]
-  display: [id, std_name, ent_type, user_stat, born_date, peer_cid, peer_agent, '!fir_name', '!ent_name']
+  display: [id, std_name, ent_type, user_stat, born_date, peer_cuid, peer_agent, '!fir_name', '!ent_name']
   actions:
   - name: ticket
     render: html
@@ -68,7 +68,7 @@ mychips.users_v:
     import: 'json.import'
 
 mychips.users_v_me:
-  display: [id, std_name, ent_type, user_stat, born_date, peer_cid, peer_agent, '!fir_name', '!ent_name']
+  display: [id, std_name, ent_type, user_stat, born_date, peer_cuid, peer_agent, '!fir_name', '!ent_name']
   subviews: [mychips.addr_v_me, mychips.comm_v_me, mychips.file_v_me]
   actions:
   - {name: graph, render: html, options: [{tag: format, input: pdm, values: [html, url]}]}
@@ -85,6 +85,6 @@ mychips.users_v_me:
     - {tag: format, input: pdm, values: [qr, link, json]}
 
 mychips.users_v_flat:
-  display: [id, user_cid, std_name, bill_addr, bill_city, bill_state]
+  display: [id, peer_cuid, std_name, bill_addr, bill_city, bill_state]
   sort: [std_name, id]
   subviews: [mychips.addr_v_me, mychips.comm_v_me, mychips.file_v_me]

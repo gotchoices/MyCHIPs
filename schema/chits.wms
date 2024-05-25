@@ -260,7 +260,7 @@ function {mychips.chit_notify_agent(chit mychips.chits)} {mychips.users_v mychip
         if chit.request = 'good' then
           jrec = jrec || jsonb_build_object ('pub', trec.hold_cert->>'public');
         end if;
---raise notice 'Chit notice:% R:% O:% P:% C:% U:%', channel, chit.request, chit.chit_ent, trec.part_chad->>'cid', chit.chit_uuid, chit.units;
+--raise notice 'Chit notice:% R:% O:% P:% C:% U:%', channel, chit.request, chit.chit_ent, trec.part_chad->>'cuid', chit.chit_uuid, chit.units;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
@@ -390,7 +390,7 @@ view mychips.chits_v {
   mychips.j2h(jsonb)
 } {select 
     eval(fld_list $chits::chits_se	ch)
-  , te.hold_cid,	te.part_cid
+  , te.hold_cuid,	te.part_cuid
   , te.tally_type
   , te.tally_uuid
   , te.net_c as net_c, te.net_pc as net_pc
@@ -439,7 +439,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
 } {
   returns jsonb language plpgsql as $$
     declare
-      cid	text	= msg->'to'->>'cid';
+      cid	text	= msg->'to'->>'cuid';
       agent	text	= msg->'to'->>'agent';
       obj	jsonb	= msg->'object';
       uuid	uuid	= obj->>'uuid';
@@ -455,7 +455,7 @@ function {mychips.chit_process(msg jsonb, recipe jsonb)} {
       end if;
 
 --raise notice 'Chitproc top cid:% obj:%', cid, obj;
-      select into trec tally_ent, tally_seq, tally_type from mychips.tallies_v where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid;
+      select into trec tally_ent, tally_seq, tally_type from mychips.tallies_v where hold_cuid = cid and tally_uuid = (obj->>'tally')::uuid;
       if not found then return null; end if;
 
       select into crec chit_ent, chit_seq, chit_idx, state from mychips.chits_v where chit_ent = trec.tally_ent and chit_uuid = uuid;

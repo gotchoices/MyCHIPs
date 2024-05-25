@@ -13,7 +13,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , count(tally_seq)						as tallies
   , sum(net)							as net
   , array_agg(part_ent)						as part_ents
-  , array_agg(part_cid)						as part_cids
+  , array_agg(part_cuid)					as part_cuids
   , array_agg(part_agent)					as part_agents
   , array_agg(tally_uuid)					as uuids
   , array_agg(tally_seq)					as seqs
@@ -35,9 +35,9 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
   , count(nullif(tally_type, 'stock'))::int4			as foils
   , array_agg(part_ent) filter (where tally_type = 'stock')	as clients
   , array_agg(part_ent) filter (where tally_type = 'foil')	as vendors
-  , array_agg(part_cid) filter (where tally_type = 'stock')	as client_cids
+  , array_agg(part_cuid) filter (where tally_type = 'stock')	as client_cuids
   , array_agg(part_agent) filter (where tally_type = 'stock')	as client_agents
-  , array_agg(part_cid) filter (where tally_type = 'foil')	as vendor_cids
+  , array_agg(part_cuid) filter (where tally_type = 'foil')	as vendor_cuids
   , array_agg(part_agent) filter (where tally_type = 'foil')	as vendor_agents
   , array_agg(tally_uuid) filter (where tally_type = 'stock')	as stock_uuids
   , array_agg(tally_uuid) filter (where tally_type = 'foil')	as foil_uuids
@@ -53,7 +53,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
     , 'type',	tally_type
     , 'uuid',	tally_uuid
     , 'net',	net
-    , 'part',	part_cid || ':' || part_agent
+    , 'part',	part_cuid || ':' || part_agent
   ))								as json
   from (select * from mychips.tallies_v where status = 'open' order by net) t
   group by 1;
@@ -63,7 +63,7 @@ view mychips.tallies_v_sum {mychips.tallies_v} {select
 # List of users with summarized data about their tallies (used primarily in simulation/visualization)
 #----------------------------------------------------------------
 view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select 
-    u.id, u.std_name, u.user_ent, u.peer_cid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
+    u.id, u.std_name, u.user_ent, u.peer_cuid, u.peer_agent, u.peer_host, u.peer_port, u.ent_name, u.fir_name, u.ent_type
   , coalesce(s.tallies, 0)			as tallies
   , coalesce(s.net, 0)				as net
   , coalesce(s.stocks, 0)			as stocks
@@ -72,7 +72,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.vendors, '{}'::text[])		as vendors
   
   , coalesce(s.part_ents, '{}'::text[])		as part_ents
-  , coalesce(s.part_cids, '{}'::text[])		as part_cids
+  , coalesce(s.part_cuids, '{}'::text[])	as part_cuids
   , coalesce(s.part_agents, '{}'::text[])	as part_agents
   , coalesce(s.uuids, '{}'::uuid[])		as uuids
   , coalesce(s.seqs, '{}'::int[])		as seqs
@@ -87,9 +87,9 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
   , coalesce(s.clutchs, '{}'::float[])		as clutchs
   , coalesce(s.policies, '{}'::jsonb[])		as policies
   
-  , coalesce(s.client_cids, '{}'::text[])	as client_cids
+  , coalesce(s.client_cuids, '{}'::text[])	as client_cuids
   , coalesce(s.client_agents, '{}'::text[])	as client_agents
-  , coalesce(s.vendor_cids, '{}'::text[])	as vendor_cids
+  , coalesce(s.vendor_cuids, '{}'::text[])	as vendor_cuids
   , coalesce(s.vendor_agents, '{}'::text[])	as vendor_agents
   , coalesce(s.stock_uuids, '{}'::uuid[])	as stock_uuids
   , coalesce(s.foil_uuids, '{}'::uuid[])	as foil_uuids
@@ -105,7 +105,7 @@ view mychips.users_v_tallysum {mychips.users_v mychips.tallies_v_sum} {select
 #----------------------------------------------------------------
 view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
   t as (select
-    tally_ent, tally_seq, tally_type, tally_uuid, net, inside, part_cid, part_agent, latest
+    tally_ent, tally_seq, tally_type, tally_uuid, net, inside, part_cuid, part_agent, latest
     from mychips.tallies_v where status in ('offer','open') order by net
   ),
   s as (select tally_ent
@@ -124,7 +124,7 @@ view mychips.users_v_tallies {mychips.users_v mychips.tallies_v} {with
       , 'uuid',		tally_uuid
       , 'net',		net
       , 'inside',	inside
-      , 'part',		part_cid || ':' || part_agent
+      , 'part',		part_cuid || ':' || part_agent
       ))							as tallies
     from t group by 1
   )

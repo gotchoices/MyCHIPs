@@ -109,11 +109,11 @@ view mychips.tallies_v_paths {mychips.users_v mychips.tallies_v_edg} {
     , tt.tally_uuid as top_uuid
     , bt.tally_uuid as bot_uuid
 
-    , tt.hold_cid as top_cid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
-    , bt.hold_cid as bot_cid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
+    , tt.hold_cuid as top_cuid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
+    , bt.hold_cuid as bot_cuid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
 
-    , tif(tt,top,cid) as out_cid, tif(tt,top,agent) as out_agent, tif(tt,top,chad) as out_chad
-    , bif(bt,bot,cid) as inp_cid, bif(bt,bot,agent) as inp_agent, bif(bt,bot,chad) as inp_chad
+    , tif(tt,top,cuid) as out_cuid, tif(tt,top,agent) as out_agent, tif(tt,top,chad) as out_chad
+    , bif(bt,bot,cuid) as inp_cuid, bif(bt,bot,agent) as inp_agent, bif(bt,bot,chad) as inp_chad
 
   from	tally_path tpr
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
@@ -127,18 +127,18 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
     tp.inp, tp.out, tp.top, tp.top_tseq, tp.bot, tp.bot_tseq
   , tp.edges, tp.nodes, tp.at, tp.pat, tp.ath, tp.path, tp.uuids, tp.ents, tp.seqs
   , tp.fori, tp.foro, tp.segment, tp.bang
-  , tp.top_uuid, tp.top_cid, tp.top_agent, tp.top_chad
-  , tp.bot_uuid, tp.bot_cid, tp.bot_agent, tp.bot_chad
-  , tp.out_cid, tp.out_agent, tp.out_chad
-  , tp.inp_cid, tp.inp_agent, tp.inp_chad
+  , tp.top_uuid, tp.top_cuid, tp.top_agent, tp.top_chad
+  , tp.bot_uuid, tp.bot_cuid, tp.bot_agent, tp.bot_chad
+  , tp.out_cuid, tp.out_agent, tp.out_chad
+  , tp.inp_cuid, tp.inp_agent, tp.inp_chad
   , r.rid, r.via_ent, r.via_tseq, r.via_tally
-  , r.dst_cid, r.dst_agent
-  , r.req_ent, r.req_tseq, r.req_tally, r.req_cid, r.req_agent, r.req_chad
-  , r.rpt_cid, r.rpt_agent, r.rpt_chad
+  , r.dst_cuid, r.dst_agent
+  , r.req_ent, r.req_tseq, r.req_tally, r.req_cuid, r.req_agent, r.req_chad
+  , r.rpt_cuid, r.rpt_agent, r.rpt_chad
   , r.status
   , r.lift_count
   , r.native
-  , r.dst_cid = tp.inp_cid and r.dst_agent = tp.inp_agent as circuit
+  , r.dst_cuid = tp.inp_cuid and r.dst_agent = tp.inp_agent as circuit
   , tp.min	as path_min,	tp.margin::numeric(8,6)	as path_margin
   , tp.max	as path_max,	tp.reward::numeric(8,6)	as path_reward
   , r.min	as route_min,	r.margin::numeric(8,6)	as route_margin
@@ -165,15 +165,15 @@ view mychips.routes_v_paths {mychips.tallies_v_paths mychips.routes_v} {select
 view mychips.routes_v_query {mychips.routes_v_paths mychips.routes_v mychips.route_sorter(text,boolean)} {
   select tp.*
   , r.rid, r.via_ent, r.via_tseq, r.via_tally
-  , r.dst_cid, r.dst_agent, r.status, r.expired
+  , r.dst_cuid, r.dst_agent, r.status, r.expired
   , mychips.route_sorter(r.status, r.expired)	as sorter
   , r.via_ent is not null			as exist
-  , tp.inp_cid 					as find_cid
+  , tp.inp_cuid 				as find_cuid
   , tp.inp_agent				as find_agent
   
   from mychips.tallies_v_paths	tp
   left join mychips.routes_v	r on r.via_ent = tp.top and r.via_tseq = tp.top_tseq and
-                                     r.dst_cid = tp.inp_cid and r.dst_agent = tp.inp_agent
+                                     r.dst_cuid = tp.inp_cuid and r.dst_agent = tp.inp_agent
   where tp.segment
 }
 

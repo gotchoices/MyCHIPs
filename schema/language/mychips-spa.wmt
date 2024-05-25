@@ -35,8 +35,8 @@ tabtext mychips.tallies -lang spa {Recuentos} {Contiene una entrada para cada co
   {part_ent {Entidad socia} {El número de identificación de la entidad de la otra parte de esta cuenta}}
   {net_c {Unidades buenas firmadas} {Valor total de milliCHIP de fichas asignadas}}
   {net_pc {Firmado Pendiente} {Valor total en milliCHIP de fichas comprometidas y pendientes}}
-  {hold_cid {Titular CHIP ID} {Valor en caché de la identidad CHIP del titular del certificado del titular}}
-  {part_cid {ID de CHIP de socio} {Valor en caché de la identificación CHIP del socio del certificado del titular}}
+  {hold_cuid {Titular CHIP ID} {Valor en caché de la identidad CHIP del titular del certificado del titular}}
+  {part_cuid {ID de CHIP de socio} {Valor en caché de la identificación CHIP del socio del certificado del titular}}
   {hold_agent {Agente titular} {Valor en caché del agente del titular del certificado del titular}}
   {part_agent {Agente asociado} {Valor en caché del agente del socio del certificado del titular}}
   {hold_sets {Configuración del titular} {Los términos actuales que el titular ha afirmado en la cuenta.}}
@@ -78,11 +78,11 @@ tabtext mychips.users -lang spa {Usuarios de CHIP} {Entidades que tienen cuentas
     {lck {Aislamiento} {Cuenta en bloqueo de emergencia. No realice transacciones que resulten en una pérdida neta de crédito.}}
     {off {Desconectado} {Cuenta completamente fuera de línea. No hay intercambios posibles.}}
   }}
-  {user_hid {ID hash} {Una versión oscurecida de la identificación por la cual se puede dar como un destino más anónimo para una transacción}}
-  {peer_cid {ID DE CHIP} {Una cadena de ID o nombre, único para este usuario en el sistema de su propio proveedor de servicios CHIP. Similar a la parte del nombre de una dirección de correo electrónico: <CHIP_ID>@<Provider_host_or_IP>}}
+  {peer_huid {ID hash} {Una versión oscurecida de la identificación por la cual se puede dar como un destino más anónimo para una transacción}}
+  {peer_cuid {ID DE CHIP} {Una cadena de ID o nombre, único para este usuario en el sistema de su propio proveedor de servicios CHIP. Similar a la parte del nombre de una dirección de correo electrónico: <CHIP_ID>@<Provider_host_or_IP>}}
   {peer_agent {Agente de pares} {La dirección del agente donde se maneja el tráfico para este usuario}}
-  {peer_psig {Clave pública de pares} {La clave pública del par, conocida por otros socios comerciales y utilizada para firmar transacciones.}}
-  {peer_named {Nombre de nacimiento} {El nombre del par al nacer, utilizado en el registro de identidad del certificado}}
+  {user_psig {Clave pública de pares} {La clave pública del par, conocida por otros socios comerciales y utilizada para firmar transacciones.}}
+  {user_named {Nombre de nacimiento} {El nombre del par al nacer, utilizado en el registro de identidad del certificado}}
   {user_cmt {Comentarios de Usuarios} {Comentarios administrativos sobre este usuario}}
   {_last_tally {última cuenta} {El nombre de la entidad a la que pertenece este archivo}}
   {crt_date {Creado } {La fecha en que se creó este registro}}

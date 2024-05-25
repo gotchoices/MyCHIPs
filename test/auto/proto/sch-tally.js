@@ -7,7 +7,7 @@
 //- 
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('../common')
 var log = testLog(__filename)
-const { host, cid0, cid1, user0, user1, agent0, agent1, aKey0, aKey1 } = require('../def-users')
+const { host, cuid0, cuid1, user0, user1, agent0, agent1, aKey0, aKey1 } = require('../def-users')
 var userListen = 'mu_' + user0
 var agentListen = 'ma_' + agent0		//And his agent process
 var contract = {domain:"mychips.org", name:"standard", version:0.99}
@@ -41,7 +41,7 @@ describe("Test tally state transitions", function() {
 
   it("Build draft tally record (<start> -> draft)", function(done) {
     let comment = 'Sample tally'
-      , uuid = mkUuid(cid0, agent0)
+      , uuid = mkUuid(cuid0, agent0)
       , sql = `insert into mychips.tallies_v (tally_ent, tally_uuid, contract, comment, status)
 	    	values($1,$2,$3,$4, 'void') returning *;`
       , parms = [user0, uuid, contract, comment]
@@ -76,7 +76,7 @@ describe("Test tally state transitions", function() {
   })
 
   it("User request to promote tally to offer (draft -> draft.offer)", function(done) {
-    let sql = uSql(`request = 'offer', hold_sig = '${cid0 + ' signature'}'`, interTest.t.tally_ent, interTest.t.tally_seq)
+    let sql = uSql(`request = 'offer', hold_sig = '${cuid0 + ' signature'}'`, interTest.t.tally_ent, interTest.t.tally_seq)
       , dc = 2, _done = () => {if (!--dc) done()}	//2 _done's to be done
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
@@ -98,8 +98,8 @@ describe("Test tally state transitions", function() {
 
   it("Agent transmits, confirms change to offer (draft.offer -> H.offer)", function(done) {
     let logic = {context: ['draft.offer'], update: {status: 'offer'}}
-      , { cid, agent } = interTest.m.from
-      , msg = {to: {cid, agent}, object: interTest.m.object}
+      , { cuid, agent } = interTest.m.from
+      , msg = {to: {cuid, agent}, object: interTest.m.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -114,11 +114,11 @@ describe("Test tally state transitions", function() {
   })
 
   var peerProfferGo = function(done) {
-    let sign = {foil: cid1 + ' signature', stock:null}		//Altered and signed
+    let sign = {foil: cuid1 + ' signature', stock:null}		//Altered and signed
       , object = Object.assign({}, interTest.m.object, {sign})
       , logic = {context: ['null','void','H.offer','P.offer'], upsert: true}
-      , { cid, agent } = interTest.m.from
-      , msg = {to: {cid, agent}, object}
+      , { cuid, agent } = interTest.m.from
+      , msg = {to: {cuid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -151,8 +151,8 @@ describe("Test tally state transitions", function() {
 
   it("Agent transmits, confirms change to void (offer.void -> void)", function(done) {
     let logic = {context: ['offer.void'], update: {status: 'void'}}
-      , { cid, agent } = interTest.m.from
-      , msg = {to: {cid, agent}, object: interTest.m.object}
+      , { cuid, agent } = interTest.m.from
+      , msg = {to: {cuid, agent}, object: interTest.m.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -221,8 +221,8 @@ describe("Test tally state transitions", function() {
 
   it("Agent transmits, confirms change to draft (offer.draft -> draft)", function(done) {
     let logic = {context: ['offer.draft'], update: {status: 'draft'}}
-      , { cid, agent } = interTest.m.from
-      , msg = {to: {cid, agent}, object: interTest.m.object}
+      , { cuid, agent } = interTest.m.from
+      , msg = {to: {cuid, agent}, object: interTest.m.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -233,7 +233,7 @@ describe("Test tally state transitions", function() {
   })
 
   it("User modifies peer draft (P.draft -> draft.offer)", function(done) {
-    let sql = uSql(`request = 'offer', hold_sig = '${cid0 + ' signature'}', comment = 'A special condition'`, interTest.t.tally_ent, interTest.t.tally_seq)
+    let sql = uSql(`request = 'offer', hold_sig = '${cuid0 + ' signature'}', comment = 'A special condition'`, interTest.t.tally_ent, interTest.t.tally_seq)
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
@@ -256,8 +256,8 @@ describe("Test tally state transitions", function() {
   it("Peer rejects tally (H.offer -> void)", function(done) {
     let object = Object.assign({}, interTest.m.object)
       , logic = {context: ['H.offer'], update: {status: 'void'}}
-      , { cid, agent } = interTest.m.from
-      , msg = {to: {cid, agent}, object}
+      , { cuid, agent } = interTest.m.from
+      , msg = {to: {cuid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -272,11 +272,11 @@ describe("Test tally state transitions", function() {
   })
 
   it("Peer accepts tally (H.offer -> open)", function(done) {
-    let sign = Object.assign({}, interTest.m.object.sign, {foil: cid1 + ' signature'})
+    let sign = Object.assign({}, interTest.m.object.sign, {foil: cuid1 + ' signature'})
       , object = Object.assign({}, interTest.m.object, {sign})
       , logic = {context: ['H.offer'], upsert: true, update: {status: 'open'}}
-      , { cid, agent } = interTest.m.from
-      , msg = {to: {cid, agent}, object}
+      , { cuid, agent } = interTest.m.from
+      , msg = {to: {cuid, agent}, object}
       , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -291,7 +291,7 @@ describe("Test tally state transitions", function() {
   })
 
   it("User request to accept draft (P.offer -> offer.open)", function(done) {
-    let sql = uSql(`request = 'open', hold_sig = '${cid0 + ' signature'}'`, interTest.t.tally_ent, interTest.t.tally_seq)
+    let sql = uSql(`request = 'open', hold_sig = '${cuid0 + ' signature'}'`, interTest.t.tally_ent, interTest.t.tally_seq)
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql M:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("res:", res.rows[0])
@@ -308,8 +308,8 @@ describe("Test tally state transitions", function() {
 
   it("Agent transmits, confirms change to open (offer.open -> open)", function(done) {
     let logic = {context: ['offer.open'], update: {status: 'open'}}
-      , { cid, agent } = interTest.m.from
-      , msg = {to: {cid, agent}, object: interTest.m.object}
+      , { cuid, agent } = interTest.m.from
+      , msg = {to: {cuid, agent}, object: interTest.m.object}
       , sql = Format(`select mychips.tally_process(%L,%L) as ts;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)

@@ -7,9 +7,9 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_0",
+  "inp_cuid": "cuid_0",
   "inp_agent": "UTY1NDM1",
-  "out_cid": "cid_U",
+  "out_cuid": "cuid_U",
   "out_agent": "UDY1NDM0",
   "circuit": false
  },
@@ -18,9 +18,9 @@
   "pat": [
    "p1000"
   ],
-  "inp_cid": "cid_0",
+  "inp_cuid": "cuid_0",
   "inp_agent": "UTY1NDM1",
-  "out_cid": "cid_U",
+  "out_cuid": "cuid_U",
   "out_agent": "UDY1NDM0",
   "circuit": false
  },
@@ -30,9 +30,9 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_1",
+  "inp_cuid": "cuid_1",
   "inp_agent": "UTY1NDM1",
-  "out_cid": "cid_U",
+  "out_cuid": "cuid_U",
   "out_agent": "UDY1NDM0",
   "circuit": false
  },
@@ -45,9 +45,9 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_1",
+  "inp_cuid": "cuid_1",
   "inp_agent": "UTY1NDM1",
-  "out_cid": "cid_U",
+  "out_cuid": "cuid_U",
   "out_agent": "UDY1NDM0",
   "circuit": false
  },
@@ -58,9 +58,9 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_2",
+  "inp_cuid": "cuid_2",
   "inp_agent": "UTY1NDM1",
-  "out_cid": "cid_U",
+  "out_cuid": "cuid_U",
   "out_agent": "UDY1NDM0",
   "circuit": false
  },
@@ -72,9 +72,9 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_3",
+  "inp_cuid": "cuid_3",
   "inp_agent": "UTY1NDM1",
-  "out_cid": "cid_U",
+  "out_cuid": "cuid_U",
   "out_agent": "UDY1NDM0",
   "circuit": false
  },
@@ -87,9 +87,9 @@
    "p1001",
    "p1000"
   ],
-  "inp_cid": "cid_D",
+  "inp_cuid": "cuid_D",
   "inp_agent": "UjY1NDM2",
-  "out_cid": "cid_U",
+  "out_cuid": "cuid_U",
   "out_agent": "UDY1NDM0",
   "circuit": true
  }

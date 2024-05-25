@@ -7,7 +7,7 @@
 //-   
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('../common')
 var log = testLog(__filename)
-const { user0, user1, cid0, cid1, agent0, agent1 } = require('../def-users')
+const { user0, user1, cuid0, cuid1, agent0, agent1 } = require('../def-users')
 var userListen = 'mu_' + user0
 var agentListen = 'ma_' + agent0		//And his agent process
 var interTest = {}			//Pass values from one test to another
@@ -42,7 +42,7 @@ describe("Test payment schema", function() {
   it("Can build draft payment record", function(done) {
     let memo = 'Test payment 1'
       , units = 97654
-      , payee = {cid: cid1, agent: agent1}
+      , payee = {cuid: cuid1, agent: agent1}
       , sql = `insert into mychips.lifts_v_pay (payor_ent, find, units)
 	    	values($1,$2,$3) returning *;`
       , parms = [user0, payee, units]
@@ -62,10 +62,10 @@ describe("Test payment schema", function() {
   it("Can build/launch external payment lift", function(done) {
     let memo = 'Test payment 2'
       , ref = {invoice: 1234}
-      , sign = user0 + ' ' + cid0 + ' Signature'
+      , sign = user0 + ' ' + cuid0 + ' Signature'
       , auth = {memo, ref, sign}
       , units = 87654
-      , find = {cid: cid1, agent: agent1}
+      , find = {cuid: cuid1, agent: agent1}
       , sql = `insert into mychips.lifts_v_pay (payor_ent, find, units, payor_auth, request)
 	    	values($1,$2,$3,$4,'init') returning *;`
       , parms = [user0, find, units, auth]
@@ -79,7 +79,7 @@ describe("Test payment schema", function() {
       assert.equal(pay.status, 'draft')
       assert.equal(pay.request, 'init')
       assert.deepStrictEqual(pay.payor_auth, auth)
-      assert.equal(pay.origin.cid, cid0)
+      assert.equal(pay.origin.cuid, cuid0)
       assert.equal(pay.origin.agent, agent0)
       assert.equal(pay.payee_ent, user1)
       interTest.p2 = pay

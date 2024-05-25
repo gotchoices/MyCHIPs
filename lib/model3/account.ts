@@ -6,7 +6,7 @@ interface Account {
   /** Name of the entity */
   std_name: string
   /** Globally unique ID */
-  peer_cid: any
+  peer_cuid: any
   /** ID of the hosting server */
   host: string
   /** Something new that helps uniquely identify an account */

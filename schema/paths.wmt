@@ -45,16 +45,16 @@ tabtext mychips.tallies_v_paths	{Tally Pathways}	{A view showing network pathway
   {foro		{Output Foreign}	{True if the last node in the path is not a user on the local system}}
   {bot		{Bottom User ID}	{ID of the local user who owns the tally that is the beginning (input) link of the pathway}}
   {top		{Top User ID}		{ID of the local user who owns the tally that is the ending (output) link of the pathway}}
-  {inp_cid	{Path Input CID}	{CHIP ID of the entity this lift pathway starts with}}
+  {inp_cuid	{Path Input CID}	{CHIP User ID of the entity this lift pathway starts with}}
   {inp_agent	{Path Input Agent}	{CHIP Agent address of the entity this lift pathway starts with}}
   {inp_chad	{Path Input CHAD}	{Full CHIP address of the entity this lift pathway starts with}}
-  {out_cid	{Path Output CID}	{CHIP ID of the entity this lift pathway ends with}}
+  {out_cuid	{Path Output CID}	{CHIP User ID of the entity this lift pathway ends with}}
   {out_agent	{Path Output Agent}	{CHIP Agent address of the entity this lift pathway ends with}}
   {out_chad	{Path Output CHAD}	{Full CHIP address of the entity this lift pathway ends with}}
-  {bot_cid	{Bottom User CID}	{CHIP ID of the local user who owns the tally this lift pathway starts with}}
+  {bot_cuid	{Bottom User CID}	{CHIP User ID of the local user who owns the tally this lift pathway starts with}}
   {bot_agent	{Bottom User Agent}	{CHIP Agent address of the local user who owns the tally this lift pathway starts with}}
   {bot_chad	{Bottom User CHAD}	{Full CHIP address of the local user who owns the tally this lift pathway starts with}}
-  {top_cid	{Top User CID}		{CHIP ID of the local user who owns the tally this lift pathway ends with}}
+  {top_cuid	{Top User CID}		{CHIP User ID of the local user who owns the tally this lift pathway ends with}}
   {top_agent	{Top User Agent}	{CHIP Agent address of the local user who owns the tally this lift pathway ends with}}
   {top_chad	{Top User CHAD}		{Full CHIP address of the local user who owns the tally this lift pathway ends with}}
   {bot_uuid	{Bottom Tally ID}	{The identifier of the tally at the beginning (input) of this pathway}}
@@ -82,6 +82,6 @@ tabtext mychips.routes_v_paths	{Route Paths}	{View joining inside pathways and p
 tabtext mychips.routes_v_query	{Query Routes}	{View of possible external routes compared to existing route records} {
   {exist	{Exists}	{True if there is an existing route in our table}}
   {find_agent	{Sorter}	{Priority field for sorting routes by desirability}}
-  {find_cid	{Find CID}	{The CHIP ID of the entity at the input of the pathway}}
+  {find_cuid	{Find CUID}	{The CHIP User ID of the entity at the input of the pathway}}
   {sorter	{Find Agent}	{The agent of the entity at the input of the pathway}}
 }

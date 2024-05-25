@@ -13,8 +13,8 @@ const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModul
 const log = testLog(__filename)
 const crypto = new Crypto(log)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
-const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
-const cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
+const { cuidu, cuidd, cuidb, cuidx, cuidN } = require('./def-path')
+const cuid0 = cuidN(0), cuid2 = cuidN(2), cuid3 = cuidN(3)
 const adminListen = 'mychips_admin'
 const user3Listen = 'mu_' + user3
 var interTest = {}			//Pass values from one test to another
@@ -82,11 +82,11 @@ describe("Peer-to-peer lift testing", function() {
   })
 
   it("Create payment signature independant of DB", function(done) {
-    let uuid = mkUuid(cid3, agent1)
+    let uuid = mkUuid(cuid3, agent1)
       , memo = 'Test payment lift'
       , ref = {invoice: 4321}
       , units = 6
-      , find = {cid: cid0, agent: agent1}
+      , find = {cuid: cuid0, agent: agent1}
       , date = new Date().toISOString()
       , { key } = interTest.sign
       , core = {uuid, find, units, date, memo, ref}	//;log.debug("c:", core)
@@ -115,7 +115,7 @@ describe("Peer-to-peer lift testing", function() {
       assert.equal(pay.status, 'draft')
       assert.equal(pay.request, 'init')
       assert.deepStrictEqual(pay.payor_auth, auth)
-      assert.equal(pay.origin.cid, cid3)
+      assert.equal(pay.origin.cuid, cuid3)
       assert.equal(pay.origin.agent, agent1)
       assert.equal(pay.payee_ent, user0)
 //      interTest.p2 = pay
@@ -142,10 +142,10 @@ describe("Peer-to-peer lift testing", function() {
   it("Launch lift payment that will fail", function(done) {
     let memo = 'Test failed payment lift'
       , ref = {invoice: 5432}
-      , sign = user3 + ' ' + cid3 + ' Signature'
+      , sign = user3 + ' ' + cuid3 + ' Signature'
       , auth = {memo, ref, sign}
       , units = 5
-      , find = {cid: cid0, agent: agent1}
+      , find = {cuid: cuid0, agent: agent1}
       , sql = `insert into mychips.lifts_v_pay (payor_ent, find, units, payor_auth, request)
 	    	values($1,$2,$3,$4,'init') returning *;`
       , parms = [user3, find, units, auth]

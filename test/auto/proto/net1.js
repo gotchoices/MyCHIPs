@@ -14,7 +14,7 @@ const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJso
 const log = testLog(__filename)
 const crypto = new Crypto()
 const { host, port0, port1, port2, agent0, agent1, agent2 } = require('../def-users')
-const { cidu, cidd, cidN } = require('./def-path')
+const { cuidu, cuidd, cuidN } = require('./def-path')
 const tallySql = `insert into mychips.tallies (tally_ent, tally_uuid, tally_date, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
 const chitSql = `insert into mychips.chits (chit_ent, chit_seq, chit_uuid, units, signature, reference, status) select %L,%s,%L,%s,%L,%L,'good'`
 var agree = {domain:"mychips.org", name:"test", version:1}
@@ -41,15 +41,15 @@ describe("Initialize tally/path test data for agent1", function() {
   it("Build users: " + users, function(done) {
     let dc = users, _done = () => {if (!--dc) done()}	//_done's to be done
     for (let u = 0; u < users; u++) {
-      let cid = cidN(u)
+      let cuid = cuidN(u)
         , name = "User " + u
-        , sql = `insert into mychips.users_v (ent_name, peer_cid, peer_agent, peer_host, peer_port, user_cmt) values($1, $2, $3, $4, $5, $6) returning *;`
+        , sql = `insert into mychips.users_v (ent_name, peer_cuid, peer_agent, peer_host, peer_port, user_cmt) values($1, $2, $3, $4, $5, $6) returning *;`
       crypto.generate((keyPair, prv, pub) => {
-        db.query(sql, [name, cid, agent1, host, port1, prv], (e, res) => {if (e) done(e)
+        db.query(sql, [name, cuid, agent1, host, port1, prv], (e, res) => {if (e) done(e)
           assert.equal(res.rowCount, 1)
           let row = res.rows[0]				//;log.debug('row:', row)
           assert.equal(row.id, 'p' + (1000 + u))
-          assert.equal(row.peer_cid, cid)
+          assert.equal(row.peer_cuid, cuid)
           assert.equal(row.peer_agent, agent1)
           _done()
         })
@@ -62,13 +62,13 @@ describe("Initialize tally/path test data for agent1", function() {
     interTest.ids = []
     for (let u = 1; u < users; u++) {
       let s = u, f = u-1
-        , sCid = cidN(s), fCid = cidN(f)
-        , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
+        , sCuid = cuidN(s), fCuid = cuidN(f)
+        , tuid = mkUuid(sCuid, agent1), cuid = mkUuid(fCuid, agent1)
         , date = new Date().toISOString()
         , sId = 'p' + (1000+s), fId = 'p' + (1000+f)
-        , sCert = {chad:{cid:sCid, agent:agent1, host, port:port1}}
-        , fCert = {chad:{cid:fCid, agent:agent1, host, port:port1}}
-        , sSig = sCid + ' signature', fSig = fCid + ' signature'
+        , sCert = {chad:{cuid:sCuid, agent:agent1, host, port:port1}}
+        , fCert = {chad:{cuid:fCuid, agent:agent1, host, port:port1}}
+        , sSig = sCuid + ' signature', fSig = fCuid + ' signature'
         , units = u * 2
         , sql = `
           with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
@@ -86,18 +86,18 @@ describe("Initialize tally/path test data for agent1", function() {
         assert.equal(row1.chit_uuid, cuid)
         _done()
       })
-      interTest.ids[u] = {sId, fId, sCid, fCid, sCert, fCert, sSig, fSig}	//Save for future tests
+      interTest.ids[u] = {sId, fId, sCuid, fCuid, sCert, fCert, sSig, fSig}	//Save for future tests
     }
   })
 
   it("Build up-stream foreign tally", function(done) {
     let s= interTest.ids[1]
-      , sId = s.fId, sCid = s.fCid, sCert = s.fCert, sSig = s.fSig
-      , fCid = cidu
-      , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
+      , sId = s.fId, sCuid = s.fCuid, sCert = s.fCert, sSig = s.fSig
+      , fCuid = cuidu
+      , tuid = mkUuid(sCuid, agent1), cuid = mkUuid(fCuid, agent1)
       , date = new Date().toISOString()
-      , fCert = {chad:{cid:fCid, agent:agent0, host, port:port0}}
-      , fSig = fCid + ' signature'
+      , fCert = {chad:{cuid:fCuid, agent:agent0, host, port:port0}}
+      , fSig = fCuid + ' signature'
       , units = users * 2
       , sql = `with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
           ${Format(chitSql, sId, 't.tally_seq', cuid, units, sSig, users)} from t returning *;`
@@ -110,12 +110,12 @@ describe("Initialize tally/path test data for agent1", function() {
 
   it("Build down-stream foreign tally", function(done) {
     let f= interTest.ids[users-1]
-      , fId = f.sId, fCid = f.sCid, fCert = f.sCert, fSig = f.sSig
-      , sCid = cidd
-      , tuid = mkUuid(sCid, agent1), cuid = mkUuid(fCid, agent1)
+      , fId = f.sId, fCuid = f.sCuid, fCert = f.sCert, fSig = f.sSig
+      , sCuid = cuidd
+      , tuid = mkUuid(sCuid, agent1), cuid = mkUuid(fCuid, agent1)
       , date = new Date().toISOString()
-      , sCert = {chad:{cid:sCid, agent:agent2, host, port:port2}}
-      , sSig = sCid + ' signature'
+      , sCert = {chad:{cuid:sCuid, agent:agent2, host, port:port2}}
+      , sSig = sCuid + ' signature'
       , units = users * 2 + 2
       , sql = `with t as (${Format(tallySql, fId, tuid, date, 'foil', agree, fCert, sCert, fSig, sSig)})
           ${Format(chitSql, fId, 't.tally_seq', cuid, units, fSig, users+1)} from t returning *;`
@@ -128,8 +128,8 @@ describe("Initialize tally/path test data for agent1", function() {
 
   it("Build loop-back internal tallies", function(done) {
     let dc = 2, _done = () => {if (!--dc) done()}
-      , buildem = (sId, sCid, sCert, sSig, fId, fCid, fCert, fSig, u, units) => {
-         let tuid = mkUuid(sCid, agent0), cuid = mkUuid(fCid, agent0)
+      , buildem = (sId, sCuid, sCert, sSig, fId, fCuid, fCert, fSig, u, units) => {
+         let tuid = mkUuid(sCuid, agent0), cuid = mkUuid(fCuid, agent0)
            , date = new Date().toISOString()
            , sql = `
                with t as (${Format(tallySql, sId, tuid, date, 'stock', agree, sCert, fCert, sSig, fSig)})
@@ -149,8 +149,8 @@ describe("Initialize tally/path test data for agent1", function() {
           })
         }
     let x = interTest.ids[1], y = interTest.ids[users-1]
-    buildem (y.sId, y.sCid, y.sCert, y.sSig, x.sId, x.sCid, x.sCert, x.sSig, users+2, -(users*2+4))
-    buildem (x.fId, x.fCid, x.fCert, x.fSig, y.fId, y.fCid, y.fCert, y.fSig, users+3, users*2+6)
+    buildem (y.sId, y.sCuid, y.sCert, y.sSig, x.sId, x.sCuid, x.sCert, x.sSig, users+2, -(users*2+4))
+    buildem (x.fId, x.fCuid, x.fCert, x.fSig, y.fId, y.fCuid, y.fCert, y.fSig, users+3, users*2+6)
   })
 
 /* */

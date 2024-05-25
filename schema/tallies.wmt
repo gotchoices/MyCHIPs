@@ -60,8 +60,8 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {part_ent	{Partner Entity}	{The entity id number of the other party to this tally}}
   {net_c	{Good Units}		{Total milliCHIP value of committed chits}}
   {net_pc	{Pending Units}		{Total milliCHIP value of committed and pending chits}}
-  {hold_cid	{Holder CID}		{Cached value of holder's CHIP identity from the holder certificate}}
-  {part_cid	{Partner CID}		{Cached value of partner's CHIP identify from the holder certificate}}
+  {hold_cuid	{Holder CID}		{Cached value of holder's CHIP identity from the holder certificate}}
+  {part_cuid	{Partner CID}		{Cached value of partner's CHIP identify from the holder certificate}}
   {hold_agent	{Holder Agent}		{Cached value of holder's agent from the holder certificate}}
   {part_agent	{Partner Agent}		{Cached value of partner's agent from the holder certificate}}
   {chain_conf	{Chain Confirmed}	{The index of the last chit in the chain that has been confirmed with the partner peer (or zero for none)}}
@@ -89,8 +89,8 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
   {IVS		{Invalid Status}	{Tally status value is not valid}}
   {NSP		{Same Partner ID}	{Tally partner must be a separate entity}}
   {TNU		{Tally ID Not Unique}	{The chosen tally type and ID is not unique to the system}}
-  {UCI		{User CHIP ID}		{An open tally must include a valid user CHIP ID}}
-  {PCI		{Partner CHIP ID}	{An open tally must include a valid partner CHIP ID}}
+  {UCI		{CHIP User ID}		{An open tally must include a valid user CHIP User ID}}
+  {PCI		{Partner CHIP User ID}	{An open tally must include a valid partner CHIP User ID}}
   {UAI		{User Agent ID}		{An open tally must include a valid user agent ID}}
   {PAI		{Partner Agent ID}	{An open tally must include a valid partner agent ID}}
   {IST		{Illegal State Change}	{The executed state transition is not allowed}}

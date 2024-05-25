@@ -25,9 +25,9 @@ other lockdown {mychips} {
 
 namespace eval users {
     def users_pk	{user_ent}
-    def users_v_up	{user_host user_port user_stat user_hid peer_cid peer_agent peer_psig peer_named user_cmt}
+    def users_v_up	{user_host user_port user_stat peer_huid peer_cuid peer_agent user_psig user_named user_cmt}
     def users_v_in	[concat $users_pk $users_v_up]
-    def users_v_up_me	{user_hid peer_cid peer_psig peer_named user_cmt born_date country tax_id}
+    def users_v_up_me	{peer_huid peer_cuid user_psig user_named user_cmt born_date country tax_id}
     def users_se	[concat $users_v_in crt_by crt_date mod_by]
     def ent_se		[concat $base::ent_pk $base::ent_v_in std_name frm_name giv_name cas_name age conn_pub]
     def ent_v_in	$base::ent_v_in
@@ -42,14 +42,14 @@ table mychips.users {base.ent mychips.agents} {
   , user_host	text
   , user_port	int		
   , user_stat	varchar		not null default 'act' constraint "!mychips.users:UST" check (user_stat in ('act','lck','off'))
-  , user_hid	text		
-
-  , peer_cid	text		not null, unique (peer_cid, peer_agent)
-  , peer_agent	text	        references mychips.agents on update cascade on delete restrict
-  , peer_psig	jsonb
-  , peer_named	text
-  
+  , user_psig	jsonb
+  , user_named	text
   , user_cmt	varchar
+
+  , peer_huid	text		
+  , peer_cuid	text		not null, unique (peer_cuid, peer_agent)
+  , peer_agent	text	        references mychips.agents on update cascade on delete restrict
+  
   , _lift_check	timestamp	not null default current_timestamp
   , _last_tally	int		not null default 0
     eval(s $glob::stamps)
@@ -67,7 +67,7 @@ view mychips.users_v {mychips.users base.ent_v mychips.agents base.priv_has(text
   , greatest(ee.mod_date, ue.mod_date)					as mod_date
   , jsonb_build_object(
       'id',		ee.id
-    , 'cid',		ue.peer_cid
+    , 'cuid',		ue.peer_cuid
     , 'name',		ee.ent_name
     , 'type',		ee.ent_type
     , 'first',		ee.fir_name
@@ -139,16 +139,16 @@ $$;}
 function mychips.users_tf_biu() {mychips.users mychips.ba2b64v(bytea)} {
   returns trigger language plpgsql security definer as $$
     begin
-      if new.user_hid isnull then
+      if new.peer_huid isnull then
         loop
-          select into new.user_hid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
-          if not exists (select user_ent from mychips.users where user_hid = new.user_hid) then
+          select into new.peer_huid mychips.ba2b64v(decode(lpad(md5(random()::text),12), 'hex'));	--Make random string
+          if not exists (select user_ent from mychips.users where peer_huid = new.peer_huid) then
             exit;					-- Make sure it is unique
           end if;
         end loop;
       end if;
-      if new.peer_cid isnull then			-- Defaults to user ID if not specified
-        new.peer_cid = new.user_ent;
+      if new.peer_cuid isnull then			-- Defaults to user ID if not specified
+        new.peer_cuid = new.user_ent;
       end if;
       return new;
     end;
@@ -304,11 +304,11 @@ function {mychips.ticket_login(info jsonb)} {mychips.ticket_login(text)} {
           return null; 
         end if;
         insert into mychips.users_v (
-          ent_type, ent_name, fir_name, peer_cid, born_date,
+          ent_type, ent_name, fir_name, peer_cuid, born_date,
           user_host, user_port,
           peer_agent, peer_host, peer_port
         ) values (
-          info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cid',(info->>'born_date')::date,
+          info->>'ent_type',info->>'ent_name',info->>'fir_name',info->>'peer_cuid',(info->>'born_date')::date,
           info->>'user_host', nullif(info->>'user_port','')::int,
           info->>'peer_agent', info->>'peer_host', nullif(info->>'peer_port','')::int
         )

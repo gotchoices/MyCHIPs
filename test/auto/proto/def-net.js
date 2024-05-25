@@ -42,11 +42,11 @@ module.exports = {
         let type = 'p'
           , num = SiteBase * 10 + idx * SiteBase + u
           , id = type + num
-          , cid = 'c_' + idx + '_' + u
+          , cuid = 'c_' + idx + '_' + u
           , listen = 'mu_' + id
           , name = 'User ' + id
           , dConf = new dbConf(log, listen, dbName)
-          , user = {site, name, type, num, id, cid, agent, dConf}
+          , user = {site, name, type, num, id, cuid, agent, dConf}
         userData[id] = user			//;log.debug("User:", user)
       }
     }

@@ -50,5 +50,5 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {keypass	{Key Pass Phrase}	{Your exported key is protected by a pass phrase which you must remember in order to import the key again later.  This will prevent others from discovering your secret key.}}
   {keybio	{Biometric Validation}	{Your private key is kept encrypted on your device for protection from others.  It can only be accessed by providing your biometric validation.}}
   {biofail	{Biometric Failure}	{Unable to access your private key because your biometric validation failed.}}
-  {entercid	{Enter CHIP ID}		{Choose a string of characters by which your trading partners will address you (similar to an email address)}}
+  {entercid	{Enter CHIP User ID}	{Choose a string of characters by which your trading partners will address you at this agent (similar to an email address)}}
 }

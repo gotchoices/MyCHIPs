@@ -6,8 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { Lift } from '../@types/models'
 
 const userSql = `select id, std_name, ent_name, fir_name, ent_type, user_ent,
-	peer_cid, peer_agent, peer_host, peer_port, mychips.user_cert(id) as cert, stocks, foils, part_cids, vendors, clients,
-	vendor_cids, vendor_agents, client_cids, stock_seqs, foil_seqs, net, types, seqs, targets
+	peer_cuid, peer_agent, peer_host, peer_port, mychips.user_cert(id) as cert, stocks, foils, part_cuids, vendors, clients,
+	vendor_cuids, vendor_agents, client_cuids, stock_seqs, foil_seqs, net, types, seqs, targets
 	from mychips.users_v_tallysum
 	where not user_ent isnull`
 const parmQuery = "select parm,value from base.parm_v where module = 'agent'"
@@ -257,10 +257,10 @@ class SQLManager {
   }
 
   /** Starts a lift starting from a given peer. I don't know what it means to have a bottom or end peer though... */
-  requestLift(start_peer_cid: string, end_peer_cid?: string): void {
+  requestLift(start_peer_cuid: string, end_peer_cuid?: string): void {
     this.dbConnection.query(
       'select mychips.lift_circuit($1, $2)',
-      [start_peer_cid, end_peer_cid],
+      [start_peer_cuid, end_peer_cuid],
       (err, result) => {
         if (err) {
           this.logger.error("Can't start a lift:", err)

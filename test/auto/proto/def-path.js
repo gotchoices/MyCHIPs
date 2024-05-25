@@ -1,8 +1,8 @@
 
 module.exports = {
-  cidu: 'cid_U',
-  cidd: 'cid_D',
-  cidb: 'cid_B',
-  cidx: 'cid_X',
-  cidN: function(n) {return 'cid_' + n}
+  cuidu: 'cuid_U',
+  cuidd: 'cuid_D',
+  cuidb: 'cuid_B',
+  cuidx: 'cuid_X',
+  cuidN: function(n) {return 'cuid_' + n}
 }

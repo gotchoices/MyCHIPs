@@ -74,7 +74,7 @@ class MongoManager implements WorldManagerInterface {
 
       this.analyticsLiftCollection = this.dbConnection.collection('lifts')
       this.analyticsServerCollection = this.dbConnection.collection('servers')
-      //      this.docAg.createIndex({peer_cid: 1}, {unique: true})		//Should be multicolumn: cid, host
+      //      this.docAg.createIndex({peer_cuid: 1}, {unique: true})		//Should be multicolumn: cid, host
       //      this.docAg.countDocuments((e,r)=>{if (!e) this.worldPop = r})	//Actual people in doc DB
       this.logger.trace('Connected to mongo simulation DB')
 
@@ -92,7 +92,7 @@ class MongoManager implements WorldManagerInterface {
 
   updateOneAccount(account: AccountData) {
     this.accountsCollection.updateOne(
-      { peer_cid: account.peer_cid, host: account.peer_host },
+      { peer_cuid: account.peer_cuid, host: account.peer_host },
       { $set: account },
       { upsert: true },
       (e, r) => {
@@ -113,7 +113,7 @@ class MongoManager implements WorldManagerInterface {
     const maxFoils = 5
     const query = {
       //Look for a trading partner
-      peer_cid: {
+      peer_cuid: {
         $ne: hostedAccountPeerCid, //Don't find myself
         $nin: alreadyConnectedAccounts, //Or anyone I'm already connected to
       },
@@ -147,7 +147,7 @@ class MongoManager implements WorldManagerInterface {
           if (res.ok && res && res.value) {
             this.logger.debug(
               '  Best peer:',
-              res?.value?.peer_cid,
+              res?.value?.peer_cuid,
               res?.value?.agent
             )
             callback(res.value)
@@ -170,7 +170,7 @@ class MongoManager implements WorldManagerInterface {
       {
         //Delete any strays left in world db
         host: this.host,
-        peer_cid: { $nin: accountsToKeep },
+        peer_cuid: { $nin: accountsToKeep },
       },
       (e, r) => {
         if (e) this.logger.error(e.message)

@@ -23,8 +23,8 @@ var interTest = {}			//Pass values from one test to another
 
 //Establish a tally between two users
 const establishTally = function(dataO, dataS, units) {
-  const dbcO = dataO.dConf, cidO = dataO.cid, userO = dataO.id, agentO = dataO.agent
-  const dbcS = dataS.dConf, cidS = dataS.cid, userS = dataS.id, agentS = dataS.agent
+  const dbcO = dataO.dConf, cuidO = dataO.cuid, userO = dataO.id, agentO = dataO.agent
+  const dbcS = dataS.dConf, cuidS = dataS.cuid, userS = dataS.id, agentS = dataS.agent
   const busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
   
@@ -60,7 +60,7 @@ const establishTally = function(dataO, dataS, units) {
       assert.ok(!tal.part_ent)
       assert.equal(tal.status,'draft')
       assert.equal(tal.tally_type,'foil')
-      assert.equal(tal.hold_cid,cidO)
+      assert.equal(tal.hold_cuid,cuidO)
       let ticket = res[2].rows[0]		;log.debug("Ticket:", ticket)
       interTest.tallyO = tal
       interTest.ticket = ticket
@@ -83,8 +83,8 @@ const establishTally = function(dataO, dataS, units) {
       let tally = msg.object		//,x=log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
         , stock = tally.stock
         , foil = tally.foil
-      assert.equal(foil.cert.chad.cid, cidO)
-      assert.equal(stock.cert.chad.cid, cidS)
+      assert.equal(foil.cert.chad.cuid, cuidO)
+      assert.equal(stock.cert.chad.cuid, cuidS)
       assert.ok(!tally.sign.stock)	//;log.debug("sign:", tally.sign)
       assert.ok(!tally.sign.foil)
       _done()
@@ -124,9 +124,9 @@ const establishTally = function(dataO, dataS, units) {
       let tally = msg.object			//;log.debug("S tally:", tally, tally.stock.cert.chad)
         , stock = tally.stock
         , foil = tally.foil
-      assert.equal(foil.cert.chad.cid, cidO)
+      assert.equal(foil.cert.chad.cuid, cuidO)
       assert.equal(foil.cert.chad.agent, agentO)
-      assert.equal(stock.cert.chad.cid, cidS)
+      assert.equal(stock.cert.chad.cuid, cuidS)
       assert.equal(stock.cert.chad.agent, agentS)
       assert.ok(!tally.sign.stock)		//;log.debug("sign:", tally.sign)
       assert.ok(!!tally.sign.foil)
@@ -186,10 +186,10 @@ const establishTally = function(dataO, dataS, units) {
   })
 
   it("Create chit signature independant of DB", function(done) {
-    let uuid = mkUuid(cidO, agentO)
+    let uuid = mkUuid(cuidO, agentO)
       , type = 'tran'
       , by = 'foil'
-      , ref = {payee: cidS}
+      , ref = {payee: cuidS}
       , memo = 'Pay: ' + units
       , tally = interTest.tallyO.tally_uuid
       , date = new Date().toISOString()
@@ -271,20 +271,20 @@ describe("Create simulated network", function() {
 
   Object.values(userData).forEach(u => {	//log.debug('User:', u)
     let sql = `insert into mychips.users_v 
-        (ent_type, ent_num, ent_name, peer_cid, peer_agent, peer_host, peer_port, user_cmt, peer_psig)
+        (ent_type, ent_num, ent_name, peer_cuid, peer_agent, peer_host, peer_port, user_cmt, user_psig)
         values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning *;`
       , { agent, aConf } = u.site
       , private = JSON.stringify(u.private)
     
     it("Build user: " + u.id + " on site " + u.site.idx, function(done) {
       crypto.generate((keyPair, private, public, err) => {if (err) done(err)
-        let parms = [u.type, u.num, u.name, u.cid, u.agent, aConf.host, aConf.port, private, public]
+        let parms = [u.type, u.num, u.name, u.cuid, u.agent, aConf.host, aConf.port, private, public]
         Object.assign(u, {private, public})		//;log.debug('Sql:', sql, parms)
         u.site.db.query(sql, parms, (e, res) => {if (e) done(e)
           assert.equal(res.rowCount, 1)
           let row = res.rows[0]				//;log.debug('row:', row)
           assert.equal(row.id, u.id)
-          assert.equal(row.peer_cid, u.cid)
+          assert.equal(row.peer_cuid, u.cuid)
           assert.equal(row.peer_agent, u.agent)
 //        assert.equal(row.user_cmt, u.private)
           done()
@@ -307,17 +307,17 @@ describe("Create simulated network", function() {
       , text = ''
     siteData.forEach(s => {  			//log.debug("S:", s.idx, s)
       let t = `  subgraph cluster_${s.idx} {\n    label = "Site: ${s.idx}, Agent: ${s.agent}"\n`
-      Object.values(userData).forEach(u => {	//log.debug("U-check:", u.cid, u.site.idx)
+      Object.values(userData).forEach(u => {	//log.debug("U-check:", u.cuid, u.site.idx)
         if (u.site.idx == s.idx) {
-          t += `    ${u.cid} [label="${u.id}\n${u.cid}"];\n`
+          t += `    ${u.cuid} [label="${u.id}\n${u.cuid}"];\n`
         }
       text += t + `\n  }\n\n`
       })
     })
     tallyData.forEach(t => {
       let [orig, subj, units ] = t
-        , cidO = userData[orig].cid, cidS = userData[subj].cid
-      text += `  ${cidO} -> ${cidS} [label="${units}"]\n`
+        , cuidO = userData[orig].cuid, cuidS = userData[subj].cuid
+      text += `  ${cuidO} -> ${cuidS} [label="${units}"]\n`
     })
     text += `\n`
     
