@@ -27,13 +27,13 @@ class FindNewIncomeSource implements Action {
         Math.random() < this.account.newIncomeSourceOdds)
     ) {
       this.worldDBManager.findPeerAndUpdate(
-        this.account.peer_cid,
+        this.account.peer_cuid,
         this.account.incomeSources,
         (newPeer: AccountData) => {
           this.logger.debug(
-            this.account.peer_cid,
+            this.account.peer_cuid,
             ' attempting new income source with ',
-            newPeer.peer_cid
+            newPeer.peer_cuid
           )
         }
       )

@@ -11,7 +11,7 @@ class BaseAccount implements Account {
   std_name: string
   ent_name: string
   first_name: string
-  peer_cid: any
+  peer_cuid: any
   agent: string
   certificate: certificate
   host: string
@@ -76,7 +76,7 @@ class BaseAccount implements Account {
     this.std_name = accountData.std_name
     this.ent_name = accountData.ent_name
     this.first_name = accountData.fir_name
-    this.peer_cid = accountData.peer_cid
+    this.peer_cuid = accountData.peer_cuid
     this.agent = accountData.peer_agent
     this.certificate = accountData.cert
     this.host = accountData.peer_host || host
@@ -88,16 +88,16 @@ class BaseAccount implements Account {
     this.numSpendingTargets = accountData.foils || 0
     this.foilSequenceNums = accountData.foil_seqs || []
     this.spendingTargets = accountData.vendors || []
-    this.spendingTargetCids = accountData.vendor_cids || []
+    this.spendingTargetCids = accountData.vendor_cuids || []
     this.spendingTargetAgents = accountData.vendor_agents || []
 
     this.numIncomeSources = accountData.stocks || 0
     this.stockSequenceNums = accountData.stock_seqs || []
     this.incomeSources = accountData.clients || []
-    this.incomeSourceCids = accountData.client_cids || []
+    this.incomeSourceCids = accountData.client_cuids || []
     this.incomeSourceAgents = accountData.client_agents || []
 
-    this.partnerCids = accountData.part_cids || []
+    this.partnerCids = accountData.part_cuids || []
     this.targets = accountData.targets || []
     this.sequenceNums = accountData.seqs || []
     this.tallyTypes = accountData.types || []
@@ -130,7 +130,7 @@ class BaseAccount implements Account {
   acceptNewConnection(message: any) {
     // I don't know how to tell the difference between types of connections (whether this account is the income source or spending target)
     // As a default Account, we will always accept a connection
-    this.logger.debug(this.peer_cid, 'is accepting a connection request!')
+    this.logger.debug(this.peer_cuid, 'is accepting a connection request!')
     this.myChipsDBManager.updateConnectionRequest(
       message.entity,
       message.sequence,
@@ -151,12 +151,12 @@ class BaseAccount implements Account {
   }
 
   updateAccountData(accountData: AccountData): void {
-    this.logger.trace(this.peer_cid, 'is getting updated info')
+    this.logger.trace(this.peer_cuid, 'is getting updated info')
     this.id = accountData.id
     this.std_name = accountData.std_name
     this.ent_name = accountData.ent_name
     this.first_name = accountData.fir_name
-    this.peer_cid = accountData.peer_cid
+    this.peer_cuid = accountData.peer_cuid
     this.agent = accountData.peer_agent
     this.certificate = accountData.cert
     this.host = accountData.peer_host
@@ -166,17 +166,17 @@ class BaseAccount implements Account {
 
     this.numSpendingTargets = accountData.foils
     this.spendingTargets = accountData.vendors
-    this.spendingTargetCids = accountData.vendor_cids || []
+    this.spendingTargetCids = accountData.vendor_cuids || []
     this.foilSequenceNums = accountData.foil_seqs
     this.spendingTargetAgents = accountData.vendor_agents || []
 
     this.numIncomeSources = accountData.stocks
     this.incomeSources = accountData.clients
-    this.incomeSourceCids = accountData.client_cids || []
+    this.incomeSourceCids = accountData.client_cuids || []
     this.stockSequenceNums = accountData.stock_seqs
     this.incomeSourceAgents = accountData.client_agents || []
 
-    this.partnerCids = accountData.part_cids
+    this.partnerCids = accountData.part_cuids
     this.targets = accountData.targets || []
     this.sequenceNums = accountData.seqs
     this.tallyTypes = accountData.types || []
@@ -191,7 +191,7 @@ class BaseAccount implements Account {
       fir_name: this.first_name,
       ent_type: this.entity_type,
       user_ent: this.id,
-      peer_cid: this.peer_cid,
+      peer_cuid: this.peer_cuid,
       peer_host: this.host,
       peer_agent: this.agent,
       peer_port: this.port,
@@ -200,17 +200,17 @@ class BaseAccount implements Account {
 
       stocks: this.numIncomeSources,
       clients: this.incomeSources,
-      client_cids: this.incomeSourceCids,
+      client_cuids: this.incomeSourceCids,
       stock_seqs: this.stockSequenceNums,
       client_agents: this.incomeSourceAgents,
 
       foils: this.numSpendingTargets,
       vendors: this.spendingTargets,
-      vendor_cids: this.spendingTargetCids,
+      vendor_cuids: this.spendingTargetCids,
       foil_seqs: this.foilSequenceNums,
       vendor_agents: this.spendingTargetAgents,
 
-      part_cids: this.partnerCids,
+      part_cuids: this.partnerCids,
       targets: this.targets,
       types: this.tallyTypes,
       net: this.netWorth,
@@ -222,7 +222,7 @@ class BaseAccount implements Account {
     this.calculateSatisfaction()
     return {
       name: this.std_name,
-      peer_cid: this.peer_cid,
+      peer_cuid: this.peer_cuid,
       id: this.id,
       stocks: this.numIncomeSources,
       foils: this.numSpendingTargets,

@@ -28,14 +28,14 @@ class FindXClients implements Action {
     ) {
       for (var i = this.numClients; i <= this.numClients; --i) {
         this.worldDBManager.findPeerAndUpdate(
-          this.account.peer_cid,
+          this.account.peer_cuid,
           this.account.incomeSources,
           (newPeer: AccountData) => {
             this.logger.debug(
               'retailer: ',
-              this.account.peer_cid,
+              this.account.peer_cuid,
               ' attempting new client with ',
-              newPeer.peer_cid
+              newPeer.peer_cuid
             )
           }
         )

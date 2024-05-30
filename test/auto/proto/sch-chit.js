@@ -7,7 +7,7 @@
 //- 
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient } = require('../common')
 var log = testLog(__filename)
-const { host, cid0, cid1, user0, user1, agent0, agent1, aKey0, aKey1 } = require('../def-users')
+const { host, cuid0, cuid1, user0, user1, agent0, agent1, aKey0, aKey1 } = require('../def-users')
 var userListen = 'mu_' + user0
 var agentListen = 'ma_' + agent0		//And his agent process
 var contract = {domain:"mychips.org", name:"standard", version:0.99}
@@ -51,7 +51,7 @@ describe("Test chit state transitions", function() {
   })
 
   it("Build draft invoice chit record (<start> -> A.draft.pend)", function(done) {
-    let uuid = mkUuid(cid0, agent0, 'chit')
+    let uuid = mkUuid(cuid0, agent0, 'chit')
       , ent = interTest.tally.tally_ent
       , seq = interTest.tally.tally_seq
       , value = 123400
@@ -78,7 +78,7 @@ describe("Test chit state transitions", function() {
     busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
       assert.equal(msg.target, 'chit')
       assert.equal(msg.action, 'pend')
-      assert.equal(msg.to.cid, cid1)
+      assert.equal(msg.to.cuid, cuid1)
       assert.equal(msg.to.agent, agent1)
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.deepStrictEqual(obj.ref, ref)
@@ -94,8 +94,8 @@ describe("Test chit state transitions", function() {
   })
 
   it("Build generic transmit messages for later tests", function() {
-    let { cid, agent } = interTest.from		//Return message to sender
-      , msg = {to: {cid, agent}, object: interTest.chit}
+    let { cuid, agent } = interTest.from		//Return message to sender
+      , msg = {to: {cuid, agent}, object: interTest.chit}
     interTest.pSql = (logic, uuid) => {
       if (uuid) {msg.object.uuid = uuid}
       return Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
@@ -153,10 +153,10 @@ describe("Test chit state transitions", function() {
 
   it("Peer accepts invoice chit (A.pend -> A.good)", function(done) {
     let cmt = 'A modified comment'
-      , object = Object.assign({}, interTest.chit, {for:cmt, sign: cid1 + ' signature'})
+      , object = Object.assign({}, interTest.chit, {for:cmt, sign: cuid1 + ' signature'})
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
-      , { cid, agent } = interTest.from
-      , msg = {to: {cid, agent}, object}
+      , { cuid, agent } = interTest.from
+      , msg = {to: {cuid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -167,12 +167,12 @@ describe("Test chit state transitions", function() {
   })
 
   it("Agent receives good, signed chit (<start> -> A.good)", function(done) {
-    let uuid = mkUuid(cid1, agent1, 'chit')
+    let uuid = mkUuid(cuid1, agent1, 'chit')
       , units = 987654
-      , object = Object.assign({}, interTest.chit, {uuid, units, sign: cid1 + ' signature'})
+      , object = Object.assign({}, interTest.chit, {uuid, units, sign: cuid1 + ' signature'})
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
-      , { cid, agent } = interTest.from
-      , msg = {to: {cid, agent}, object}
+      , { cuid, agent } = interTest.from
+      , msg = {to: {cuid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -183,14 +183,14 @@ describe("Test chit state transitions", function() {
   })
 
   it("Build committed chit record (<start> -> L.pend.good)", function(done) {
-    let uuid = mkUuid(cid0, agent0, 'chit')
+    let uuid = mkUuid(cuid0, agent0, 'chit')
       , ent = interTest.tally.tally_ent
       , seq = interTest.tally.tally_seq
       , by = 'stock'			//Liability
       , value = 123456	
       , ref = {cmt: 'Uninvoiced transfer'}
       , request = 'good'
-      , signature = cid0 + ' signature'
+      , signature = cuid0 + ' signature'
       , dc = 2, _done = () => {if (!--dc) done()}
       , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, reference, request, signature)
           values (%L, %s, %L, 'tran', %L, %s, %L, %L, %L) returning *`, ent, seq, uuid, by, value, ref, request, signature)
@@ -209,7 +209,7 @@ describe("Test chit state transitions", function() {
     busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
       assert.equal(msg.target, 'chit')
       assert.equal(msg.action, 'good')
-      assert.equal(msg.to.cid, cid1)
+      assert.equal(msg.to.cuid, cuid1)
       assert.equal(msg.to.agent, agent1)
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.deepStrictEqual(obj.ref, ref)
@@ -223,13 +223,13 @@ describe("Test chit state transitions", function() {
   })
 
   it("Agent receives invoice chit (<start> -> A.good)", function(done) {
-    let uuid = mkUuid(cid1, agent1, 'chit')
+    let uuid = mkUuid(cuid1, agent1, 'chit')
       , by = 'stock'
       , units = 87654
       , object = Object.assign({}, interTest.chit, {uuid, by, units})
       , logic = {context: ['null','L.void','L.pend'], upsert: {status: 'pend'}}
-      , { cid, agent } = interTest.from
-      , msg = {to: {cid, agent}, object}
+      , { cuid, agent } = interTest.from
+      , msg = {to: {cuid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -272,13 +272,13 @@ describe("Test chit state transitions", function() {
   })
 
   it("Agent receives revised good, signed chit (A.void -> A.good)", function(done) {
-    let uuid = mkUuid(cid1, agent1, 'chit')
+    let uuid = mkUuid(cuid1, agent1, 'chit')
       , by = 'foil'
       , units = 32500
-      , object = Object.assign({}, interTest.chit, {uuid, by, units, sign: cid1 + ' signature'})
+      , object = Object.assign({}, interTest.chit, {uuid, by, units, sign: cuid1 + ' signature'})
       , logic = {context: ['null','A.void','A.draft','A.pend'], upsert: {status: 'good'}}
-      , { cid, agent } = interTest.from
-      , msg = {to: {cid, agent}, object}
+      , { cuid, agent } = interTest.from
+      , msg = {to: {cuid, agent}, object}
       , sql = Format(`select mychips.chit_process(%L,%L) as cs;`, msg, logic)
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => { if (e) done(e)
@@ -293,7 +293,7 @@ describe("Test chit state transitions", function() {
   })
 
   it("User accepts invoice chit (L.pend -> L.pend.good)", function(done) {
-    let sql = uSql(`request = 'good', signature = '` + cid0 + ` signature'`, user0, interTest.chit.uuid)
+    let sql = uSql(`request = 'good', signature = '` + cuid0 + ` signature'`, user0, interTest.chit.uuid)
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
     dbU.query(sql, null, (e, res) => {if (e) done(e)
@@ -319,7 +319,7 @@ describe("Test chit state transitions", function() {
   })
 
   it("Commit trading variable chit record (<start> -> User.pend.good)", function(done) {
-    let uuid = mkUuid(cid0, agent0, 'chit')
+    let uuid = mkUuid(cuid0, agent0, 'chit')
       , ent = interTest.tally.tally_ent
       , seq = interTest.tally.tally_seq
       , ref = {
@@ -332,7 +332,7 @@ describe("Test chit state transitions", function() {
       }
       , by = 'stock'
       , request = 'good'
-      , signature = cid0 + ' signature'
+      , signature = cuid0 + ' signature'
       , dc = 2, _done = () => {if (!--dc) done()}
       , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, reference, request, signature)
           values (%L, %s, %L, 'set', %L, %L, %L, %L) returning *`, ent, seq, uuid, by, ref, request, signature)
@@ -350,7 +350,7 @@ describe("Test chit state transitions", function() {
     busA.register('pa', (msg) => {		//log.debug('BusA:', msg, msg.to, msg.from)
       assert.equal(msg.target, 'chit')
       assert.equal(msg.action, 'good')
-      assert.equal(msg.to.cid, cid1)
+      assert.equal(msg.to.cuid, cuid1)
       assert.equal(msg.to.agent, agent1)
       let obj = msg.object			//;log.debug("A obj:", JSON.stringify(obj))
       assert.deepStrictEqual(obj.ref, ref)

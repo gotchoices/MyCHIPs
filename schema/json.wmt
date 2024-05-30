@@ -14,7 +14,7 @@ tabtext json.cert {JSON Certificate}	{JSON view of user certificates primarily m
 }
 
 tabtext json.user {JSON User Import} {JSON view of users dedicated to importing user accounts} {
-  {cid		{CHIP ID}		{The name by which this user is addressed in CHIP contracts and transactions}}
+  {cuid		{CHIP User ID}		{The name by which this user is identified by its agent}}
   {agent	{Agent Address}		{The name and public key of a process that handles CHIP transactions for this user}}
   {name		{Entity Name}		{The surname or company name for the CHIP user entity}}
   {type		{Entity Type}		{A one-letter code indicating p:person, o:organization, g:group}}

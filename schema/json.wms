@@ -15,7 +15,7 @@ schema json {}
 #----------------------------------------------------------------
 view json.user {json mychips.users_v} {select
     id		as "id"
-  , peer_cid	as "cid"
+  , peer_cuid	as "cuid"
   , peer_agent	as "agent"
   , ent_name	as "name"
   , ent_type	as "type"
@@ -23,7 +23,7 @@ view json.user {json mychips.users_v} {select
   , mid_name	as "middle"
   , pref_name	as "prefer"
   , born_date	as "begin"
-  , peer_named	as "named"
+  , user_named	as "named"
   , country	as "juris"
   , tax_id	as "taxid"
     from mychips.users_v where not user_ent is null with cascaded check option;
@@ -79,7 +79,7 @@ view json.file {json base.file_v mychips.ba2b64v(bytea)} {select
 # Nested view of users dedicated to JSON export
 #----------------------------------------------------------------
 view json.users {json.user json.place json.connect} {select
-  cid, agent, name, type, first, middle, prefer, begin, juris, taxid
+  cuid, agent, name, type, first, middle, prefer, begin, juris, taxid
   , (select array_agg(to_jsonb(d)) from (select type,address,city,state,post,country,main,comment,prior from json.place p where p.id = u.id order by seq) d) as place
   , (select array_agg(to_jsonb(d)) from (select media,address,main,comment,prior from json.connect c where c.id = u.id order by seq) d) as connect
     from json.user u;
@@ -112,7 +112,7 @@ view json.tally {json mychips.tallies_v} {select
 #  , token_seq		as "seq"
 #  , url		as "url"
 #  , token		as "token"
-#  , peer_psig		as "public"
+#  , user_psig		as "public"
 #  , exp_date		as "expires"
 #    from	mychips.tickets_v
 #} -primary {id seq}
@@ -136,13 +136,13 @@ view json.contract {json mychips.contracts_v} {select
 #----------------------------------------------------------------
 view json.cert {json mychips.users_v json.connect json.place json.file mychips} {select p.id
   , jsonb_strip_nulls(jsonb_build_object(
-       'cid', p.peer_cid
+       'cuid', p.peer_cuid
      , 'agent', p.peer_agent
      , 'host', p.peer_host
      , 'port', p.peer_port
     )) as "chad"
   , p.ent_type	as "type"
-  , p.peer_psig	as "public"
+  , p.user_psig	as "public"
   , case when p.ent_type = 'o' then
       to_jsonb(p.ent_name)
     else
@@ -163,7 +163,7 @@ view json.cert {json mychips.users_v json.connect json.place json.file mychips} 
   , jsonb_strip_nulls(jsonb_build_object(
       'state', jsonb_strip_nulls(jsonb_build_object('country', country, 'id', tax_id)),
       'birth', jsonb_strip_nulls(jsonb_build_object(
-        'name', p.peer_named,
+        'name', p.user_named,
         'date', p.born_date,
         'place', (select jsonb_strip_nulls(to_jsonb(d)) from (
           select address,city,state,post,country,comment from json.place a
@@ -188,7 +188,7 @@ function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
     mid_name text;
     pref_name text;
     born_date date;
-    peer_named text;
+    user_named text;
     tax_id text;
     country text;
     irec record;
@@ -212,24 +212,24 @@ function {json.cert_tf_ii()} {json.import(jsonb,text,jsonb)} {
       if not ident->'birth' isnull then			--Birth ID
         birth_place = ident->'birth'->'place';
         born_date = (ident->'birth'->>'date')::date;
-        peer_named = ident->'birth'->>'name';		--Birth name
+        user_named = ident->'birth'->>'name';		--Birth name
       end if;
     end if;
 
     select into urec * from mychips.users_v u where	--Do we already have this person
-      u.peer_psig = new.public or (u.peer_cid = new.chad->>'cid' and u.peer_agent = new.chad->>'agent');
+      u.user_psig = new.public or (u.peer_cuid = new.chad->>'cuid' and u.peer_agent = new.chad->>'agent');
 --    if not urec.user_ent isnull then			--This is one of our local users
 --      new.id = urec.id;					--So we can return the old record
 --      return new;					--Don't import anything
 --    end if;
 
-    insert into mychips.users_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cid, peer_agent, peer_host, peer_port, peer_psig, peer_named)
-      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chad->>'cid', new.chad->>'agent', new.chad->>'host', (new.chad->>'port')::int, new.public, peer_named)
+    insert into mychips.users_v (ent_name, fir_name, mid_name, pref_name, ent_type, born_date, tax_id, country, peer_cuid, peer_agent, peer_host, peer_port, user_psig, user_named)
+      values (ent_name, fir_name, mid_name, pref_name, new.type, born_date, tax_id, country, new.chad->>'cuid', new.chad->>'agent', new.chad->>'host', (new.chad->>'port')::int, new.public, user_named)
 --        on conflict (base.ent.country, base.ent.tax_id) do update set
 --        on conflict (mychips.users_v.country, mychips.users_v.tax_id) do update set
 --        on conflict on constraint ent_country_tax_id do update set
 --        on conflict on constraint base.ent.ent_country_tax_id do update set
---          ent_name = ent_name, fir_name = firname, mid_name = mid_name, pref_name = pref_name, peer_cid = new.chad->>'cid', peer_agent = new.chad->>'agent', peer_host = new.chad->>'host', peer_port = (new.chad->>'port')::int, peer.psig = new.public
+--          ent_name = ent_name, fir_name = firname, mid_name = mid_name, pref_name = pref_name, peer_cuid = new.chad->>'cuid', peer_agent = new.chad->>'agent', peer_host = new.chad->>'host', peer_port = (new.chad->>'port')::int, peer.psig = new.public
       returning id into irec;
     new.id = irec.id;
     

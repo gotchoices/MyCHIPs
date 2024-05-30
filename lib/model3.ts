@@ -238,7 +238,7 @@ class AccountCluster {
         )
         this.worldDBManager.updateOneAccount(newAccount.getAccountData())
         this.hostedAccounts.push(newAccount)
-        hostedAccountIds.push(newAccount.peer_cid)
+        hostedAccountIds.push(newAccount.peer_cuid)
       }
 //throw('junk')
       // Start the simulation! It starts here because it can't start until the accounts are loaded and that happens here in a callback to an async method.
@@ -247,9 +247,9 @@ class AccountCluster {
       this.logger.debug('Updating my local accounts')
       dbAccounts.forEach((accountData) => {
         this.hostedAccounts.forEach((hostedAccount) => {
-          if (hostedAccount.peer_cid == accountData.peer_cid) {
+          if (hostedAccount.peer_cuid == accountData.peer_cuid) {
             this.logger.trace(
-              `\n${accountData.peer_cid}`
+              `\n${accountData.peer_cuid}`
               // :\nkey:\t\t\t\told:\t\t\t\tnew:`
             )
             // Object.keys(accountData).forEach((key) => {
@@ -302,9 +302,9 @@ class AccountCluster {
       this.runCounter,
       account.id,
       account.std_name,
-      account.peer_cid
+      account.peer_cuid
     )
-    this.logger.trace('Processing account:', account.peer_cid)
+    this.logger.trace('Processing account:', account.peer_cuid)
 
     account.takeAction()
 

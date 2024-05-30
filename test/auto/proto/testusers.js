@@ -7,7 +7,7 @@
 const { DBName, Schema, dbConf, testLog, Format, Bus, assert, dbClient, Crypto, pgCheck, Data, importCheck, dropDB } = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
-var { host, user0, user1, port0, port1, agent0, agent1, aCon0, aCon1, cid0, cid1 } = require('../def-users')
+var { host, user0, user1, port0, port1, agent0, agent1, aCon0, aCon1, cuid0, cuid1 } = require('../def-users')
 var interTest = {}
 
 describe("Establish test users", function() {
@@ -59,7 +59,7 @@ log.debug('res:', res, 'row:', row)
   
   it("Initialize test users", function(done) {
 //log.debug("Key:", agent0.key.publicKey)
-    let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, peer_psig=%L, user_cmt=%L'
+    let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, user_psig=%L, user_cmt=%L'
       , f0 = Format(fields, host, port0, agent0, interTest.uKey0, interTest.rKey0)
       , f1 = Format(fields, host, port1, agent1, interTest.uKey1, interTest.rKey1)
       , sql = `begin;

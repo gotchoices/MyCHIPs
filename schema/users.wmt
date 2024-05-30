@@ -9,12 +9,12 @@ tabtext mychips.users	{CHIP Users}		{Entities who have CHIP accounts on this ser
     {lck		{Lockdown}		{Account in emergency lockdown.  Do not conduct trades which result in a net loss of credit.}}
     {off		{Offline}		{Account completely off line.  No trades possible.}}
   }}
-  {peer_cid		{CHIP ID}		{An ID string or name, unique to this user on its own CHIP service provider's system.  Similar to the name portion of an email address: <CHIP_ID>@<Provider_host_or_IP>}}
-  {peer_agent		{Agent}			{The agent address where traffic is handled for this user}}
-  {peer_psig		{Public Key}		{The user's public key, known to other trading partners and used for verifying transactions}}
-  {peer_named		{Birth Name}		{The user's name at birth, used in the certificate identity record}}
-  {user_hid		{Hashed ID}		{An obscured version of the ID by which might be given out as a more anonymous destination for a transaction}}
+  {user_psig		{Public Key}		{The user's public key, known to other trading partners and used for verifying transactions}}
+  {user_named		{Birth Name}		{The user's name at birth, used in the certificate identity record}}
   {user_cmt		{User Comments}		{Administrative comments about this user}}
+  {peer_cuid		{CHIP User ID}		{An ID string or name, unique to this user on its own CHIP service provider's system.  Similar to the name portion of an email address: <CHIP_ID>@<Provider_host_or_IP>}}
+  {peer_agent		{Agent}			{The agent address where traffic is handled for this user}}
+  {peer_huid		{Hashed ID}		{An obscured version of the ID by which might be given out as a more anonymous destination for a transaction}}
   {_lift_check		{Last Lift Check}	{Date/time when system last tried a clearing lift for this user}}
   {_last_tally		{Last Tally}		{Sequence generator for this user's tallies}}
 } $glob::stampt] -messages {

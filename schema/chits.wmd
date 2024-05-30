@@ -27,14 +27,14 @@ mychips.chits_v:
   fields:
   - [tally_type,	ent,	6,	[0,6],		{opt: 1, sta: readonly, wr: 0}]
   - [tally_uuid,	ent,	20,	[1,6],		{opt: 1, sta: readonly, wr: 0}]
-  - [hold_cid,		ent,	20,	[1,7],		{opt: 1, sta: readonly, wr: 0}]
-  - [part_cid,		ent,	20,	[1,8],		{opt: 1, sta: readonly, wr: 0}]
+  - [hold_cuid,		ent,	20,	[1,7],		{opt: 1, sta: readonly, wr: 0}]
+  - [part_cuid,		ent,	20,	[1,8],		{opt: 1, sta: readonly, wr: 0}]
   display: [chit_ent, chit_seq, chit_idx, chit_type, units, value]
 
 mychips.chits_v_me:
   fields:
   - [tally_type,	ent,	6,	[0,6],		{opt: 1, sta: readonly, wr: 0}]
   - [tally_uuid,	ent,	20,	[1,6],		{opt: 1, sta: readonly, wr: 0}]
-  - [hold_cid,		ent,	20,	[1,7],		{opt: 1, sta: readonly, wr: 0}]
-  - [part_cid,		ent,	20,	[1,8],		{opt: 1, sta: readonly, wr: 0}]
+  - [hold_cuid,		ent,	20,	[1,7],		{opt: 1, sta: readonly, wr: 0}]
+  - [part_cuid,		ent,	20,	[1,8],		{opt: 1, sta: readonly, wr: 0}]
   display: [chit_ent, chit_seq, chit_idx, chit_type, units, value]

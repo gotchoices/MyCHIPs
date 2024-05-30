@@ -22,10 +22,10 @@ mychips.tallies:
   - [contract,		ent,	20,	[2,2],		{}]
 
   - [hold_sig,		ent,	10,	[0,7],		{sta: readonly, wr: 0}]
-  - [hold_cid,		ent,	20,	[1,7],		{sta: readonly, wr: 0}]
+  - [hold_cuid,		ent,	20,	[1,7],		{sta: readonly, wr: 0}]
   - [hold_agent,	ent,	28,	[2,7],		{sta: readonly, wr: 0}]
   - [part_sig,		ent,	10,	[0,8],		{sta: readonly, wr: 0}]
-  - [part_cid,		ent,	20,	[1,8],		{sta: readonly, wr: 0}]
+  - [part_cuid,		ent,	20,	[1,8],		{sta: readonly, wr: 0}]
   - [part_agent,	ent,	28,	[2,8],		{sta: readonly, wr: 0}]
 
   - [version,		ent,	40,	[0,10],		{opt: 1}]
@@ -74,5 +74,5 @@ mychips.tallies_v_me:
     import: 'json.import'
 
 mychips.users_v_flat:
-  display: [id, user_cid, std_name, bill_addr, bill_city, bill_state]
+  display: [id, peer_cuid, std_name, bill_addr, bill_city, bill_state]
   sort: [std_name, id]

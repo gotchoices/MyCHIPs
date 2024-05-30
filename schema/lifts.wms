@@ -330,12 +330,12 @@ view mychips.lifts_v_dist {mychips.lifts_v mychips.tallies_v} {select lf.*
     , 'host',	bt.hold_host
     , 'port',	bt.hold_port
     , 'plan',	jsonb_build_object(
-        'cid',		bt.hold_cid
+        'cuid',		bt.hold_cuid
       , 'agent',	bt.hold_agent)
     ))							as origin_v
 
   , coalesce(lf.find, jsonb_build_object(
-      'cid',	bt.part_cid
+      'cuid',	bt.part_cuid
     , 'agent',	bt.part_agent
     ))							as find_v
 
@@ -393,22 +393,22 @@ function {mychips.lift_process(msg jsonb, recipe jsonb)} {
           return null;			-- Too late, lift expiring now
         end if;
         
---raise notice '  find:% @%', find->>'cid', msg->>'tally';
+--raise notice '  find:% @%', find->>'cuid', msg->>'tally';
 
 -- Search for destination in our local tally paths (assumes a linear lift for now):
         select into qrec uuids,foro from mychips.tallies_v_paths where
           bot_uuid = (msg->>'tally')::uuid and fori and
-          out_cid = find->>'cid' and out_agent = find->>'agent' and
+          out_cuid = find->>'cuid' and out_agent = find->>'agent' and
           min >= units order by edges desc limit 1;
---raise notice 'Search path: %:% found:% for:%', find->>'cid', find->>'agent', found, qrec.foro;
+--raise notice 'Search path: %:% found:% for:%', find->>'cuid', find->>'agent', found, qrec.foro;
 
 -- Fixme: Create sorter column for this (local min OK, route min OK, local edges longest)
         if not found then		-- Next, try searching upstream routes:
           select into qrec uuids, true as foro from mychips.routes_v_paths where
             bot_uuid = (msg->>'tally')::uuid and fori and
-            dst_cid = find->>'cid' and dst_agent = find->>'agent' and
+            dst_cuid = find->>'cuid' and dst_agent = find->>'agent' and
             path_min >= units order by route_min desc, edges desc limit 1;
---raise notice 'Search route: %:% %', find->>'cid', find->>'agent', found;
+--raise notice 'Search route: %:% %', find->>'cuid', find->>'agent', found;
           if not found then return null; end if;	-- No viable paths found
         end if;
 
@@ -441,9 +441,9 @@ function {mychips.lift_process(msg jsonb, recipe jsonb)} {
 --raise notice ' loop:%-%', find, msg->'tally';
         select into qrec uuids from mychips.tallies_v_paths
           where bot_uuid = (msg->>'tally')::uuid and fori
-            and out_cid = find->>'cid' and out_agent = find->>'agent' and foro
+            and out_cuid = find->>'cuid' and out_agent = find->>'agent' and foro
             and min >= units order by edges desc limit 1;
---raise notice '  loop path: %:% found:%', find->>'cid', find->>'agent', found;
+--raise notice '  loop path: %:% found:%', find->>'cuid', find->>'agent', found;
         if not found then return to_jsonb(curState); end if;
         update mychips.lifts set tallies = qrec.uuids		-- Add all tallies back to originator
           where lift_uuid = lrec.lift_uuid and lift_seq = lrec.lift_seq;
@@ -673,7 +673,7 @@ function {mychips.lift_clear_dist(maxNum int = 1)} {mychips.lifts_v mychips.rout
 --raise notice 'LD2 orders:%', orders;
 
       while count < maxNum loop			-- Search for internal lifts
---        tstr = 'select bot,bot_tseq,top,top_tseq, bot_cid,bot_agent, dst_cid, dst_agent, min
+--        tstr = 'select bot,bot_tseq,top,top_tseq, bot_cuid,bot_agent, dst_cuid, dst_agent, min
         tstr = 'select uuids, min
           from mychips.routes_v_paths where segment and status = ''good'' and
              min >= $1 order by ' || orders || ' limit 1';

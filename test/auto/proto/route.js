@@ -6,12 +6,12 @@ const { dbConf, testLog, Format, Bus, assert, getRow, dbClient, queryJson, libMo
 const PeerCont = require(libModule('peer2peer'))
 const log = testLog(__filename)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
-const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
-const cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
+const { cuidu, cuidd, cuidb, cuidx, cuidN } = require('./def-path')
+const cuid0 = cuidN(0), cuid2 = cuidN(2), cuid3 = cuidN(3)
 const userListenR = 'mu_' + user0
 const {save, rest} = require('./def-route')
 const routeSql = `select json_agg(s) as json from (
-    select rid,via_ent,via_tseq,dst_cid,dst_agent,status,step,mychips.route_sorter(status,expired) as sorter
+    select rid,via_ent,via_tseq,dst_cuid,dst_agent,status,step,mychips.route_sorter(status,expired) as sorter
     from mychips.routes_v order by rid) s;`
 var interTest = {}			//Pass values from one test to another
 
@@ -45,19 +45,19 @@ describe("Peer-to-peer route testing", function() {
     dbL.query('delete from mychips.routes;', (e) => {done(e)})
   })
 
-  it("Initiate route request from cid_D to cid_U", function(done) {
+  it("Initiate route request from cuid_D to cuid_U", function(done) {
     let sql = `with t as
       (select tally_ent as ent, tally_seq as seq from mychips.tallies where tally_type = 'stock' and part_ent isnull)
-        insert into mychips.routes_v (via_ent, via_tseq, dst_cid, dst_agent, req_ent, req_tseq)
+        insert into mychips.routes_v (via_ent, via_tseq, dst_cuid, dst_agent, req_ent, req_tseq)
           select t.ent, t.seq, $1, $2, t.ent, null from t returning *;`
-      , parms = [cidu, agent0]
+      , parms = [cuidu, agent0]
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql, 'parms', parms)
     dbR.query(sql, parms, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
       let row = getRow(res, 0)
       interTest.r0 = row			//Save original route record
       assert.equal(row.via_ent, user0)
-      assert.equal(row.dst_cid, cidu)
+      assert.equal(row.dst_cuid, cuidu)
       assert.equal(row.dst_agent, agent0)
       _done()
     })
@@ -65,7 +65,7 @@ describe("Peer-to-peer route testing", function() {
       assert.equal(msg.target, 'route')
       assert.equal(msg.action, 'good')
       let obj = msg.object			//;log.debug("R obj:", obj, "F:", obj.find)
-      assert.equal(obj.find.cid, cidu)
+      assert.equal(obj.find.cuid, cuidu)
       assert.equal(obj.find.agent, agent0)
       _done()
     })
@@ -91,19 +91,19 @@ describe("Peer-to-peer route testing", function() {
     dbR.query(sql, (e) => {done(e)})
   })
 
-  it("Initiate route request from cid_D to cid_X", function(done) {
+  it("Initiate route request from cuid_D to cuid_X", function(done) {
     let sql = `with t as
       (select tally_ent as ent, tally_seq as seq from mychips.tallies where tally_type = 'stock' and part_ent isnull)
-        insert into mychips.routes_v (via_ent, via_tseq, dst_cid, dst_agent, req_ent, req_tseq)
+        insert into mychips.routes_v (via_ent, via_tseq, dst_cuid, dst_agent, req_ent, req_tseq)
           select t.ent, t.seq, $1, $2, t.ent, null from t returning *;`
-      , parms = [cidx, agent0]
+      , parms = [cuidx, agent0]
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql, 'parms', parms)
     dbR.query(sql, parms, (e, res) => {if (e) done(e)	//;log.debug("R res:", res.rows[0])
       let row = getRow(res, 0)
       interTest.r0 = row			//Save original route record
       assert.equal(row.via_ent, user0)
-      assert.equal(row.dst_cid, cidx)
+      assert.equal(row.dst_cuid, cuidx)
       assert.equal(row.dst_agent, agent0)
       _done()
     })
@@ -111,7 +111,7 @@ describe("Peer-to-peer route testing", function() {
       assert.equal(msg.target, 'route')
       assert.equal(msg.action, 'good')
       let obj = msg.object			//;log.debug("R obj:", obj, "F:", obj.find)
-      assert.equal(obj.find.cid, cidx)
+      assert.equal(obj.find.cuid, cuidx)
       assert.equal(obj.find.agent, agent0)
       _done()
     })

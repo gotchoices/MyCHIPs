@@ -4,7 +4,7 @@ tabtext mychips.routes	{Foreign Routes}	{Information collected from other server
   {rid		{Route ID}		{A unique integer assigned by the system to identify each route record}}
   {via_ent	{Route Entity}		{The ID of a local entity who owns the tally this route starts on}}
   {via_tseq	{Route Tally}		{Sequence number of the tally this route begins on}}
-  {dst_cid	{Destination CHIP ID}	{The CHIP identifier for the entity this route leads to}}
+  {dst_cuid	{Destination CHIP User ID}	{The CHIP identifier for the entity this route leads to}}
   {dst_agent	{Destination Agent}	{The agent address for the entity this route leads to}}
   {req_ent	{Requester}		{The ID of the local entity through which this route request originated (also where to return query results to)}}
   {req_tseq	{Requester Tally}	{The sequence number of the tally the route request came over (leave null for local queries)}}
@@ -31,19 +31,19 @@ tabtext mychips.routes	{Foreign Routes}	{Information collected from other server
 }
 
 tabtext mychips.routes_v	{Foreign Routes}	{A view showing foreign peers that can be reached by way of one of our known foreign peers} {
-  {via_cid	{Route Via CHIP ID}	{CHIP ID of the owner of the tally the route starts on}}
+  {via_cuid	{Route Via CHIP User ID}	{CHIP User ID of the owner of the tally the route starts on}}
   {via_agent	{Route Via Agent}	{Agent address for the owner of the tally the route starts on}}
   {via_chad	{Route Via Address}	{Full JSON CHIP address for the owner of the tally the route starts on}}
   {via_tally	{Route Via Tally}	{ID of the tally the route starts on}}
-  {vip_cid	{Route Partner CHIP ID}	{CHIP ID of the foreign partner on the tally the route starts on}}
+  {vip_cuid	{Route Partner CHIP User ID}	{CHIP User ID of the foreign partner on the tally the route starts on}}
   {vip_agent	{Route Partner Agent}	{Agent address for the foreign partner on the tally the route starts on}}
   {vip_chad	{Route Partner Address}	{Full JSON CHIP address for the foreign partner on the tally the route starts on}}
 
-  {req_cid	{Request CHIP ID}	{CHIP ID of the owner of the tally the route is requested through}}
+  {req_cuid	{Request CHIP User ID}	{CHIP User ID of the owner of the tally the route is requested through}}
   {req_agent	{Request Agent}		{Agent address for the owner of the tally the route is requested through}}
   {req_chad	{Request Address}	{Full JSON CHIP address for the owner of the tally the route is requested through}}
   {req_tally	{Request Tally}		{ID of the tally the route is requested through (or null for local requests)}}
-  {rpt_cid	{Req Partner CHIP ID}	{CHIP ID of the foreign partner on the tally the route is requested through}}
+  {rpt_cuid	{Req Partner CHIP User ID}	{CHIP User ID of the foreign partner on the tally the route is requested through}}
   {rpt_agent	{Req Partner Agent}	{Agent address for the foreign partner on the tally the route is requested through}}
   {rpt_chad	{Req Partner Address}	{Full JSON CHIP address for the foreign partner on the tally the route is requested through}}
 

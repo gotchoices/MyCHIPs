@@ -27,8 +27,8 @@ var userData = {}
 var interTest = {}			//Pass values from one test to another
 
 const liftPayment = function(dataO, dataS, units, succeed = true) {
-  const dbcO = dataO.dConf, cidO = dataO.cid, userO = dataO.id, agentO = dataO.agent
-  const dbcS = dataS.dConf, cidS = dataS.cid, userS = dataS.id, agentS = dataS.agent
+  const dbcO = dataO.dConf, cuidO = dataO.cuid, userO = dataO.id, agentO = dataO.agent
+  const dbcS = dataS.dConf, cuidS = dataS.cuid, userS = dataS.id, agentS = dataS.agent
   const busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
 
@@ -60,10 +60,10 @@ const liftPayment = function(dataO, dataS, units, succeed = true) {
   })
   
   it("Create payment signature independant of DB", function(done) {
-    let uuid = mkUuid(cidO, agentO)
+    let uuid = mkUuid(cuidO, agentO)
       , memo = 'Test payment lift'
-      , ref = {payee: cidS}
-      , find = {cid: cidS, agent: agentS}
+      , ref = {payee: cuidS}
+      , find = {cuid: cuidS, agent: agentS}
       , date = new Date().toISOString()
       , { key } = interTest.sign
       , core = {uuid, find, units, date, memo, ref}	//;log.debug("c:", core)
@@ -75,7 +75,7 @@ const liftPayment = function(dataO, dataS, units, succeed = true) {
     })
   })
 
-  it("Launch lift payment: " + cidO + " -> " + cidS, function(done) {
+  it("Launch lift payment: " + cuidO + " -> " + cuidS, function(done) {
     let {sign, text, core} = interTest.sign
       , {uuid, find, units, date, memo, ref} = core
       , auth = {memo, ref, sign:text}
@@ -92,7 +92,7 @@ log.debug("Sql:", sql, JSON.stringify(parms))
       assert.equal(pay.status, 'draft')
       assert.equal(pay.request, 'init')
       assert.deepStrictEqual(pay.payor_auth, auth)
-      assert.equal(pay.origin.cid, cidO)
+      assert.equal(pay.origin.cuid, cuidO)
       assert.equal(pay.origin.agent, agentO)
       assert.equal(pay.payee_ent, userS)
       _done()
@@ -165,10 +165,10 @@ describe("Distributed lift testing", function() {
   it("Launch lift payment that will fail", function(done) {
     let memo = 'Test failed payment lift'
       , ref = {invoice: 5432}
-      , sign = user3 + ' ' + cid3 + ' Signature'
+      , sign = user3 + ' ' + cuid3 + ' Signature'
       , auth = {memo, ref, sign}
       , units = 5
-      , find = {cid: cid0, agent: agent1}
+      , find = {cuid: cuid0, agent: agent1}
       , sql = `insert into mychips.lifts_v_pay (payor_ent, find, units, payor_auth, request)
 	    	values($1,$2,$3,$4,'init') returning *;`
       , parms = [user3, find, units, auth]

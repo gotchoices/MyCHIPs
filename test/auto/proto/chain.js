@@ -12,10 +12,10 @@ var log = testLog(__filename)
 var defTally = require('./def-tally')
 var defChit = require('./def-chit')
 var {uSql, save, rest} = require('./def-chit')
-const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
+const {host,user0,user1,user2,cuid0,cuid1,cuid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
 var interTest = {}			//Pass values from one test to another
 
-var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS, agentO, agentS, aConO, aConS, saveName}) {
+var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, userS, agentO, agentS, aConO, aConS, saveName}) {
   var serverO, serverS
   var busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
@@ -71,7 +71,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
   })
   
   const addChit = function(db, by, value, ent, seq, done) {
-    let uuid = mkUuid('cid', 'agent', Math.random().toString())
+    let uuid = mkUuid('cuid', 'agent', Math.random().toString())
       , request = 'good'
       , sign = 'Signature'
       , sql = Format(`insert into mychips.chits_v (chit_ent, chit_seq, chit_uuid, chit_type, issuer, units, request, signature)
@@ -241,7 +241,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 describe("Chit chain consensus", function() {
   let config1 = {		//Two users on name host
     sites:1, saveName:'open1',
-    cidO:cid0, cidS:cid1, userO:user0, userS:user1, aConO:aCon0, aConS:aCon1, agentO:agent0, agentS:agent1,
+    cuidO:cuid0, cuidS:cuid1, userO:user0, userS:user1, aConO:aCon0, aConS:aCon1, agentO:agent0, agentS:agent1,
     dbcO: new dbConf(log, 'mu_p1000'), 
     dbcS: new dbConf(log, 'mu_p1001'),
     dbcSO: new dbConf(),
@@ -249,7 +249,7 @@ describe("Chit chain consensus", function() {
   }
   let config2 = {		//Two users on different hosts
     sites:2, saveName:'open2',
-    cidO:cid0, cidS:cid2, userO:user0, userS:user2, aConO:aCon0, aConS:aCon2, agentO:agent0, agentS:agent2,
+    cuidO:cuid0, cuidS:cuid2, userO:user0, userS:user2, aConO:aCon0, aConS:aCon2, agentO:agent0, agentS:agent2,
     dbcO: new dbConf(log, 'mu_p1000'), 
     dbcS: db2Conf(log, 'mu_p1002'),
     dbcSO: new dbConf(),

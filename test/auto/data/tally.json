@@ -11,7 +11,7 @@
     },
     "holder": {
         "chad": {
-            "cid": "adam_smith",
+            "cuid": "adam_smith",
             "host": "localhost",
             "port": 65434,
             "agent": "UDY1NDM0"
@@ -76,7 +76,7 @@
     "comment": null,
     "partner": {
         "chad": {
-            "cid": "fran_lee",
+            "cuid": "fran_lee",
             "host": "localhost",
             "port": 65436,
             "agent": "UjY1NDM2"

@@ -79,7 +79,7 @@ interface AccountData {
   /** Entity type */
   ent_type: string
   user_ent: string
-  peer_cid: string
+  peer_cuid: string
   peer_agent: string
   peer_host: string
   peer_port: number
@@ -89,17 +89,17 @@ interface AccountData {
   /** The number of foils (spending targets) that this account holds */
   foils: number
   /** List of account IDs that this account is connected to (combines the vendors and clients arrays) */
-  part_cids: string[]
+  part_cuids: string[]
   /** List of account IDs that this account holds a foil for (I pay them money) */
   vendors: string[]
-  /** List of account peer_cids that this account holds a foil for */
-  vendor_cids?: string[]
+  /** List of account peer_cuids that this account holds a foil for */
+  vendor_cuids?: string[]
   /** List of account agents that this account holds a foil for */
   vendor_agents?: string[]
   /** List of account IDs that this account holds a stock for (they pay me money) */
   clients: string[]
-  /** List of account peer_cids that this account holds a stock for */
-  client_cids?: string[]
+  /** List of account peer_cuids that this account holds a stock for */
+  client_cuids?: string[]
   /** List of account agents that this account holds a foil for */
   client_agents?: string[]
   /** List of sequence numbers that correspond to chits/payments on stock tallies */
@@ -144,7 +144,7 @@ interface certificate {
 
 interface AccountAnalytics {
   name: string
-  peer_cid: string
+  peer_cuid: string
   id: string
   stocks: number
   foils: number

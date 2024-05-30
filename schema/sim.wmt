@@ -25,7 +25,7 @@ tabtext mychips.users_v_tallies_me	{Users and Tallies}	{Permissioned view showin
 tabtext mychips.tallies_v_sum	{Summary Tally Data}	{Deprecated view of aggregated tally data} {
   {bounds Deprecated}
   {client_agents Deprecated}
-  {client_cids Deprecated}
+  {client_cuids Deprecated}
   {clients Deprecated}
   {foil_nets Deprecated}
   {foil_seqs Deprecated}
@@ -48,8 +48,8 @@ tabtext mychips.tallies_v_sum	{Summary Tally Data}	{Deprecated view of aggregate
   {types Deprecated}
   {uuids Deprecated}
   {vendor_agents Deprecated}
-  {vendor_cids Deprecated}
-  {part_cids Deprecated}
+  {vendor_cuids Deprecated}
+  {part_cuids Deprecated}
   {part_ents Deprecated}
   {stock_nets Deprecated}
   {stocks Deprecated}

@@ -6,13 +6,6 @@
 //- 
 const { dbConf, testLog, Format, assert, dbClient, queryJson } = require('../common')
 const log = testLog(__filename)
-//const { host, port0, port1, port2, agent0, agent1, agent2 } = require('../def-users')
-//const { cidu, cidd, cidN } = require('./def-path')
-//var interTest = {}			//Pass values from one test to another
-//var tallySql = `insert into mychips.tallies (tally_ent, tally_uuid, tally_date, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
-//var chitSql = `insert into mychips.chits (chit_ent, chit_seq, chit_uuid, units, signature, reference, status) select %L,%s,%L,%s,%L,%L,'good'`
-//var agree = {domain:"mychips.org", name:"test", version:1}
-//var users = 4
 
 describe("Initialize tally/path test data", function() {
   var db

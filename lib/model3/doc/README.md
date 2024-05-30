@@ -148,7 +148,7 @@ The method explained above is used because account objects are created and store
 ## Debugging Tools
 
 - To query SQL databases, use `./simdock q <int-for-server-num> "<sql-query>"`
-  - \*Example: `./test/sim/simdock q 0 "select id, peer_cid from mychips.peers_v"`
+  - \*Example: `./test/sim/simdock q 0 "select id, peer_cuid from mychips.peers_v"`
 - SQL DB field name mappings can be found in the `baseAccounts.ts` getAccount() method
 - Relevant PostGres Schemas
   - Users

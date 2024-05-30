@@ -21,10 +21,10 @@ mychips.users_v mychips.tallies_v_edg
  , path text[], at text[], pat text[]
  , top_seq int, top_uuid uuid
  , bot_seq int, bot_uuid uuid
- , top_cid text, top_agent text, top_chad jsonb
- , bot_cid text, bot_agent text, bot_chad jsonb
- , out_cid text, out_agent text, out_chad jsonb
- , inp_cid text, inp_agent text, inp_chad jsonb
+ , top_cuid text, top_agent text, top_chad jsonb
+ , bot_cuid text, bot_agent text, bot_chad jsonb
+ , out_cuid text, out_agent text, out_chad jsonb
+ , inp_cuid text, inp_agent text, inp_chad jsonb
    
  ) language sql as $$
   with recursive tally_path (
@@ -87,11 +87,11 @@ mychips.users_v mychips.tallies_v_edg
     , tt.tally_seq as top_tseq, tt.tally_uuid as top_uuid
     , bt.tally_seq as bot_tseq, bt.tally_uuid as bot_uuid
 
-    , tt.hold_cid as top_cid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
-    , bt.hold_cid as bot_cid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
+    , tt.hold_cuid as top_cuid, tt.hold_agent as top_agent, tt.hold_chad as top_chad
+    , bt.hold_cuid as bot_cuid, bt.hold_agent as bot_agent, bt.hold_chad as bot_chad
 
-    , xif(tt,cid,out) as out_cid, xif(tt,agent,out) as out_agent, xif(tt,chad,out) as out_chad
-    , xif(bt,cid,inp) as inp_cid, xif(bt,agent,inp) as inp_agent, xif(bt,chad,inp) as inp_chad
+    , xif(tt,cuid,out) as out_cuid, xif(tt,agent,out) as out_agent, xif(tt,chad,out) as out_chad
+    , xif(bt,cuid,inp) as inp_cuid, xif(bt,agent,inp) as inp_agent, xif(bt,chad,inp) as inp_chad
 
   from	tally_path tpr
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq

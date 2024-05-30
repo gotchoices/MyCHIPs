@@ -19,7 +19,7 @@ namespace eval tallies {
     def tallies_pk	{tally_ent tally_seq}
     def tallies_v_up	{tally_type comment contract hold_terms part_terms target reward clutch bound hold_cert part_sig hold_sig request}
     def tallies_v_in	[concat tally_ent $tallies_v_up tally_uuid version part_ent part_cert]
-    def tallies_se	[concat $tallies_v_in tally_seq status revision digest net_pc net_c tally_date hold_cid hold_agent part_cid part_agent hold_sets part_sets chain_conf chain_stat $glob::stampfn]
+    def tallies_se	[concat $tallies_v_in tally_seq status revision digest net_pc net_c tally_date hold_cuid hold_agent part_cuid part_agent hold_sets part_sets chain_conf chain_stat $glob::stampfn]
     def tallies_v_up_mo	{hold_sig request}
 }
 
@@ -64,8 +64,8 @@ table mychips.tallies {mychips mychips.users tally_side} {
   				constraint "!mychips.tallies:NSP" check (part_ent != tally_ent)
   , net_c	bigint		default 0 not null
   , net_pc	bigint		default 0 not null
-  , hold_cid	text		constraint "!mychips.tallies:UCI" check (not (status = 'open' and hold_cid isnull))
-  , part_cid	text		constraint "!mychips.tallies:PCI" check (not (status = 'open' and part_cid isnull))
+  , hold_cuid	text		constraint "!mychips.tallies:UCI" check (not (status = 'open' and hold_cuid isnull))
+  , part_cuid	text		constraint "!mychips.tallies:PCI" check (not (status = 'open' and part_cuid isnull))
   , hold_agent	text		references mychips.agents on update restrict on delete restrict
   				constraint "!mychips.tallies:UAI" check (not (status = 'open' and hold_agent isnull))
   , part_agent	text		references mychips.agents on update restrict on delete restrict
@@ -190,9 +190,9 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
 --raise notice 'tally check:% %', ta.hold_cert, ta.part_cert;
       hchad = ta.hold_cert->'chad';
       pchad = ta.part_cert->'chad';
-      ta.hold_cid   = hchad->>'cid';		-- Cache commonly used properties
+      ta.hold_cuid  = hchad->>'cuid';		-- Cache commonly used properties
       ta.hold_agent = hchad->>'agent';
-      ta.part_cid   = pchad->>'cid';
+      ta.part_cuid  = pchad->>'cuid';
       ta.part_agent = pchad->>'agent';
 --raise notice 'Tally check:% %', ta.hold_agent, ta.part_agent;
       foreach c in array array[ hchad, pchad ] loop
@@ -202,7 +202,7 @@ function {mychips.tally_certs(ta mychips.tallies)} {mychips.tallies mychips.agen
       end loop;
 
 -- Is our partner also a local user?
-      select into ta.part_ent user_ent from mychips.users_v where peer_cid = ta.part_cid and peer_agent = ta.part_agent;
+      select into ta.part_ent user_ent from mychips.users_v where peer_cuid = ta.part_cuid and peer_agent = ta.part_agent;
       return ta;
     end;
 $$;}
@@ -328,16 +328,16 @@ view mychips.tallies_v {
   mychips.j2h(jsonb)
 } {select 
     eval(fld_list $tallies::tallies_se	te)
-  , jsonb_build_object('cid', te.hold_cid) || ua.json as hold_chad
+  , jsonb_build_object('cuid', te.hold_cuid) || ua.json as hold_chad
   , ua.agent_host			as hold_host
   , ua.agent_port			as hold_port
---  , te.hold_cid ||':'|| ua.atsock	as hold_full
+--  , te.hold_cuid ||':'|| ua.atsock	as hold_full
 
-  , te.part_cid ||':'|| pa.agent	as part_addr
-  , jsonb_build_object('cid', te.part_cid) || pa.json as part_chad
+  , te.part_cuid ||':'|| pa.agent	as part_addr
+  , jsonb_build_object('cuid', te.part_cuid) || pa.json as part_chad
   , pa.agent_host			as part_host
   , pa.agent_port			as part_port
---  , te.part_cid ||':'|| pa.atsock	as part_full
+--  , te.part_cuid ||':'|| pa.atsock	as part_full
   
   , not te.part_ent is null		as inside
   , mychips.tally_state(te)		as state
@@ -453,7 +453,7 @@ $$;}
 function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v mychips.users_v} {
   returns jsonb language plpgsql as $$
     declare
-      cid	text = msg->'to'->>'cid';
+      cid	text = msg->'to'->>'cuid';
       agent	text = msg->'to'->>'agent';
       obj	jsonb = msg->'object';
       uuid	uuid = obj->>'uuid';
@@ -469,12 +469,12 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
       notType	tally_side = 'foil';
     begin
 --raise notice 'Tally cid:% uuid:%', cid, uuid;
-      select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cid = cid and tally_uuid = uuid;
+      select into trec tally_ent, tally_seq, state from mychips.tallies_v where hold_cuid = cid and tally_uuid = uuid;
         
 --raise notice 'Tally cid:% entity:% recipe:%', cid, trec.tally_ent, recipe;
       if not found then			-- No existing tally
         curState = 'null';			-- Special code for when the tally doesn't exist yet
-        select into uid id from mychips.users_v where peer_cid = cid and peer_agent = agent;		-- Look up the entity on our own
+        select into uid id from mychips.users_v where peer_cuid = cid and peer_agent = agent;		-- Look up the entity on our own
         if not found then return null; end if;
       else
         curState = trec.state;
@@ -491,12 +491,12 @@ function {mychips.tally_process(msg jsonb, recipe jsonb)} {mychips.tallies_v myc
 
       if recipe ? 'upsert' then		-- If inserting/updating from object
 --raise notice '  upsert obj:% curState:%', obj, curState;
-        if part->'cert'->'chad'->>'cid' = cid and part->'cert'->'chad'->>'agent' = agent then
+        if part->'cert'->'chad'->>'cuid' = cid and part->'cert'->'chad'->>'agent' = agent then
           tallyType = 'foil';			-- Our side really is the foil
           notType = 'stock';
           hold	= obj->'foil';
           part	= obj->'stock';
-        elsif hold->'cert'->'chad'->>'cid' != cid or hold->'cert'->'chad'->>'agent' != agent then
+        elsif hold->'cert'->'chad'->>'cuid' != cid or hold->'cert'->'chad'->>'agent' != agent then
           return null;				-- Can't find our entity as stock or foil
         end if;
 
@@ -584,7 +584,7 @@ function {mychips.tally_notices()} {mychips.tallies mychips.tally_tries mychips.
         min_min		int = coalesce(base.parm_int('agents','min_time'), 60);
         min_time	interval = (min_min::text || ' minutes')::interval;
     begin
-        for trec in select * from mychips.tallies ta	-- tokens stale by peer_min_time
+        for trec in select * from mychips.tallies ta	-- tokens stale by min_time
           join mychips.tally_tries tr on tr.ttry_ent = ta.tally_ent and tr.ttry_seq = ta.tally_seq
           where ta.request is not null and (current_timestamp - tr.last) >= min_time loop
             perform mychips.tally_notify_agent(trec);

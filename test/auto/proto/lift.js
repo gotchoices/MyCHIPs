@@ -12,8 +12,8 @@ const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModul
 const PeerCont = require(libModule('peer2peer'))
 var log = testLog(__filename)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
-const { cidu, cidd, cidb, cidx, cidN } = require('./def-path')
-var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3)
+const { cuidu, cuidd, cuidb, cuidx, cuidN } = require('./def-path')
+var cuid0 = cuidN(0), cuid2 = cuidN(2), cuid3 = cuidN(3)
 var adminListen = 'mychips_admin'
 var {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
@@ -84,11 +84,11 @@ describe("Peer-to-peer lift testing", function() {
 
   it("Create forwardable lift query that will fail to loop back", function(done) {
     let units = 2
-      , find = {cid:cidx, agent: agent0}
+      , find = {cuid:cuidx, agent: agent0}
       , sql = Format(`with
-          rr as (select uuids from mychips.routes_v_paths where foro and edges = 1 and inp_cid = %L)
+          rr as (select uuids from mychips.routes_v_paths where foro and edges = 1 and inp_cuid = %L)
           insert into mychips.lifts (lift_type, circuit, request, units, tallies, find)
-          select 'org', true, 'init', %s, rr.uuids, %L from rr returning *;`, cidd, units, find)
+          select 'org', true, 'init', %s, rr.uuids, %L from rr returning *;`, cuidd, units, find)
       , dc = 4, _done = () => {if (!--dc) done()}	//_done's to be done
 //log.debug("Sql:", sql)
     dbR.query(sql, null, (e, res) => {if (e) done(e)	//;log.debug("R res:", res)

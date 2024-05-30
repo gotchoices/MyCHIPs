@@ -1,9 +1,15 @@
 TODO:
 
+Cleanups:
+X- Change cid to cuid across all source
+X- Change users.peer_ to users.user_ *
+X- Update documentation of chip addresses
+- Change cid to cuid in the mobile app
+
 - Payment testing:
 X-  Modify test/auto/pay.js to use netn structure
 X-  Fix error on sites 1-3
--  New test in pay.js for ChipNet discovery
+X-  New test in pay.js for ChipNet discovery
 -  Make separate json_u, json_a fields in DB for user and agent to sign
 -  Agent (lift.js) evaluates payor's authorization signature
 -  Should we be caching peer public keys? (probably not)

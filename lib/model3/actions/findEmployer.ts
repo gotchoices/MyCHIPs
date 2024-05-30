@@ -27,14 +27,14 @@ class FindEmployer implements Action {
 
   run() {
     this.worldDBManager.findPeerAndUpdate(
-      this.account.peer_cid,
+      this.account.peer_cuid,
       this.account.incomeSources,
       (newPeer: AccountData) => {
         this.logger.debug(
           'employee: ',
-          this.account.peer_cid,
+          this.account.peer_cuid,
           ' attempting new employer with ',
-          newPeer.peer_cid
+          newPeer.peer_cuid
         )
         this.account.changeEmployer(
           new BaseAccount(newPeer, newPeer.peer_host, undefined)

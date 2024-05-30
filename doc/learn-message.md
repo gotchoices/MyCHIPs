@@ -107,12 +107,12 @@ Messages destined for another user's agent will typically have the following bas
 - **try**: An integer starting at 1 indicating how many times the sender has tried to send this message.
 - **last**: A timestamp for when the message was generated.
 - **to**: The [CHIP Address](learn-users.md#portals) of the recipient, containing some or all of the following, as applicable:
-  - **cid**: The [CHIP ID](learn-users.md#chip-addresses) of the sender.
+  - **cuid**: The [CHIP User ID](learn-users.md#chip-addresses) of the sender.
   - **agent**: Encoded agent public key
   - **host**: Hostname or IP number
   - **port**: Port to connect on
 - **from**: The [CHIP Address](learn-users.md#portals) of the sender, containing some or all of the following, as applicable:
-  - **cid**: The [CHIP ID](learn-users.md#chip-addresses) of the sender.
+  - **cuid**: The [CHIP User ID](learn-users.md#chip-addresses) of the sender.
   - **agent**: Encoded agent public key
   - **host**: Hostname or IP number
   - **port**: Port to connect on
@@ -139,16 +139,15 @@ Property: **target**: tally
 
 The *object* property for the tally is defined as follows:
   - **version**: Version (1) of the tally format.
-  - **foil**: The [CHIP ID](learn-users.md#chip-addresses) of the customer/employer/client.
-  - **stock**: the CHIP ID of the provider/employee/vendor.
+  - **revision**: Count of how many times the tally was modified during negotiation
+  - **foil**: Certificate and terms applicable to the customer/employer/client.
+  - **stock**: Certificate and terms applicable to the provider/employee/vendor.
   - **uuid**: A [Universally Unique Identifier](https://en.wikipedia.org/wiki/Universally_unique_identifier) for this particular tally.
-  - **counter**: The number of times the tally was counter-offered during negotiation (default 0).
   - **comment**: Any comments to the tally the parties have agreed to include.
   - **date**: Date/time the tally was created (YYYY-MM-DDTHH:MM:SS.XXXZ)
   - **agree**: A reference to a digital contract containing the general terms and conditions for the tally.  Can be the document resource ID hash, or an object containing:
     - **host**: Web address of Issuer/author guaranteed to have authoritative copy of the contract
     - **source**: Base 64v hash of the contract
-  - **terms**: An object containing [credit variables](learn-tally.md#credit-terms)
   - **signed**:
     - **hash**: The SHA-256 hash of the tally (absent 'signed') in a standard serialized format and converted to base64v
     - **foil**: The digital signature of the hash by the foil holder (client)
@@ -280,7 +279,7 @@ Chain messages then contain an object with some or all of the following properti
 Property: **target**: route
 
 The object property always contains:
-  - **find**: A CHIP address for the destination entity of this route.  Must minimally contain a cid and agent.  Host and port components may provide hints to intelligent algorithms about where to best find successful routes.
+  - **find**: A CHIP address for the destination entity of this route.  Must minimally contain a cuid and agent.  Host and port components may provide hints to intelligent algorithms about where to best find successful routes.
   - **tally**: The UUID of the tally this route query is being sent over (and expected to be returned on).
 
 When a route query is being sent upstream, the *object* property also includes:
@@ -339,15 +338,15 @@ The *object* property includes the following properties:
   - **life**: The number of seconds from creation before this lift will be deemed expired.
   - **units**: The number of milli-CHIPs on this lift.
   - **find**: The CHIP Address of the lift destination entity, containing some or all of the following, as applicable:
-    - **cid**: The CHIP ID of the destination/recipient entity (required).
-    - **hid**: A hashed CHIP ID of the recipient (for greater privacy)
+    - **cuid**: The CHIP User ID of the destination/recipient entity (required).
+    - **huid**: A hashed CHIP User ID of the recipient (for greater privacy)
     - **agent**: Encoded agent public key (required).
   - **org**: The CHIP Address of the lift originator, containing some or all of the following, as applicable:
     - **agent**: Encoded agent public key (required)
     - **host**: Hostname or IP number (optional to allow signature queries from relays)
     - **port**: Port to connect on (ditto)
     - **plan**: Encrypted object from the originator for destination's eyes only
-      - **cid**: Originator CHIP address to send final promise to (or from whom linar lift is payment).
+      - **cuid**: Originator CHIP address to send final promise to (or from whom linar lift is payment).
       - **agent**: Agent address of originator CID (default to org.agent)
       - **pay**: True if this lift is a linear payment (otherwise, it is a circular, clearing function)
       - **for**: Payment reference, invoice number, register number, etc.
@@ -436,13 +435,13 @@ The associated data formats are as follows:
 ```
 
 - *Tally Invitation:* Issued from one user to another  
-  LINK: 'https://mychips.org/invite?token=TOKEN&chad={cid:w,agent:x,host:y,port:z}'  
+  LINK: 'https://mychips.org/invite?token=TOKEN&chad={cuid:w,agent:x,host:y,port:z}'  
   JSON:
 ```
   {invite: {
     token: TOKEN,
     chad: {
-      cid: USER_CHIP_ID,
+      cuid: USER_CHIP_ID,
       agent: USERS_AGENT_PUBLIC_KEY,
       host: AGENT_HOST_ADDRESS,
       port: AGENT_HOST_PORT,
@@ -451,13 +450,13 @@ The associated data formats are as follows:
 ```
 
 - *Invoice:* Payment request or invitation
-  LINK: 'https://mychips.org/pay?chad={cid:w,agent:x,host:y,port:z}...'  
+  LINK: 'https://mychips.org/pay?chad={cuid:w,agent:x,host:y,port:z}...'  
   LINK: 'https://mychips.org/pay?base64EncodedJSON'  
   JSON:
 ```
   {pay: {
     chad: {
-      cid: USER_CHIP_ID,
+      cuid: USER_CHIP_ID,
       agent: USERS_AGENT_PUBLIC_KEY
     }
     units: 123456,
@@ -588,7 +587,7 @@ For linear lifts, an initial payment lift record is signed by the paying user as
 lift: {
   uuid: "9e61301c-86aa-5835-abcd-25adf13eaf3c",
   find: {
-    cid: <optional CHIP ID of payment recipient>
+    cuid: <optional CHIP User ID of payment recipient>
     agent: <recipient Agent address>,
     host: <optional agent host address>,
     port: <optional agent host port>

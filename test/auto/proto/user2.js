@@ -7,7 +7,7 @@
 const { DB2Name, dbConf, DBAdmin, Schema, testLog, Format, Bus, assert, importCheck, dropDB, dbClient, develop, Crypto, Data } = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
-var { host, user2, port2, agent2, aCon2, cid2, db2Conf } = require('../def-users')
+var { host, user2, port2, agent2, aCon2, cuid2, db2Conf } = require('../def-users')
 var schema = Schema
 var interTest = {}
 
@@ -27,7 +27,7 @@ describe("Establish test user on separate DB", function() {
   })
 
   it("Create dummy users users for padding user IDs", function(done) {
-    let fields = '(ent_name, peer_cid) values (%L,%L)'
+    let fields = '(ent_name, peer_cuid) values (%L,%L)'
       , f0 = Format(fields, 'A', 'a')
       , f1 = Format(fields, 'B', 'b')
       , sql = `begin; insert into mychips.users_v ${f0}; insert into mychips.users_v ${f1}; commit`
@@ -51,7 +51,7 @@ describe("Establish test user on separate DB", function() {
   })
   
   it("Initialize test user on db 2", function(done) {
-    let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, peer_psig=%L, user_cmt=%L'
+    let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, user_psig=%L, user_cmt=%L'
       , f1 = Format(fields, host, port2, agent2, interTest.uKey2, interTest.rKey2)
       , sql = `begin;
         delete from base.ent where ent_num > 1002;

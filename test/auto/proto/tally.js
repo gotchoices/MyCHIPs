@@ -13,13 +13,13 @@
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify, peerTest, markLogs, libModule} = require('../common')
 var log = testLog(__filename)
 var crypto = new Crypto(log)
-const {host,user0,user1,user2,cid0,cid1,cid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
+const {host,user0,user1,user2,cuid0,cuid1,cuid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
 var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
 var {uSql, sSql, save, rest} = require('./def-tally')
 var interTest = {}			//Pass values from one test to another
 
 //Establish tally between two users
-var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS, agentO, agentS, aConO, aConS, reuse, preopen, saveName}) {
+var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, userS, agentO, agentS, aConO, aConS, reuse, preopen, saveName}) {
   var serverO, serverS
   var busO = new Bus('busO'), busS = new Bus('busS')
   var dbO, dbS
@@ -73,9 +73,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
 
   if (preopen) it("Initiate a noise connection between agents", function(done) {
     let pnO = serverO.peerNoise
-      , {cid, agent, host, port} = aConS
-      , msg = {to: {cid:cidS, agent:agentS, host:aConS.host, port:aConS.port}, text:'Hi!'}
-//log.debug('Presend:', cidS, agentS)
+      , {cuid, agent, host, port} = aConS
+      , msg = {to: {cuid:cuidS, agent:agentS, host:aConS.host, port:aConS.port}, text:'Hi!'}
+//log.debug('Presend:', cuidS, agentS)
     pnO.send(msg, ()=>{
 //log.debug('Success!', pnO.connections.size())
       assert.equal(pnO.connections.size(), 1)	//one open connection
@@ -103,7 +103,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       assert.ok(!tal.part_ent)
       assert.equal(tal.status,'draft')
       assert.equal(tal.tally_type,'stock')
-      assert.equal(tal.hold_cid,cidO)
+      assert.equal(tal.hold_cuid,cuidO)
       assert.equal(tal.hold_agent,agentO)
       let ticket = res[2].rows[0]		//;log.debug("Ticket:", ticket)
       interTest = ticket
@@ -127,18 +127,18 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       let tally = msg.object		///log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
         , stock = tally.stock
         , foil = tally.foil
-      assert.equal(stock.cert.chad.cid, cidO)
+      assert.equal(stock.cert.chad.cuid, cuidO)
       assert.equal(stock.cert.chad.agent, agentO)
-      assert.equal(foil.cert.chad.cid, cidS)
+      assert.equal(foil.cert.chad.cuid, cuidS)
       assert.equal(foil.cert.chad.agent, agentS)
       assert.ok(!tally.sign.stock)	//;log.debug("sign:", tally.sign)
       assert.ok(!tally.sign.foil)
       _done()
     })
   })
-
+ 
   it("Make a real UUID for the proposed tally", function(done) {
-    let uuid = mkUuid(cidO, agent0)
+    let uuid = mkUuid(cuidO, agent0)
       , sql = uSql('tally_uuid = %L', uuid, userO, seqO)
 //log.debug("Sql:", sql)
     dbO.query(sql, (err, res) => { if (err) done(err)
@@ -169,9 +169,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cidO, cidS, userO, userS
       let tally = msg.object			//;log.debug("S tally:", tally, tally.stock.cert.chad)
         , stock = tally.stock
         , foil = tally.foil
-      assert.equal(stock.cert.chad.cid, cidO)
+      assert.equal(stock.cert.chad.cuid, cuidO)
       assert.equal(stock.cert.chad.agent, agentO)
-      assert.equal(foil.cert.chad.cid, cidS)
+      assert.equal(foil.cert.chad.cuid, cuidS)
       assert.equal(foil.cert.chad.agent, agentS)
       assert.ok(!!tally.sign.stock)		//;log.debug("sign:", tally.sign)
       assert.ok(!tally.sign.foil)
@@ -527,7 +527,7 @@ log.debug("Sql:", sql, parms)
 describe("Tally peer-to-peer testing", function() {
   let config1 = {		//Two users on name host
     sites:1, saveName:'open1',
-    cidO:cid0, cidS:cid1, userO:user0, userS:user1, aConO:aCon0, aConS:aCon1, agentO:agent0, agentS:agent1,
+    cuidO:cuid0, cuidS:cuid1, userO:user0, userS:user1, aConO:aCon0, aConS:aCon1, agentO:agent0, agentS:agent1,
     dbcO: new dbConf(log, 'mu_p1000'), 
     dbcS: new dbConf(log, 'mu_p1001'),
     dbcSO: new dbConf(),
@@ -535,7 +535,7 @@ describe("Tally peer-to-peer testing", function() {
   }
   let config2 = {		//Two users on different hosts
     sites:2, saveName:'open2',
-    cidO:cid0, cidS:cid2, userO:user0, userS:user2, aConO:aCon0, aConS:aCon2, agentO:agent0, agentS:agent2,
+    cuidO:cuid0, cuidS:cuid2, userO:user0, userS:user2, aConO:aCon0, aConS:aCon2, agentO:agent0, agentS:agent2,
     dbcO: new dbConf(log, 'mu_p1000'), 
     dbcS: db2Conf(log, 'mu_p1002'),
     dbcSO: new dbConf(),
@@ -543,7 +543,7 @@ describe("Tally peer-to-peer testing", function() {
   }
   let config2r = {		//Reusable token across open channel
     sites:2,
-    cidO:cid2, cidS:cid1, userO:user2, userS:user1, aConO:aCon2, aConS:aCon1, agentO:agent2, agentS:agent1,
+    cuidO:cuid2, cuidS:cuid1, userO:user2, userS:user1, aConO:aCon2, aConS:aCon1, agentO:agent2, agentS:agent1,
     dbcO: db2Conf(log, 'mu_p1002'), 
     dbcS: new dbConf(log, 'mu_p1001'),
     dbcSO: db2Conf(),

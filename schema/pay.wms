@@ -24,14 +24,14 @@ function mychips.lifts_tf_bpiu() {mychips.lifts mychips.users_v} {
     begin
       if new.payor_ent notnull and new.origin isnull then
         select into new.origin jsonb_build_object(		-- Build origin field if it doesn't exist
-          'cid',	peer_cid,
+          'cuid',	peer_cuid,
           'agent',	peer_agent
         ) from mychips.users_v where user_ent = new.payor_ent;
       end if;
 
       if new.find notnull and new.payee_ent isnull then		-- Is payee local to our system?
         select into new.payee_ent user_ent from mychips.users_v
-          where peer_cid = new.find->>'cid' and peer_agent = new.find->>'agent';
+          where peer_cuid = new.find->>'cuid' and peer_agent = new.find->>'agent';
       end if;
 
       return new;

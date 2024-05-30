@@ -14,8 +14,8 @@
 const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson } = require('../common')
 var log = testLog(__filename)
 const { host, user0, port0, port1, port2, agent0, agent1, agent2 } = require('../def-users')
-const { cidu, cidd, cidN } = require('./def-path')
-var cid0 = cidN(0), cid2 = cidN(2), cid3 = cidN(3), cidb = cidN('B'), cidx = cidN('X')
+const { cuidu, cuidd, cuidN } = require('./def-path')
+var cuid0 = cuidN(0), cuid2 = cuidN(2), cuid3 = cuidN(3), cuidb = cuidN('B'), cuidx = cuidN('X')
 var agentListen = 'ma_' + agent1		//And his agent process
 var {save, rest} = require('./def-route')
 var interTest = {}			//Pass values from one test to another
@@ -56,7 +56,7 @@ it("Configure existing good route in DB", function(done) {
       interTest.r0 = row			//Save original route record
       assert.equal(row.min, min)
       assert.equal(row.via_ent, user0)
-      assert.equal(row.dst_cid, cidd)
+      assert.equal(row.dst_cuid, cuidd)
       assert.equal(row.dst_agent, agent2)
       assert.equal(row.smallest, smallest)
       done()
@@ -64,14 +64,14 @@ it("Configure existing good route in DB", function(done) {
   })
 
   it("Query resulting path/route", function(done) {
-    let sql = `select bot_cid,top_cid,dst_cid,status,path,path_min,route_min,min
+    let sql = `select bot_cuid,top_cuid,dst_cuid,status,path,path_min,route_min,min
       from mychips.routes_v_paths where segment and status = 'good'`
 //log.debug("Sql:", sql)
     dbA.query(sql, null, (e, res) => {if (e) done(e)
       let row = getRow(res, 0)			//;log.debug("row:", row)
-      assert.equal(row.bot_cid, cid3)
-      assert.equal(row.top_cid, cid0)
-      assert.equal(row.dst_cid, cidd)
+      assert.equal(row.bot_cuid, cuid3)
+      assert.equal(row.top_cuid, cuid0)
+      assert.equal(row.dst_cuid, cuidd)
       assert.equal(row.min, interTest.r0.min)	//As set in previous test
       done()
     })
@@ -91,8 +91,8 @@ it("Configure existing good route in DB", function(done) {
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'init')
       assert.equal(msg.sequence, 0)
-      assert.deepStrictEqual(msg.outc, {cid:cidu, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.topc, {cid:cid0, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cuid:cuidu, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cuid:cuid0, agent:agent1, host, port:port1})
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.ok(!obj.org)
       assert.ok(!obj.ref)
@@ -101,7 +101,7 @@ it("Configure existing good route in DB", function(done) {
       assert.equal(obj.units, interTest.r0.min)		//lift amount
       let init = msg.init			//;log.debug("A init:", init)
       assert.ok(init.circuit)
-      assert.equal(init.find.cid, cidd)
+      assert.equal(init.find.cuid, cuidd)
       assert.equal(init.find.agent, agent2)
       assert.equal(init.org.agent, agent1)
       assert.equal(init.org.host, host)
@@ -117,7 +117,7 @@ it("Configure existing good route in DB", function(done) {
     let logic = {context: ['draft.init'], update: null}
       , {action, object, init, sequence} = interTest.init
       , {ref, org, find, circuit} = init
-      , lift_uuid = mkUuid(org.plan.cid, org.plan.agent, 'lift')
+      , lift_uuid = mkUuid(org.plan.cuid, org.plan.agent, 'lift')
       , msg = {sequence, object}
     org.plan.pay = !circuit			//Payment or clearing lift
     org.plan = Buffer.from(JSON.stringify(org.plan)).toString('base64url')	//Fake encryption
@@ -134,8 +134,8 @@ it("Configure existing good route in DB", function(done) {
       interTest.seek = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'seek')
-      assert.deepStrictEqual(msg.outc, {cid:cidu, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.topc, {cid:cid0, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cuid:cuidu, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cuid:cuid0, agent:agent1, host, port:port1})
       assert.ok(!msg.init)
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.deepStrictEqual(obj.org, org)
@@ -204,8 +204,8 @@ it("Configure existing good route in DB", function(done) {
   it("Agent receives promise for known foreign destination (<start> -> draft.relay)", function(done) {
     let logic = {query: true}			//;log.debug("init:", interTest.init)
       , tally = interTest.init.bott		//;log.debug("bottom:", tally)	//tally: 3->D
-      , find = {cid:cidx, agent:agent0}
-      , lift = mkUuid(cidd, agent2, 'lift')
+      , find = {cuid:cuidx, agent:agent0}
+      , lift = mkUuid(cuidd, agent2, 'lift')
       , {org, ref, date, life, units} = interTest.seek.object
       , object = {org, ref, date, find, life, lift, units}
       , msg = {tally, object}
@@ -222,17 +222,17 @@ it("Configure existing good route in DB", function(done) {
 //      interTest.check = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'relay')
-      assert.deepStrictEqual(msg.outc, {cid:cidb, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.topc, {cid:cid2, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cuid:cuidb, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cuid:cuid2, agent:agent1, host, port:port1})
       _done()
     })
   })
 
   it("Agent receives promise for connected foreign destination (<start> -> draft.relay)", function(done) {
     let logic = {query: true}			//;log.debug("relay:", interTest.relay)
-      , find = {cid:cidu, agent:agent0}
+      , find = {cuid:cuidu, agent:agent0}
       , msg = interTest.relay			//From previous test
-      , lift = mkUuid(cidd, agent2, 'lift')
+      , lift = mkUuid(cuidd, agent2, 'lift')
       , units = 1
     msg.object = Object.assign(msg.object, {find, lift, units})
     let sql = Format(`select mychips.lift_process(%L,%L) as state;`, msg, logic)
@@ -247,8 +247,8 @@ it("Configure existing good route in DB", function(done) {
       interTest.forcon = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'relay')
-      assert.deepStrictEqual(msg.outc, {cid:cidu, agent:agent0, host, port:port0})
-      assert.deepStrictEqual(msg.topc, {cid:cid0, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.outc, {cuid:cuidu, agent:agent0, host, port:port0})
+      assert.deepStrictEqual(msg.topc, {cuid:cuid0, agent:agent1, host, port:port1})
       _done()
     })
   })
@@ -267,9 +267,9 @@ it("Configure existing good route in DB", function(done) {
 
   it("Agent receives promise for local user (<start> -> draft.found)", function(done) {
     let logic = {query: true}
-      , find = {cid:cid3, agent:agent1}
+      , find = {cuid:cuid3, agent:agent1}
       , msg = interTest.relay			//From previous test
-      , lift = mkUuid(cidd, agent2, 'lift')
+      , lift = mkUuid(cuidd, agent2, 'lift')
       , units = 3
     msg.object = Object.assign(msg.object, {find, lift, units})
     let sql = Format(`select mychips.lift_process(%L,%L) as state;`, msg, logic)
@@ -284,8 +284,8 @@ it("Configure existing good route in DB", function(done) {
       interTest.forloc = msg
       assert.equal(msg.target, 'lift')
       assert.equal(msg.action, 'found')
-      assert.deepStrictEqual(msg.inpc, {cid:cidd, agent:agent2, host, port:port2})
-      assert.deepStrictEqual(msg.botc, {cid:cid3, agent:agent1, host, port:port1})
+      assert.deepStrictEqual(msg.inpc, {cuid:cuidd, agent:agent2, host, port:port2})
+      assert.deepStrictEqual(msg.botc, {cuid:cuid3, agent:agent1, host, port:port1})
       _done()
     })
   })

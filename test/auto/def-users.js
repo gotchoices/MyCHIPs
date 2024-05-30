@@ -6,9 +6,9 @@ const user0 = 'p1000'
 const user1 = 'p1001'
 const user2 = 'p1002'
 const user3 = 'p1003'
-const cid0 = 'adam_smith'
-const cid1 = 'james_madison'
-const cid2 = 'fran_lee'
+const cuid0 = 'adam_smith'
+const cuid1 = 'james_madison'
+const cuid2 = 'fran_lee'
 const aKey0 = 'P' + port0
 const aKey1 = 'Q' + port1
 const aKey2 = 'R' + port2
@@ -25,7 +25,7 @@ var aCon2 = {host, port: port2, keys:{publicKey:aKey2}}
 
 module.exports = {
   host, 
-  cid0, cid1, cid2,
+  cuid0, cuid1, cuid2,
   user0, user1, user2, user3,
   port0, port1, port2,
   agent0, agent1, agent2,

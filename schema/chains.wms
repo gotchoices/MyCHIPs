@@ -226,7 +226,7 @@ function {mychips.chain_process(msg jsonb, recipe jsonb)} {
 } {
   returns jsonb language plpgsql as $$
     declare
-      cid	text	= msg->'to'->>'cid';
+      cid	text	= msg->'to'->>'cuid';
       agent	text	= msg->'to'->>'agent';
       obj	jsonb	= msg->'object';
       cmd	text	= obj->>'cmd';
@@ -242,7 +242,7 @@ function {mychips.chain_process(msg jsonb, recipe jsonb)} {
     begin
 --raise notice 'Chainproc cid:% msg:% recipe:%', cid, msg, recipe;
       select into trec * from mychips.tallies
-        where hold_cid = cid and tally_uuid = (obj->>'tally')::uuid and status = 'open';
+        where hold_cuid = cid and tally_uuid = (obj->>'tally')::uuid and status = 'open';
       if not found then return null; end if;
 --raise notice 'Chainproc T:%-% cid:% conf:% cmd:% R:%', trec.tally_ent, trec.tally_seq, cid, trec.chain_conf, cmd, recipe;
 
@@ -368,7 +368,7 @@ function {mychips.chain_notify_agent(ch mychips.chits, msg jsonb = null)} {mychi
             'uuid',	ch.chit_uuid
           )
         );
---raise notice 'Chain notice:% E:% Cid:% J:%', channel, ch.chit_ent, trec.part_chad->>'cid', jrec;
+--raise notice 'Chain notice:% E:% Cid:% J:%', channel, ch.chit_ent, trec.part_chad->>'cuid', jrec;
         perform pg_notify(channel, jrec::text);
         return true;
     end;
