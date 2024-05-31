@@ -59,7 +59,7 @@ const liftPayment = function(dataO, dataS, units, succeed = true) {
     })
   })
   
-  it("Create payment signature independant of DB", function(done) {
+  it("Create payment signature independent of DB", function(done) {
     let uuid = mkUuid(cuidO, agentO)
       , memo = 'Test payment lift'
       , ref = {payee: cuidS}
