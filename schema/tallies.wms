@@ -266,7 +266,7 @@ function mychips.tallies_tf_notify() {mychips.tally_notify_agent(mychips.tallies
       return new;
     end;
 $$;}
-trigger mychips_tallies_tr_notice {} {
+trigger mychips_tallies_tr_notify {} {
     after insert or update on mychips.tallies for each row execute procedure mychips.tallies_tf_notify();
 }
 

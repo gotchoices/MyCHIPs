@@ -24,10 +24,16 @@ tabtext mychips.lifts	{Lifts}		{Contains a record for each group of chits in a s
     {memo	{Memo}			{Human-readable text description, context or explanation for the transaction}}
     {sign	{Signature}		{Digital signature of the payor authorizing its agent to perform the lift}}
   }}
+  {agent_auth	{Agent Authorization}	{Details about how the lift was authorized} {
+    {agent	{Agent}			{The public key of the agent authorizing the lift}}
+    {sign	{Signature}		{The agent's digital signature}}
+  }}
+  {signature	{Signature}		{Digital signature of the lift originator indicating that the transaction is binding.}}
+  {session	{Session Code}		{A code unique to the lift negotiation session}}
+  {transact	{Transaction}		{Results of the lift negotiation transaction}}
   {find		{Destination}		{The JSON CHIP Address of the entity we are seeking at the end of the line for this lift.  For circular lifts, it is the foreign peer at the bottom of our local segment.}}
   {origin	{Origin}		{A JSON record describing information about how/where the lift originated.  Some parts encrypted for eyes of the destination agent only.}}
   {referee	{Referee}		{The JSON CHIP Address of the site who will decide when the lift has expired}}
-  {signature	{Signature}		{Digital signature of the lift originator indicating that the transaction is binding.}}
   {digest	{Hash}			{A SHA-256 hash signature of the lift data}}
 } $glob::stampt] -messages {
   {CIF		{Chit Failure}		{An operation failed to create chits correctly for a lift}}

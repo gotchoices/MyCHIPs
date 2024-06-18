@@ -290,7 +290,7 @@ function mychips.chits_tf_notify() {mychips.chits mychips.chit_notify_agent(mych
         return new;
     end;
 $$;}
-trigger mychips_chits_tr_notice {} {
+trigger mychips_chits_tr_notify {} {
     after insert or update on mychips.chits for each row execute procedure mychips.chits_tf_notify();
 }
 

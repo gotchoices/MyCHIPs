@@ -3,47 +3,36 @@
 
 $title(Lift States)
 state "draft.init" as draftInit
-state "init.exec" as initExec
-state "draft.part" as draftPart
-state "draft.find" as draftFind
-state "find.term" as findTerm
+state "init.seek" as initSeek
+state "seek.exec" as seekExec
 state resolvable {
   state exec
   state part
-  state find
 }
 
 draftInit: Status: draft, Request: init
-initExec: Status: init, Request: exec
-'init:  Status: init, Request: null
-draftFind:  Status: draft, Request: find
-findTerm:  Status: find, Request: term
-draftPart:  Status: draft, Request: part
+initSeek: Status: init, Request: seek
+seekExec: Status: seek, Request: exec
 exec:  Status: exec, Request: null
 good:  Status: good, Request: null
 part:  Status: part, Request: null
-find:  Status: find, Request: null
 void:  Status: void, Request: null
 
 'State transition rules:
 [*] -[$user]-> draftInit: $trans($user,User initiates linear lift\nRequest:init,'')
 [*] --> draftInit: $trans(Agent,Automaton initiates circular lift\nRequest:init,'')
-'draftInit -[$db]-> init: $trans($db, init request detected, '', Agent prepares/signs Lift\nObject Encodes destination)
-draftInit -[$db]-> good: $trans($db, request->init, 'Internal route found', Execute lift locally)
-draftInit -[$db]-> initExec: $trans($db, request->init, 'Internal route impossible', Ask agent for external lift\nRequest:exec)
-initExec -[$db]-> exec: $trans($db, route detected,'',Task delegated to chipNet)
+draftInit -[$db]-> void: $trans($db, init detected, 'Lift/signature invalid', Disable payment record)
+draftInit -[$db]-> initSeek: $trans($db, init detected, 'Payor signature good', Agent signs lift)
+initSeek -[$db]-> seekExec: $trans($db, seek detected, Delegate to chipNet, 'Upon plan discovery,\nproceed to:')
+initSeek -[$db]-> void: $trans($db, seek detected, Delegated to chipNet, 'Discovery timed out')
+initSeek --> good: $trans(Trigger, seek detected, Inernal lift possible, Lift executed locally)
 
-[*] -[$peer]-> [*]: $trans($peer,Receive Action:promise, Won't commit to lift)
-[*] -[$peer]-> draftPart: $trans($peer,Receive Action:promise,Will commit to lift, 'Store lift/chits; Request:part;\nForward Action: promise')
-[*] -[$peer]-> draftFind: $trans($peer,Receive Action:promise,Destination found locally, 'Store lift Request: term')
+seekExec -[$db]-> exec: $trans($db, exec detected, DB/User selected plan, chipNet has initiated lift)
+seekExec -[$db]-> void: $trans($db, exec detected, chipNet fails to initiate lift)
 
-draftFind -[$db]-> findTerm: $trans($db,Detect find,'', Build draft lift\nNotify correct agent\nAction: find)
-findTerm -[$db]-> find: $trans($db,Detect term,'', Reply to originator\nBuild chits\nAction: terminus)
-draftPart -[$db]-> part: $trans($db,Detect part,'', Forward lift\nAction: promise)
+[*] -[$peer]-> part: $trans($peer, chipNet requests promise, 'Create lift, draft chits')
 
-[*] --> good: $trans(Agent, Call to local clearing\nlift function, Lift completes, Commit lift chits; Consense)
-
-resolvable -up[$peer]-> good: $trans($peer,Receive referee signature, Verified Valid, Commit lift chits; Consense)
-resolvable -[$peer]-> void: $trans($peer,Receive referee signature, Verified Void, Mark lift as void)
+resolvable -[$peer]-> good: $trans($peer, chipNet confirms good, Verified Valid, Commit lift chits; Consense)
+resolvable -[$peer]-> void: $trans($peer, chipNet confirms failed, Verified Void, Mark lift as void)
 
 @enduml

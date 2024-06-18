@@ -446,30 +446,21 @@ However, it is not particularly useful so no state diagrams are presented here.
 It is enough that each node remain aware of any chit marked as good, and keep communicating with the other half (according to the sequences shown above) of the tally until a chain index is successfully recorded and acknowledged for that chit.
 
 ### Lift Protocol
-Readers not already familiar with credit lifts, should become familiar with [this section on lifts](learn-lift.md) before proceeding.
+Readers not already familiar with credit lifts, should refer to [this section on lifts](learn-lift.md) before proceeding.
 
-Starting with version protocol 1.5, we will offload to external libraries both
-[route discovery](https://github.com/gotchoices/ChipNet)
-and [lift negotiation](https://github.com/gotchoices/ChipSync).
+Starting with version protocol 1.5, we will offload outside route discovery and
+lift negotiation to an [external library](https://github.com/gotchoices/ChipNet).
 
-This should facilitate the following objectives:
+This is to facilitate the following objectives:
 - Increase site bandwidth and scalability
 - Encourage multiple MyCHIPs-compatible implementations
-- Support multiple methods (besides single referee) for assessing lift validity/timeout
+- Support multiple consensus methods (besides single referee) for assessing lift validity/timeout
 
-While ChipNet/ChipSync are being developed, this implementation will continue toward a 
-functional system that works as a single site.
-This means support for local route discovery and local clearing and payment lifts in a way
-that, from the user's perspective, will not have to change once fully distributed lifts
-become possible.
-
-Please refer to the separate documentation for
-[ChipNet](https://github.com/gotchoices/ChipNet) and
-[ChipSync](https://github.com/gotchoices/ChipSync) in order to better understand the following sections.
+Please refer to the ChipNet repository for more detailed information.
 
 ### Route Discovery
-Before a lift can be performed, it is necessary to first discover whether there are
-willing partners available along a viable pathway to perform the necessary transfer.
+Before a lift can be performed, it is necessary to first discover whether there
+exists a viable pathway through entities willing to serve as participants in the lift.
 
 In prior versions, routes were discovered proactively and stored in a local routing table.
 When a lift was needed, it would be proposed via pathways deemed to be likely according to the cached routing information.
@@ -483,8 +474,8 @@ Route discovery requests can be initiated in two ways:
 
 A site containing multiple users in its database has knowledge of all the connections between its users. 
 In some cases, it may be able to find a suitable lift route using only these local connections.
-More commonly, it will be necessary to obtain the cooperation of other sites to perform a meaningful lift.
-Discovery of lift pathways is accomplished by the [chipNet module](https://github.com/gotchoices/ChipNet).
+More commonly, we will call [chipNet ](https://github.com/gotchoices/ChipNet)
+to obtain the cooperation of other sites to perform a lift.
 
 Upon finding one or more routes, ChipNet will return a structure containing these paths.
 The originator process will select the preferred route and continue on to execute the lift.

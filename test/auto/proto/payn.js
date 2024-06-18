@@ -15,12 +15,12 @@ const clearSql = `begin;
         commit;`
 const { Sites, initSites } = require('./def-net')
 var liftData = [
-//  ['p1003','p1000', 4],
-//  ['p1103','p1100', 4],
-//  ['p1203','p1200', 4],
-//  ['p1303','p1300', 4],
-//  ['p1103','p1002', 20],
-  ['p1203','p1001', 20],
+  ['p1003','p1000', 4],
+  ['p1103','p1100', 4],
+  ['p1203','p1200', 4],
+  ['p1303','p1300', 4],
+  ['p1103','p1002', 20],
+//  ['p1203','p1001', 20],
 ]
 var siteData = []
 var userData = {}
@@ -60,13 +60,13 @@ const liftPayment = function(dataO, dataS, units, succeed = true) {
   })
   
   it("Create payment signature independent of DB", function(done) {
-    let uuid = mkUuid(cuidO, agentO)
+    let lift = mkUuid(cuidO, agentO)
       , memo = 'Test payment lift'
       , ref = {payee: cuidS}
       , find = {cuid: cuidS, agent: agentS}
       , date = new Date().toISOString()
       , { key } = interTest.sign
-      , core = {uuid, find, units, date, memo, ref}	//;log.debug("c:", core)
+      , core = {lift, find, units, date, memo, ref}	//;log.debug("c:", core)
     crypto.sign(key, core, sign => {
       let text = Buffer.from(sign).toString('base64url')
       assert.ok(text)			//;log.debug('sign:', text)
@@ -77,11 +77,11 @@ const liftPayment = function(dataO, dataS, units, succeed = true) {
 
   it("Launch lift payment: " + cuidO + " -> " + cuidS, function(done) {
     let {sign, text, core} = interTest.sign
-      , {uuid, find, units, date, memo, ref} = core
+      , {lift, find, units, date, memo, ref} = core
       , auth = {memo, ref, sign:text}
       , sql = `insert into mychips.lifts_v_pay (payor_ent, find, lift_date, units, lift_uuid, payor_auth, request)
 	    	values($1,$2,$3,$4,$5,$6,'init') returning *;`
-      , parms = [userO, find, date, units, uuid, auth]
+      , parms = [userO, find, date, units, lift, auth]
       , dc = succeed ? 3 : 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
 log.debug("Sql:", sql, JSON.stringify(parms))
     dbO.query(sql, parms, (e, res) => {if (e) done(e)		//;log.debug("Res:", res)
@@ -94,29 +94,32 @@ log.debug("Sql:", sql, JSON.stringify(parms))
       assert.deepStrictEqual(pay.payor_auth, auth)
       assert.equal(pay.origin.cuid, cuidO)
       assert.equal(pay.origin.agent, agentO)
-      assert.equal(pay.payee_ent, userS)
+      if (pay.find.agent == pay.origin.agent)
+        assert.equal(pay.payee_ent, userS)
+      else
+        assert.ok(!pay.payee_ent)
       _done()
     })
     busO.register('po', (msg) => {		log.debug("O msg:", msg)
       assert.equal(msg.target, 'lift')
-      assert.equal(msg.state, succeed ? 'good' : 'void')
+      assert.equal(msg.status, succeed ? 'good' : 'void')
       assert.equal(msg.entity, userO)
       assert.equal(msg.memo, memo)
+      assert.equal(msg.units, units)
       assert.deepStrictEqual(msg.ref, ref)
-      let obj = msg.object			//;log.debug("A obj:", obj)
-      assert.ok(!!obj)				//A tally attached
-      assert.equal(obj.units, units)
+//      let obj = msg.object			//;log.debug("A obj:", obj)
+//      assert.ok(!!obj)			//A tally attached
       _done()
     })
     busS.register('ps', (msg) => {		log.debug("S msg:", msg)
       assert.equal(msg.target, 'lift')
-      assert.equal(msg.state, 'good')
+      assert.equal(msg.status, 'good')
       assert.equal(msg.entity, userS)
       assert.equal(msg.memo, memo)
+      assert.equal(msg.units, units)
       assert.deepStrictEqual(msg.ref, ref)
-      let obj = msg.object			//;log.debug("A obj:", obj)
-      assert.ok(!!obj)				//A tally attached
-      assert.equal(obj.units, units)
+//      let obj = msg.object			//;log.debug("A obj:", obj)
+//      assert.ok(!!obj)				//A tally attached
       _done()
     })
   })

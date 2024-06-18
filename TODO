@@ -10,11 +10,15 @@ X- Update documentation of chip addresses
 X-  Modify test/auto/pay.js to use netn structure
 X-  Fix error on sites 1-3
 X-  New test in pay.js for ChipNet discovery
--  Make separate json_u, json_a fields in DB for user and agent to sign
--  Agent (lift.js) evaluates payor's authorization signature
--  Should we be caching peer public keys? (probably not)
--  Agent also signs lift record (need a way to sign with noise key)
--   
+X-  Make separate json_p, json fields in DB for user and agent to sign
+X-  Agent (lift.js) evaluates payor's authorization signature
+X- Local lifts working with local agent signature
+X- Remote lifts invoke chipNet (process init.seek)
+- Agent also signs lift record (need a way to sign with noise key)
+-  How can we do this in test mode, where keys are fake?
+- Recheck lifts.ITL check (include status = seek?)
+- Evaluate seek/exec states.  When to transition?
+- 
 - Test distributed payments with app:
 -  User is notified?
 -  Wait for async completion/failure

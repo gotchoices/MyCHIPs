@@ -5,56 +5,60 @@ actor "User" as user
 database "Payor Model" as orgDB
 control "Payor Agent" as orgAgent
 control "ChipNet" as chipNet
-control "ChipSync" as chipSync
 collections "Upstream Sites" as upSites
 
 user		->>	orgDB:		Request payment lift to named peer\nrequest=init
-orgDB		->>	orgAgent:		Notify payor's agent
+orgDB		->>	orgAgent:	Trig: Notify payor's agent\naction=init
 
-alt Can't verify user's signature
+alt Check that user's signature is good
+  orgAgent	->>	orgDB:		Agent signs lift record\nstatus=init, recipe=local
+else Can't verify user's signature
   orgAgent	->>	orgDB:		Mark payment as void
-  orgDB	->>	user:		Notify user  
-  note over orgAgent,orgDB: Exit
-else User's signature is good
-  orgAgent	->>	orgDB:		Agent signs lift record\nrequest=route
-end
-
-alt Payee agent is local to our site\nand a suitable local route is found
-  orgDB	->>	orgDB:		Generate/commit local chits\nCommit lift
-  orgDB	->>	user:		Notify user  
+  orgDB		->>	user:		Notify user  
   note over orgAgent,orgDB: Exit
 end
 
-orgAgent	->>	chipNet:	Launch routing session
+alt Check if payee agent is local to our site\nand a suitable local route is found
+  orgDB		->>	orgDB:		Generate/commit local chits\nCommit lift, status = good
+  orgDB		->>	user:		Notify user  
+  note over orgAgent,orgDB: Exit
+else Will try external lift
+  orgDB		->>	orgDB:		request = route
+  orgDB		->>	orgAgent:	Trig: Get list of outbound segments\nNotify agent; action=route
+end
+
+orgAgent	->>	chipNet:	Launch route\ndiscovery session
 chipNet		<->	upSites:	ChipNet negotiates pathway
 
 alt ChipNet can't find suitable route
-
   chipNet	->>	orgAgent:	No route possible
-  orgAgent	->>	orgAgent:	Void lift record
-  orgAgent	->>	user:		Notify user  
+  orgAgent	->>	orgDB:		Update lift record, status=void
+  orgDB		->>	user:		Notify user  
   note over orgAgent,orgDB: Exit
 
 else  
-  chipNet	->>	orgAgent:	Suitable route found
+  chipNet	->>	orgAgent:	Suitable route(s) found
+  orgAgent	->>	orgDB:		Update lift\nstatus=route, recipe=orig
+  orgDB		->>	orgDB:		Select optimal plan\nrequest=orig
 end
 
-orgAgent	->>	orgAgent:	Select optimal plan
-orgAgent	->>	chipSync:	Launch lift transaction
-chipSync	->>	orgAgent:	Time to build provisional chits
-orgAgent	<->	orgDB:		Build provisional chits
-chipSync	<->	upSites:	ChipSync negotiates lift
+orgDB		->>	orgAgent:	Trig: Notify agent; action=orig
+orgAgent	->>	chipNet:	Initiate lift transaction
+
+chipNet		->>	orgAgent:	Time to build draft chits
+orgAgent	<->	orgDB:		Build draft chits
+orgAgent	->>	chipNet:	Provisional chits created
+chipNet		<->	upSites:	ChipNet negotiates lift
 
 alt Lift succeeds
-
-  chipSync	->>	orgAgent:	Lift succeeded
-  orgAgent	->>	orgAgent:	Record/commit provisional chits
+  chipNet	->>	orgAgent:	Lift succeeded
+  orgAgent	->>	orgDB:		Record/commit chits, status=open
 
 else  
-  chipSync	->>	orgAgent:	Lift failed
-  orgAgent	->>	orgAgent:	Void provisional chits
+  chipNet	->>	orgAgent:	Lift failed
+  orgAgent	->>	orgDB:		Rollback draft chits, status=void
 end
 
-orgAgent	->>	user:		Notify user  
+orgDB		->>	user:		Notify user of\nsuccess/failure
   
 @enduml
