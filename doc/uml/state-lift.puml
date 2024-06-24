@@ -11,24 +11,28 @@ state resolvable {
 }
 
 draftInit: Status: draft, Request: init
+draftInit: Need to validate lift
 initSeek: Status: init, Request: seek
+initSeek: Need to launch discovery
 seekExec: Status: seek, Request: exec
+seekExec: Need to launch transaction
 exec:  Status: exec, Request: null
 good:  Status: good, Request: null
 part:  Status: part, Request: null
 void:  Status: void, Request: null
+resolvable: Awaiting lift completion or failure
 
 'State transition rules:
 [*] -[$user]-> draftInit: $trans($user,User initiates linear lift\nRequest:init,'')
 [*] --> draftInit: $trans(Agent,Automaton initiates circular lift\nRequest:init,'')
-draftInit -[$db]-> void: $trans($db, init detected, 'Lift/signature invalid', Disable payment record)
-draftInit -[$db]-> initSeek: $trans($db, init detected, 'Payor signature good', Agent signs lift)
-initSeek -[$db]-> seekExec: $trans($db, seek detected, Delegate to chipNet, 'Upon plan discovery,\nproceed to:')
-initSeek -[$db]-> void: $trans($db, seek detected, Delegated to chipNet, 'Discovery timed out')
-initSeek --> good: $trans(Trigger, seek detected, Inernal lift possible, Lift executed locally)
+draftInit -[$db]-> void: $trans($db, local_init, 'Lift/signature invalid', Disable payment record)
+draftInit -[$db]-> initSeek: $trans($db, local_init, 'Payor sign good', 'Agent signs, advance to seek')
+draftInit -[$db]-> good: $trans($db, local_init, 'Payor sig good', 'Internal lift possible\nLift executed locally')
+initSeek -[$db]-> seekExec: $trans($db, local_seek, ChipNet launched, 'Pathways/plans discovered')
+initSeek -[$db]-> void: $trans($db, local_seek, ChipNet launched, 'Discovery timed out')
 
-seekExec -[$db]-> exec: $trans($db, exec detected, DB/User selected plan, chipNet has initiated lift)
-seekExec -[$db]-> void: $trans($db, exec detected, chipNet fails to initiate lift)
+seekExec -[$db]-> exec: $trans($db, local_exec, DB/User selected plan, ChipNet lift initiated)
+seekExec -[$db]-> void: $trans($db, local_exec, ChipNet lift initialization failed)
 
 [*] -[$peer]-> part: $trans($peer, chipNet requests promise, 'Create lift, draft chits')
 
