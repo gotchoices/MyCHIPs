@@ -9,21 +9,20 @@
 //- Test for one-time connection, token no longer valid
 //- Test for reusable token, tally is cloned, token still valid
 //- 
-
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, Crypto, Stringify, peerTest, markLogs, libModule} = require('../common')
-var log = testLog(__filename)
-var crypto = new Crypto(log)
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, SubCrypto, Stringify, peerTest, markLogs, libModule, sinon} = require('../common')
+const log = testLog(__filename)
+const crypto = new SubCrypto(log)
 const {host,user0,user1,user2,cuid0,cuid1,cuid2,agent0,agent1,agent2,aCon0,aCon1,aCon2,db2Conf} = require('../def-users')
-var contract = {domain:"mychips.org", name:"deluxe", version:1.0}
-var {uSql, sSql, save, rest} = require('./def-tally')
-var interTest = {}			//Pass values from one test to another
+const contract = {domain:"mychips.org", name:"deluxe", version:1.0}
+const {uSql, sSql, save, rest} = require('./def-tally')
+let interTest = {}			//Pass values from one test to another
 
 //Establish tally between two users
 var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, userS, agentO, agentS, aConO, aConS, reuse, preopen, saveName}) {
-  var serverO, serverS
-  var busO = new Bus('busO'), busS = new Bus('busS')
-  var dbO, dbS
-  var seqS = 1, seqO = reuse ? 2 : 1
+  let serverO, serverS
+  let busO = new Bus('busO'), busS = new Bus('busS')
+  let dbO, dbS
+  let seqS = 1, seqO = reuse ? 2 : 1
   
   const getSignature = function(db, user, seq, done) {
     let sql = sSql('t.json_core, u.user_cmt', user, seq)	//;log.debug('sql:', sql)
@@ -33,7 +32,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
         , message = Stringify(row.json_core)		//;log.debug('JSON:', message.slice(0,40))
 
       assert.ok(row.json_core)
-      crypto.sign(key, message, sign => {
+      crypto.sign(key, message).then(sign => {
         let textSign = Buffer.from(sign).toString('base64url')
         assert.ok(textSign)			//;log.debug('sign:', textSign)
         interTest.sign = textSign
@@ -402,6 +401,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
   })
 
   it("Subject attempts to accept tally with a bad signature", function(done) {
+    let consoleErrorStub = sinon.stub(console, 'error')
     let sql = uSql('request = %L, hold_sig = %L', 'open', 'Invalid signature', userS, 1)
       , dc = 2, _done = () => {if (!--dc) done()}
 //log.debug("Sql:", sql)
@@ -416,11 +416,13 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
       assert.equal(msg.entity, userS)		//Subject is notified
       assert.equal(msg.reason, 'open')		//Attempt to open
       assert.equal(msg.state, 'P.offer')	//Still stuck in offer state
+      consoleErrorStub.restore()
       _done()
     })
   })
 
   it("Subject attempts to accept tally with unreachable partner", function(done) {
+    let consoleErrorStub = sinon.stub(console, 'error')
     let sql = uSql('request = %L, hold_sig = %L', 'open', interTest.sign, userS, 1)
 //log.debug("Sql:", sql)
     serverS.failSend = 'fail'			//Force: fail to connect with peer
@@ -429,6 +431,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
       assert.equal(row.request, 'open')
       assert.equal(row.status, 'offer')
       assert.equal(row.state, 'offer.open')
+      setTimeout(() => {consoleErrorStub.restore()}, 250)	//stop lingering errors in packet handling
       done()
     })
   })
@@ -438,7 +441,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
         set last = 'now'::timestamp - '70 minutes'::interval
         where ttry_ent = $1 and ttry_seq = $2 returning *`	//Force timestamp for next test to work
       , parms = [userS, 1]
-log.debug("Sql:", sql, parms)
+//log.debug("Sql:", sql, parms)
     dbS.query(sql, parms, (err, res) => {
       let row = getRow(res, 0)			;log.debug("row:", row)
       assert.equal(row.tries, 1)

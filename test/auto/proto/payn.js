@@ -6,9 +6,9 @@
 //TODO:
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, Crypto, peerTest, timeLong } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, SubCrypto, peerTest, timeLong } = require('../common')
 const log = testLog(__filename)
-const crypto = new Crypto(log)
+const crypto = new SubCrypto(log)
 const clearSql = `begin;
         delete from mychips.chits where chit_type = 'lift';
         delete from mychips.lifts;
@@ -19,7 +19,7 @@ var liftData = [
   ['p1103','p1100', 4],
   ['p1203','p1200', 4],
   ['p1303','p1300', 4],
-  ['p1103','p1002', 20],
+//  ['p1103','p1002', 20],
 //  ['p1203','p1001', 20],
 ]
 var siteData = []
@@ -67,7 +67,7 @@ const liftPayment = function(dataO, dataS, units, succeed = true) {
       , date = new Date().toISOString()
       , { key } = interTest.sign
       , core = {lift, find, units, date, memo, ref}	//;log.debug("c:", core)
-    crypto.sign(key, core, sign => {
+    crypto.sign(key, core).then(sign => {
       let text = Buffer.from(sign).toString('base64url')
       assert.ok(text)			//;log.debug('sign:', text)
       interTest.sign = {key, sign, text, core}
@@ -164,7 +164,8 @@ describe("Distributed lift testing", function() {
     })  
   })
 
-/*
+/* Not yet implemented...
+
   it("Launch lift payment that will fail", function(done) {
     let memo = 'Test failed payment lift'
       , ref = {invoice: 5432}

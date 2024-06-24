@@ -6,10 +6,10 @@
 //- 
 const Fs = require('fs')
 const Path = require('path')
-const { assert, testLog, Schema, dbConf, dbClient, Crypto, Format, Bus, getRow, peerTest, mkUuid, Stringify } = require('../common')
+const { assert, testLog, Schema, dbConf, dbClient, SubCrypto, Format, Bus, getRow, peerTest, mkUuid, Stringify } = require('../common')
 const {uSql, sSql} = require('./def-tally')
 const log = testLog(__filename)
-const crypto = new Crypto(log)
+const crypto = new SubCrypto(log)
 const contract = {domain:"mychips.org", name:"standard", version:1.0}
 const clearSql = `begin;
         delete from mychips.tallies;
@@ -93,12 +93,12 @@ const establishTally = function(dataO, dataS, units) {
 
   it("Generate originator signature", function(done) {
     let sql = "select json_core from mychips.tallies_v where tally_ent = $1 and tally_seq = $2"
-      , key = dataO.private
+      , key = dataO.priv
     dbO.query(sql, [userO, interTest.tallyO.tally_seq], (err, res) => {
       let row = getRow(res, 0)				//;log.debug("row:", row)
         , message = Stringify(row.json_core)		//;log.debug('JSON:', message.slice(0,40))
       assert.ok(row.json_core)
-      crypto.sign(key, message, sign => {
+      crypto.sign(key, message).then(sign => {
         let textSign = Buffer.from(sign).toString('base64url')
         assert.ok(textSign)			//;log.debug('sign:', textSign)
         interTest.sign = textSign
@@ -146,12 +146,12 @@ const establishTally = function(dataO, dataS, units) {
 
   it("Generate subject signature", function(done) {
     let sql = "select json_core from mychips.tallies_v where tally_ent = $1 and tally_seq = $2"
-      , key = dataS.private
+      , key = dataS.priv
     dbS.query(sql, [userS, interTest.msgS.sequence], (err, res) => {
       let row = getRow(res, 0)				//;log.debug("row:", row)
         , message = Stringify(row.json_core)		//;log.debug('JSON:', message.slice(0,40))
       assert.ok(row.json_core)
-      crypto.sign(key, message, sign => {
+      crypto.sign(key, message).then(sign => {
         let textSign = Buffer.from(sign).toString('base64url')
         assert.ok(textSign)			//;log.debug('sign:', textSign)
         interTest.sign = textSign
@@ -193,9 +193,9 @@ const establishTally = function(dataO, dataS, units) {
       , memo = 'Pay: ' + units
       , tally = interTest.tallyO.tally_uuid
       , date = new Date().toISOString()
-      , key = dataO.private
+      , key = dataO.priv
       , core = {by, date, memo, ref, tally, type, uuid, units}	//;log.debug("c:", core)
-    crypto.sign(key, core, sign => {
+    crypto.sign(key, core).then(sign => {
       let text = Buffer.from(sign).toString('base64url')
       assert.ok(text)			//;log.debug('sign:', text)
       interTest.sign = {key, sign, text, core}
@@ -269,31 +269,31 @@ describe("Create simulated network", function() {
     })
   })
 
-  Object.values(userData).forEach(u => {	//log.debug('User:', u)
+  Object.values(userData).forEach(u => {	log.debug('User:', u)
     let sql = `insert into mychips.users_v 
         (ent_type, ent_num, ent_name, peer_cuid, peer_agent, peer_host, peer_port, user_cmt, user_psig)
         values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning *;`
       , { agent, aConf } = u.site
-      , private = JSON.stringify(u.private)
-    
+//      , private = JSON.stringify(u.private)
+
     it("Build user: " + u.id + " on site " + u.site.idx, function(done) {
-      crypto.generate((keyPair, private, public, err) => {if (err) done(err)
-        let parms = [u.type, u.num, u.name, u.cuid, u.agent, aConf.host, aConf.port, private, public]
-        Object.assign(u, {private, public})		//;log.debug('Sql:', sql, parms)
+      crypto.generate().then(({keys, priv, publ}) => {
+        let parms = [u.type, u.num, u.name, u.cuid, u.agent, aConf.host, aConf.port, priv, publ]
+        Object.assign(u, {priv, publ})			//;log.debug('Sql:', sql, parms)
         u.site.db.query(sql, parms, (e, res) => {if (e) done(e)
           assert.equal(res.rowCount, 1)
           let row = res.rows[0]				//;log.debug('row:', row)
           assert.equal(row.id, u.id)
           assert.equal(row.peer_cuid, u.cuid)
           assert.equal(row.peer_agent, u.agent)
-//        assert.equal(row.user_cmt, u.private)
+//        assert.equal(row.user_cmt, u.priv)
           done()
         })
       })
     })
   })
 
-  tallyData.forEach(t => {		log.debug('Tally:', t)
+  tallyData.forEach(t => {		//log.debug('Tally:', t)
     let [ orig, subj, units ] = t
     describe("Establish tally between " + orig + " and " + subj, function() {
       establishTally(userData[orig], userData[subj], units)
@@ -323,7 +323,6 @@ describe("Create simulated network", function() {
     
     Fs.writeFile(file, top + text + bot, done)
   })
-/* 
 
 /* */
   after('Disconnect from test databases', function(done) {

@@ -10,9 +10,9 @@
 //TODO:
 //- Digitally sign tallies?
 //- 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson, Crypto } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, queryJson, SubCrypto } = require('../common')
 const log = testLog(__filename)
-const crypto = new Crypto()
+const crypto = new SubCrypto()
 const { host, port0, port1, port2, agent0, agent1, agent2 } = require('../def-users')
 const { cuidu, cuidd, cuidN } = require('./def-path')
 const tallySql = `insert into mychips.tallies (tally_ent, tally_uuid, tally_date, tally_type, contract, hold_cert, part_cert, hold_sig, part_sig, status) values (%L,%L,%L,%L,%L,%L,%L,%L,%L,'open') returning *`
@@ -44,8 +44,8 @@ describe("Initialize tally/path test data for agent1", function() {
       let cuid = cuidN(u)
         , name = "User " + u
         , sql = `insert into mychips.users_v (ent_name, peer_cuid, peer_agent, peer_host, peer_port, user_cmt) values($1, $2, $3, $4, $5, $6) returning *;`
-      crypto.generate((keyPair, prv, pub) => {
-        db.query(sql, [name, cuid, agent1, host, port1, prv], (e, res) => {if (e) done(e)
+      crypto.generate().then(({priv}) => {
+        db.query(sql, [name, cuid, agent1, host, port1, priv], (e, res) => {if (e) done(e)
           assert.equal(res.rowCount, 1)
           let row = res.rows[0]				//;log.debug('row:', row)
           assert.equal(row.id, 'p' + (1000 + u))

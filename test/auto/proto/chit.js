@@ -7,9 +7,9 @@
 // User1 <-> DB1 <-> Agent1 <-> Agent2 <-> DB2 <-> User2
 //TODO:
 //- 
-const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs, Crypto, libModule, Stringify } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, getRow, mkUuid, dbClient, markLogs, SubCrypto, libModule, Stringify } = require('../common')
 const log = testLog(__filename)
-const crypto = new Crypto(log)
+const crypto = new SubCrypto(log)
 const PeerCont = require(libModule('peer2peer'))
 const defTally = require('./def-tally')
 const {uSql, save, rest, sSql} = require('./def-chit')
@@ -29,7 +29,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
         , message = Stringify(row.json_core)		//;log.debug('MS:', message)
 
       assert.ok(row.json_core)
-      crypto.sign(key, message, sign => {
+      crypto.sign(key, message).then(sign => {
         let text = Buffer.from(sign).toString('base64url')
         assert.ok(text)			//;log.debug('sign:', text)
         interTest.sign = {key, sign, text, uuid}
@@ -242,7 +242,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
       , date = new Date().toISOString()
       , { key } = interTest.sign
       , core = {by, date, memo, ref, tally, type, uuid, units}	//;log.debug("c:", core)
-    crypto.sign(key, core, sign => {
+    crypto.sign(key, core).then(sign => {
       let text = Buffer.from(sign).toString('base64url')
       assert.ok(text)			//;log.debug('sign:', text)
       interTest.sign = {key, sign, text, core}

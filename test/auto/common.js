@@ -7,6 +7,7 @@ const Fs = require('fs')
 const Path = require('path')
 const Net = require('net')
 const Child = require('child_process')
+const sinon = require('sinon')
 const Format = require('pg-format')
 const Stringify = require('json-stable-stringify')
 const Uuid = require('uuid')
@@ -17,7 +18,7 @@ const devSqlFile = require.resolve('wyseman/lib/develop.sql')
 const { DBHost, DBPort, DBAdmin, Log } = require('../settings.js')
 const { dbClient } = require("wyseman")
 const PeerCont = require("../../lib/peer2peer")
-const Crypto = require('../../lib/crypto.js')
+const SubCrypto = require('../../lib/subcrypto.js')
 const RootDir = Path.join(__dirname, '../../')
 const LibDir = Path.join(RootDir, 'lib')
 const Schema = Path.join(LibDir, 'schema.json')
@@ -190,7 +191,7 @@ module.exports={
   DBName,
   DB2Name: DBName + '2',
   DBAdmin, DBHost, DBPort, Log, dbClient, RootDir, LibDir,
-  Format, assert, Bus, testLog, Schema, SchemaDir, Crypto, Stringify,
+  Format, assert, Bus, testLog, Schema, SchemaDir, SubCrypto, Stringify, sinon,
   pgCheck, dockCleanup, dropDB,
   importCheck, develop, peerTest, queryJson, mkUuid, libModule,
   timeBase, timeLong, timeMid, timeShort,

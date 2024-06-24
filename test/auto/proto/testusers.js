@@ -4,9 +4,9 @@
 // -----------------------------------------------------------------------------
 //TODO:
 //- 
-const { DBName, Schema, dbConf, testLog, Format, Bus, assert, dbClient, Crypto, pgCheck, Data, importCheck, dropDB } = require('../common')
+const { DBName, Schema, dbConf, testLog, Format, Bus, assert, dbClient, SubCrypto, pgCheck, Data, importCheck, dropDB } = require('../common')
 var log = testLog(__filename)
-var crypto = new Crypto(log)
+var crypto = new SubCrypto(log)
 var { host, user0, user1, port0, port1, agent0, agent1, aCon0, aCon1, cuid0, cuid1 } = require('../def-users')
 var interTest = {}
 
@@ -41,24 +41,23 @@ log.debug('res:', res, 'row:', row)
 
   it("Build User Keys", function(done) {
     let dc = 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
-    crypto.generate((keyPair, private, public, err) => {if (err) done(err)
-      assert.ok(keyPair.publicKey)
-      assert.ok(keyPair.privateKey)
-      assert.ok(public.x)
-      assert.ok(public.y)
-      interTest.uKey0 = public
-      interTest.rKey0 = JSON.stringify(private)		//Stash private key in user's comment
+    crypto.generate().then(({keys, priv, publ}) => {
+      assert.ok(keys?.publicKey)
+      assert.ok(keys?.privateKey)
+      assert.ok(publ?.x)
+      assert.ok(publ?.y)
+      interTest.uKey0 = publ
+      interTest.rKey0 = JSON.stringify(priv)		//Stash private key in user's comment
       _done()
     })
-    crypto.generate((keyPair, private, public) => {	//log.debug('key1:', public)
-      interTest.uKey1 = public
-      interTest.rKey1 = JSON.stringify(private)
+    crypto.generate().then(({keys, priv, publ}) => {	//log.debug('key1:', publ)
+      interTest.uKey1 = publ
+      interTest.rKey1 = JSON.stringify(priv)
       _done()
     })
   })
-  
+
   it("Initialize test users", function(done) {
-//log.debug("Key:", agent0.key.publicKey)
     let fields = 'peer_host = %L, peer_port=%L, peer_agent=%L, user_psig=%L, user_cmt=%L'
       , f0 = Format(fields, host, port0, agent0, interTest.uKey0, interTest.rKey0)
       , f1 = Format(fields, host, port1, agent1, interTest.uKey1, interTest.rKey1)

@@ -9,9 +9,9 @@
 //- Generate payment lift request
 //- 
 
-const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, Crypto, peerTest } = require('../common')
+const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, SubCrypto, peerTest } = require('../common')
 const log = testLog(__filename)
-const crypto = new Crypto(log)
+const crypto = new SubCrypto(log)
 const { host, user0, user1, user2, user3, port0, port1, port2, agent0, agent1, agent2, db2Conf, aCon0, aCon1, aCon2 } = require('../def-users')
 const { cuidu, cuidd, cuidb, cuidx, cuidN } = require('./def-path')
 const cuid0 = cuidN(0), cuid2 = cuidN(2), cuid3 = cuidN(3)
@@ -90,7 +90,7 @@ describe("Peer-to-peer lift testing", function() {
       , date = new Date().toISOString()
       , { key } = interTest.sign
       , core = {uuid, find, units, date, memo, ref}	//;log.debug("c:", core)
-    crypto.sign(key, core, sign => {
+    crypto.sign(key, core).then(sign => {
       let text = Buffer.from(sign).toString('base64url')
       assert.ok(text)			//;log.debug('sign:', text)
       interTest.sign = {key, sign, text, core}

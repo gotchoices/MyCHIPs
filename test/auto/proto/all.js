@@ -23,4 +23,5 @@ require('./net02.js')
 //require('./sch-lift.js')	//Obsolete
 //require('./lift.js')		//Obsolete
 //require('./lift-in.js')	//Obsolete
+
 require('./pay.js')
