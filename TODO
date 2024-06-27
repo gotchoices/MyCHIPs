@@ -15,7 +15,12 @@ X-  Agent (lift.js) evaluates payor's authorization signature
 X- Local lifts working with local agent signature
 X- Remote lifts invoke chipNet (process init.seek)
 X- Refactor crypto->subcrypto and noisecrypto as async/promise by default
-- Agent also signs lift record (need a way to sign with noise key)
+X- Peer2peer maintains separate signing and communication keys
+X- Fix peernoise error (null.cuid)
+- Make old tally tests run with real agent keys
+- Strip out code in bin/mychips.js for faux agent keys?
+- Add to noiseCrypto module sign/verify routines
+- Agent signs lift record using ed key
 -  How can we do this in test mode, where keys are fake?
 - Recheck lifts.ITL check (include status = seek?)
 - Evaluate seek/exec states.  When to transition?

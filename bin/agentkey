@@ -10,6 +10,7 @@ const Os = require('os')
 const Crypto = require('crypto')
 const Hostname = Os.hostname()
 const Extension = ".agk"
+const sodium = require('sodium-native')
 
 var argv = require('yargs')
   .alias('h','host')       .default('host',       process.env.MYCHIPS_PEERHOST || Hostname)
@@ -17,25 +18,21 @@ var argv = require('yargs')
   .alias('s','peerServer')
   .argv
 
-var pkidir = argv._.shift() || '.'
+var pkidir = argv._.shift()
 //console.log("host:", argv.host, "port:", argv.port, "pkidir:", argv.pkidir, "command:", command)
 
-try {
-  Fs.accessSync(pkidir, Fs.constants.W_OK)
-} catch (err) {
-  if (err) console.log("Can't write key to directory:")
-}
-
-var keyPair = Crypto.generateKeyPairSync('x25519')
-  , privKey = keyPair.privateKey
-  , jsonKey = privKey.export({format: 'jwk'})
-  , pubKey = jsonKey.x
-  , fileName = Path.join(pkidir, pubKey + Extension)
-  , key = {
+var keyPair = Crypto.generateKeyPairSync('ed25519')
+  , { privateKey, publicKey} = keyPair
+  , key = privateKey.export({format: 'jwk'})
+  , pubB64u = key.x
+  , pubBin = Buffer.from(pubB64u,'base64url')
+  , saveKey = {
     host: argv.host,
     port: argv.port,
-    key: jsonKey
+    key
   }
-    
-Fs.writeFileSync(fileName, JSON.stringify(key))
-console.log(pubKey)
+//console.log("KP:", keyPair, 'JK:', key, 'PK:', pubBin, 'len:', pubBin.length)
+
+console.log(pubB64u)
+if (pkidir)
+  Fs.writeFileSync(Path.join(pkidir, pubB64u + Extension), JSON.stringify(saveKey))

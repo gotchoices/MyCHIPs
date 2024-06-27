@@ -1,9 +1,19 @@
 const { Schema, dbConf } = require('../common')
+const sodium = require('sodium-native')
 const Sites = 4
 const SiteBase = 100
 const Users = 4
 const portBase = 65400
 const host = 'localhost'
+
+const fixedKeyPair = function(input) {
+  let seed = Buffer.alloc(sodium.crypto_sign_SEEDBYTES)
+    , publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+    , privateKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+  sodium.crypto_generichash(seed, Buffer.from(input))
+  sodium.crypto_sign_seed_keypair(publicKey, privateKey, seed)
+  return {publicKey, privateKey}
+}
 
 module.exports = {
   Sites,
@@ -31,12 +41,12 @@ module.exports = {
   initSites: function(log, siteData, userData) {
     for (let idx = 0; idx < Sites; idx++) {	// Make control structure for each site
       let port = portBase + idx
-        , agentKey = 'A' + port
         , dbName = 'mychipsTestDB' + idx
-        , agent = Buffer.from(agentKey).toString('base64url')
-        , aConf = {host, port, keys:{publicKey: agentKey}}
+        , keys = fixedKeyPair('A' + port)
+        , agent = Buffer.from(keys.publicKey).toString('base64url')
+        , aConf = {host, port, keys}
         , dConf = new dbConf(log, undefined, dbName, Schema)
-        , site = {idx, dbName, db:null, agent, aConf, dConf}
+        , site = {idx, dbName, db:null, agent, aConf, dConf}	//;log.debug('P:', port, 'A:', agent)
       siteData[idx] = site			//;log.debug("Site:", idx, site)
       for (let u = 0; u < Users; u++) {		// Control structure for each user
         let type = 'p'

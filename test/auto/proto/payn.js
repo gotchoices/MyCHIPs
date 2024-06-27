@@ -1,4 +1,4 @@
-//Test payment lifts on sample network
+//Test payment lifts on sample network; run
 //After: netn
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------

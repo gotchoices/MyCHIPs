@@ -1,5 +1,4 @@
-//Build simulated network of N databases, each containing users; run
-//After: ../schema/dbinit
+//Build simulated network of N databases, each containing users
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
 //TODO:
@@ -14,6 +13,7 @@ const contract = {domain:"mychips.org", name:"standard", version:1.0}
 const clearSql = `begin;
         delete from mychips.tallies;
         delete from base.ent where ent_num >= 100;
+        delete from mychips.agents;
         update mychips.users set _last_tally = 0; commit`
 const agree = {domain:"mychips.org", name:"test", version:1}
 const {Sites, SiteBase, Users, portBase, tallyData, initSites} = require('./def-net')
@@ -269,7 +269,7 @@ describe("Create simulated network", function() {
     })
   })
 
-  Object.values(userData).forEach(u => {	log.debug('User:', u)
+  Object.values(userData).forEach(u => {	//log.debug('User:', u)
     let sql = `insert into mychips.users_v 
         (ent_type, ent_num, ent_name, peer_cuid, peer_agent, peer_host, peer_port, user_cmt, user_psig)
         values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning *;`
@@ -306,13 +306,14 @@ describe("Create simulated network", function() {
       , file = Path.join(__dirname, '..', 'data', 'testNet.puml')
       , text = ''
     siteData.forEach(s => {  			//log.debug("S:", s.idx, s)
-      let t = `  subgraph cluster_${s.idx} {\n    label = "Site: ${s.idx}, Agent: ${s.agent}"\n`
+      let truncAgent = s.agent.slice(0,3) + '..' + s.agent.slice(-3)
+      let t = `  subgraph cluster_${s.idx} {\n    label = "Site: ${s.idx}, Agent: ${truncAgent}"\n`
       Object.values(userData).forEach(u => {	//log.debug("U-check:", u.cuid, u.site.idx)
         if (u.site.idx == s.idx) {
           t += `    ${u.cuid} [label="${u.id}\n${u.cuid}"];\n`
         }
-      text += t + `\n  }\n\n`
       })
+      text += t + `\n  }\n\n`
     })
     tallyData.forEach(t => {
       let [orig, subj, units ] = t
