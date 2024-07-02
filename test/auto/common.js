@@ -8,6 +8,7 @@ const Path = require('path')
 const Net = require('net')
 const Child = require('child_process')
 const sinon = require('sinon')
+const sodium = require('sodium-native')
 const Format = require('pg-format')
 const Stringify = require('json-stable-stringify')
 const Uuid = require('uuid')
@@ -214,6 +215,21 @@ module.exports={
     assert.ok(res)
     assert.equal(res.rowCount, exp)
     return res.rows[idx]
+  },
+  
+  fixedKeyPair: function(input) {
+    let seed = Buffer.alloc(sodium.crypto_sign_SEEDBYTES)
+      , public = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+      , secret = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+      , jwkTpt = {kty: 'OKP', crv: "Ed25519"}
+    sodium.crypto_generichash(seed, Buffer.from(input))
+    sodium.crypto_sign_seed_keypair(public, secret, seed)
+    let d = secret.slice(0,32).toString('base64url')
+      , x = public.toString('base64url')	//;log.debug('Fixed:', d, x)
+    return {
+      publicKey: Object.assign({x}, jwkTpt), 
+      privateKey: Object.assign({x,d}, jwkTpt),
+    }
   },
   
   dbConf: function(log, listen, database = DBName, schema) {

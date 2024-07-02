@@ -123,9 +123,9 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
       assert.equal(msg.entity, userO)	//Originator is prompted to sign the tally
       assert.equal(msg.state, 'P.draft')
       assert.equal(msg.sequence, seqO)
-      let tally = msg.object		///log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
+      let tally = msg.object
         , stock = tally.stock
-        , foil = tally.foil
+        , foil = tally.foil		//;log.debug("tally:", tally, "S:", tally.stock, "F:", tally.foil)
       assert.equal(stock.cert.chad.cuid, cuidO)
       assert.equal(stock.cert.chad.agent, agentO)
       assert.equal(foil.cert.chad.cuid, cuidS)
@@ -135,7 +135,7 @@ var Suite1 = function({sites, dbcO, dbcS, dbcSO, dbcSS, cuidO, cuidS, userO, use
       _done()
     })
   })
- 
+
   it("Make a real UUID for the proposed tally", function(done) {
     let uuid = mkUuid(cuidO, agent0)
       , sql = uSql('tally_uuid = %L', uuid, userO, seqO)

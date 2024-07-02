@@ -1,19 +1,9 @@
-const { Schema, dbConf } = require('../common')
-const sodium = require('sodium-native')
+const { Schema, dbConf, fixedKeyPair } = require('../common')
 const Sites = 4
 const SiteBase = 100
 const Users = 4
 const portBase = 65400
 const host = 'localhost'
-
-const fixedKeyPair = function(input) {
-  let seed = Buffer.alloc(sodium.crypto_sign_SEEDBYTES)
-    , publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
-    , privateKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
-  sodium.crypto_generichash(seed, Buffer.from(input))
-  sodium.crypto_sign_seed_keypair(publicKey, privateKey, seed)
-  return {publicKey, privateKey}
-}
 
 module.exports = {
   Sites,
@@ -43,7 +33,7 @@ module.exports = {
       let port = portBase + idx
         , dbName = 'mychipsTestDB' + idx
         , keys = fixedKeyPair('A' + port)
-        , agent = Buffer.from(keys.publicKey).toString('base64url')
+        , agent = keys.publicKey.x
         , aConf = {host, port, keys}
         , dConf = new dbConf(log, undefined, dbName, Schema)
         , site = {idx, dbName, db:null, agent, aConf, dConf}	//;log.debug('P:', port, 'A:', agent)
