@@ -1,18 +1,27 @@
 #!/bin/bash
-#Read a connection deep link, properly escape it, and launch in a
-#running emulator
+#Read a connection deep link, properly escape it, and launch in a running emulator
+
+#These ensure chark is called even if the OS incorrectly interprets the deep link:
+APP_PACKAGE=org.mychips.chark
+MAIN_ACTIVITY=org.mychips.chark.MainActivity
 
 read link					#;echo "link:$link"
 
 #Look for a running android emulator
-avds="$(adb devices |grep -v attached |grep device |wc -l)"
+avdlist="$(adb devices |grep -v attached |grep device)"
+avd=$(echo $avdlist |head -n 1 |awk '{print $1}')
+avds="$(echo $avdlist |wc -l)"
+
+if [ ! -z "$1" ]; then		#specify emulator
+  avd="$1"
+fi				#;echo "avd:$avd"; exit
 
 if [ ! -z "$avds" -a "$avds" -ge 1 ]; then	#Android running
   #Insert escapes before ampersands
   esclink=$(echo $link |sed -e 's/&/\\&/g')	#;echo "esclink:$esclink"
 
-  echo "Attempting launch to Android: $esclink"
-  adb shell am start -W -a android.intent.action.VIEW -d "$esclink"
+  echo "Attempting launch to avd: $avd $esclink"
+  adb -s $avd shell am start -W -a android.intent.action.VIEW -d "$esclink" -n $APP_PACKAGE/$MAIN_ACTIVITY
   exit 0
 fi
 

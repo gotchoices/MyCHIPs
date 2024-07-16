@@ -1,61 +1,50 @@
 #!/bin/bash
-#Launch an Android emulator and configure it to communicate with the mychips backend
-#- Put mychips0 into the android emulator's hosts file, resolving to local host
-#- Add in any hosts from the local machine relating to mychips.sim
-#  https://developer.android.com/studio/run/emulator-networking
-#- Install locally generated CA file in the device
-#- Install letsencrypt CA file in the device
-#  https://stackoverflow.com/questions/41117715/how-to-edit-etc-hosts-file-in-android-studio-emulator-running-in-nougat
+#Launch an Android emulator and configure it for a local MyCHIPs server
+#- Make sure there is a dns server accessible
+#- Install locally generated CA file in the emulator
+dnsLocIP="127.0.0.1"				#DNS from host's perspective
+dnsEmuIP="10.0.2.2"				#DNS from emulator's perspective
+cafile="../pki/local/web-ca.crt"		#Our local CA
+pushpath="/sdcard/Download"
 
 if [ -z "$1" ]; then
-  avd="$(emulator -list-avds |head -n 1)"
+  avd="$(emulator -list-avds |sort -r |head -n 1)"	#default to highest level sdk
 else
   avd="$1"
 fi				#;echo "avd:$avd"; exit
 logfile="../test/local/${avd}.log"
+echo "Emulator logging to file: $logfile"
 
-echo "Launching emulator: $avd in writable mode"
-emulator -avd $avd -writable-system -no-snapshot-load -verbose >$logfile &
-adb wait-for-device				#Make sure emulator has launched
-
-#What port is adb on?
-port="$(grep 'control console' $logfile | sed -e 's/^.*listening on port \([0-9]*\).*$/\1/')"
-if [ -z "$port" ]; then				#If debug output fails to inform us of port
-  port=5554					#Assume only one emulator running
+if ! nc -z $dnsLocIP 53; then
+  echo "Error: Android emulator rquires a dns server on $dnsLocIP:53"
+  exit 1
 fi
-dev="emulator-$port"
-echo "port:$port device:$dev"
-adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
 
-sleep 2						#;echo -n 'About to root...'; read ans
-adb -s $dev root				#Run adb daemon in root mode
+devs="$(adb devices |grep -v attached |grep device)"
+dev=$(echo $devs |head -n 1 |awk '{print $1}')
+if [ ! -z "$dev" ]; then
+  echo "Emulator is already running"
+else
+  echo "Launching emulator: $avd in writable mode"
+  emulator -avd $avd -writable-system -no-snapshot-load -dns-server $dnsEmuIP -verbose >$logfile &
+  adb wait-for-device				#Make sure emulator has launched
+  dev="$(adb devices |grep -v attached |grep device }grep awk '{print $1}')"
+fi
 
-sleep 2						#;echo -n 'About to remount...'; read ans
-adb -s $dev remount
+echo "Waiting for emulator boot, device:$dev"
+adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; echo -n .; done;'
+echo
 
-echo "Copying host file"			#;echo -n 'Enter to continue...'; read ans
-cp ./hosts /tmp/hosts.tmp
-grep mychips.sim /etc/hosts >>/tmp/hosts.tmp
-adb -s $dev push /tmp/hosts.tmp /system/etc/hosts	#Install our custom hosts file
-
-#To install a CA cert on the emulator:
-#https://docs.mitmproxy.org/stable/howto-install-system-trusted-ca-android/
-#-------------------------------------------------
-function install_cert () {
-  cafile="$1"
-  cahash="$(openssl x509 -inform PEM -subject_hash_old -in $cafile |head -n 1)"
-  echo "cafile:$cafile cahash:$cahash"
-  adb -s $dev push $cafile /system/etc/security/cacerts/${cahash}.0	#Install custom CA file
-}
-
-install_cert "../pki/local/web-ca.crt"		#Install our local CA
-
-#Install Letsencrypt certificate:
-#le_url="https://letsencrypt.org/certs/lets-encrypt-r3.pem"
-#le_file="../pki/local/$(basename $le_url)"
-#if [ ! -f $le_file ]; then
-#  curl $le_url >$le_file
-#fi
-#install_cert $le_file				#Install letsencrypt CA
-
-adb -s $dev unroot
+capath=$pushpath/local_ca_file.crt
+if ! adb -s $dev shell "[ -f $capath ]"; then
+  echo "Installing local CA file on emulator at: $capath"
+  sleep 5
+  adb -s $dev push $cafile $capath
+#  adb -s $dev shell am start -a android.intent.action.VIEW -d "file://$capath"
+  adb -s $dev shell am start -n "com.android.settings/.Settings\$SecuritySettingsActivity"
+  echo
+  echo "On the running emulator, in settings, search for 'certificate'"
+  echo " and install the CA certificate found in the download area"
+else
+  echo "Local CA file already on emulator: $capath"
+fi

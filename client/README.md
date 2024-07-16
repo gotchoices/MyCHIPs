@@ -1,11 +1,10 @@
 # MyCHIPs Mobile
 
 ## Directory Structure
-This folder contains multiple attempts/implementations of a MyCHIPs
-mobile application:
+This folder contains/supports multiple implementations of a MyCHIPs mobile application:
 
 - . (client):  
-  Support routines common to any implementation.
+  Support files common to any implementation.
 
 - flutter:  
   The original BYU Capstone dart/flutter-based app.
@@ -14,77 +13,84 @@ mobile application:
   to replicate the two wyseman modules: client_ws, client_msg (and eventually
   client_np).
 
-- chark: CHip App React Kyle
-	An effort at a React Native app to demonstrate usage of the Wyseman
-	JS client API.  Hopefully will become the first standard MyCHIPs app.
+- chark: CHip App React Kyle  
+  Originally, an effort at a React Native app to demonstrate usage of the 
+  Wyseman JS client API.  Insight Workshop worked from this version to create
+  a fully working app, now (May 2024) available on IOS and Android.
 
-## Setup Notes
-These notes reflect steps taken on MacOS to get the React Native app running
-for Android.
+## React Native Setup Notes for Mac OS Host
+Install node from node.js.org (pre-built installer or n, nvm, etc).
+Install/update xcode to latest version.
 
-File watcher to monitor file changes and auto load the app:
+Install file watcher to monitor file changes and auto load the app:
 ```
 brew install watchman
 ```
 
-Need a working Java JDK.  This one is recommended by React Native:
+Install a Java JDK.  This one is recommended by React Native:
 ```
   brew tap homebrew/cask-versions
   brew install --cask zulu11
 ```
 
-Install Android Studio and SDK 12.
+Install Android Studio and Applicable SDK(s).
 Follow **carefully and precisely** the process in the
 [instructions](https://reactnative.dev/docs/environment-setup).
 Note, there are separate setup details for building android and ios.
 
-React Native expects a specific version of ruby (we are using 2.7.5).
-Here are two approaches to consider for installation:
+React Native previously recommended a specific version of ruby (2.7.5).
+Instructions currently (May 2024) say you can use the version of ruby
+that ships with the "latest version of macOS."
 
-Via brew:
+If you need a specific version, you can do that via rvm [instructions](https://rvm.io/rvm/install):
 ```
-  brew install cocoapods
-  brew install ruby@2.7
-  brew link ruby@2.7
-```
-Via rvm [instructions](https://rvm.io/rvm/install):
-```
-  gpg --keyserver hkp://pgp.mit.edu --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-  curl -sSL https://get.rvm.io | bash
+  curl -sSL https://get.rvm.io | bash -s stable
   source ~/.rvm/scripts/rvm
   rvm install 2.7.5
   rvm use 2.7.5
-  gem install cocoapods
 ```
 
-Next, get into the area for mobile apps:
+You should be able to install cocoapods with one of the following:
+```
+  sudo gem install cocoapods		#system-wide
+  gem install cocoapods			#local user
+```
+
+## Running the Emulator
+Now get into the client root directory:
 ```
 cd mychips/clients
 ```
 Android:  
 Make sure you have one or more android emulators (Virtual Devices) configured in android studio.
 
-If you are connecting to a local MyCHIPs server that doesn't really have
-a real domain address and/or certificate, you should launch the
-android emulator using the provided script:
+If you are connecting to a local MyCHIPs server that doesn't have a public 
+domain name, IP address and SSL certificate, you need to take several steps:
+- Run a local DNS service that can resolve the hostname of the
+  MyCHIPs server (see notes below).
+- Run the emulator so it can access that DNS server
+- Install the CA certificate with which the server's certificate was signed.
+
+There is a script provided:
 ```
 ./runemu
 ```
-This script will also configure the emulator as follows:
-- Install a host file that will direct web traffic destined for address
-  mychips0 to the local host computer where hopefully you have the mychips
-  backend running.  If it is running somewhere else, you may have to
-  modify the client/host file so the emulator can find the correct address.
-- Install a custom CA file.  This will be copied from the pki/local
-  folder.  If you are using some other certificate system, you will need
-  to adapt the script for your own needs.
+This script will check to make sure there is a DNS server running at the
+specified address.  This is by default 127.0.0.1 from the perspective of
+the host (itself).  From the perspective of the emulator, it is 10.0.2.2
+which also resolves to the host.  It then launches the emulator with
+the internal DNS pointed to the host.
 
-If a standard, un-patched emulator can find your server IP address OK
-and will honor the certificate your server provides, you may not need
-to use the runemu script.
+The script will also copy the CA certificate from the server's pki/local
+directory to the running emulator's Download folder.  This should be 
+valid for any host certificates built in the same directory.  It will 
+then launch the settings menu on the emulator.  You will have to manually 
+search for "certificates" in settings, navigate to the download folder
+and click the certificate file to install it on the emulator.  You should
+only have to do this once (unless/until you wipe the emulator data).
 
-There is not currently a similar method for patching the ios simulator.
-However, the ios simulators seem to read the hosts /etc/host file fine.
+There is not currently a scripted method for configuring the ios simulator.
+However, the ios simulators seem to read the host's /etc/host file fine.
 To get it to accept a locally signed certificate, you might try opening
 Safari on the emulator and browing:
 ```
@@ -114,105 +120,93 @@ npm run ios		#For ios
 ```
 The app should compile and load into the emulator.
 
-Make sure the MyCHIPs backend is running.  Something like:
+## Local DNS Server
+If you are running the server in a local VM or docker container, it
+may be helpful to run a local DNS server, as noted above, so the emulator 
+can find the correct IP number for the backend.
+
+You might use dnsmasq for this purpose as follows:
+```
+  brew install dnsmasq
+  /usr/local/sbin/dnsmasq
+```
+This will resolve any hostnames you have in your local /etc/hosts file.
+It should pass any other requests onto whatever nameserver your host
+is using.  So if you are running the server on a virtual linux machine
+called linux0, it might have a local IP address (on the host) of 
+192.168.56.10, for example.
+With dnsmasq running, you should be able to resolve to that IP with:
+```
+  dig @localhost linux0
+```
+It may not work as you intend to resolve the server hostname to
+127.0.0.1 since the route will originate inside the emulator itself.
+Use the actual address of the host or some address that will
+resolve correctly to the VM/container.
+
+## Connecting to the Server
+Make sure the MyCHIPs backend is running with something like:
 ```
 export NODE_DEBUG=debug
 cd mychips
-npm run docker-dev		#docker, or
-npm start			#native
+npm start			#native Linux, or
+npm run docker-dev		#in docker
 ```
 Debugging info will be available from the backend using something like this:
 ```
-tail -f test/local/docker/mychips0.log/combined.log	#or
-tail -f /var/tmp/mychips/combined.log
+tail -f /var/tmp/mychips/combined.log			#or
+tail -f test/local/docker/mychips0.log/combined.log
 ```
 If you haven't already, it will be helpful to initialize the backend database 
 with some data:
 ```
-docker exec mychips0 test/sample/kickstart
-docker exec mychips0 test/sample/randuser -n 4
+cd mychips/test/sample
+./kickstart			#native
+./randuser -n 4
 
 or
-cd mychips/test/sample
-./kickstart
-./randuser -n 4
+docker exec mychips0 test/sample/kickstart
+docker exec mychips0 test/sample/randuser -n 4
 ```
-Now generate a one-time connection token from the backend:
 
-NOTE: This method is deprecated.  See more current deep link method below.
+Now generate a one-time connection token URL and use it to connect to
+the server with something like:
 ```
-docker exec mychips0 bin/adminticket >chark/assets/ticket.json	#or
-mychips/bin/adminticket >chark/assets/ticket.json
-```
-Note: this example creates a ticket for the admin user and hard-copies
-it into the filesystem of the app.  This is only applicable in the very
-early stages of chark where the ticket is hard-loaded by the require
-command.  Later development should use a QR code or a deep link.
-
-Press the app button: "Connect with Token."
-
-See that the Server: line at the top of the app is updated to show the
-server portal: mychips0:54320.  This indicates that you successfully
-connected.  You can also see in the backend debugging window a "true"
-status in the validation line.
-
-Press the app button: "Query Backend."
-
-See that some user data is displayed in the client debugging window.
-This indicates that data was successfully fetched from the backend.
-
-Press the app button: "Disconnect."
-
-The backend debugging should indicate that you have disconnected.
-The app "Server:" line should go blank.
-
-Press the app button: "Connect with Key."
-
-You should get successfully reconnected and be able to query data again.
-You should be able to disconnect/reconnect any number of times using
-the key.
-
-### Deep Links
-Mobile apps should support launching with a deep link prefixed with 'mychips' for example:
-```
-adb shell am start -W -a android.intent.action.VIEW -d 'mychips://connect?host=mychips0\&port=54320\&token=b4179431fd18d5abbde31f3e391a3d99\&user=p1000'
-```
-Note, by the time the link has been passed through bash and then the adb shell
-the amersand's will cause a problem if they are not escaped.
-So one method is to first produce the connection ticket deep link using:
-```
-mychips/bin/adminticket -i <user_id> -q
-```
-next, copy/paste it onto the command line with the above adb command and
-then insert a backslash before each ampersand before executing.
-
-This can be a little awkward especially since the backend may be running
-on a different machine, VM, docker instance, etc.
-There is a script in this folder to help with this so you can do something like:
-```
-bin/adminticket -i p1010 -q |./linklaunch			#or
+bin/adminticket -i p1000 -q |./linklaunch			#or
 docker exec mychips0 bin/adminticket -i p1000 -q |./linklaunch	#or
-ssh where-server-is path/to/mychips/bin/adminticket -i p1010 -q |./linklaunch
+ssh user@server /path/to/mychips/bin/adminticket -i p1000 -q |./linklaunch
 
 The linklaunch script will first attempt to connect to a running android
 emulator.  If none is found, it will try to connect to a running IOS emulator.
 
-You can launch manually on IOS using something like:
+### Hard-coded Connection Token (deprecated)
+If deep linking is not working, you may try:
+
 ```
-  xcrun simctl openurl booted "deep link"			#or
-  xcrun simctl openurl booted "$(bin/adminticket -q)"
-  
+mychips/bin/adminticket >chark/assets/ticket.json -i p1000	#or
+docker exec mychips0 bin/adminticket -i p1000 >chark/assets/ticket.json
 ```
+Note: this example creates a ticket for user p1000 and hard-copies
+it into the filesystem of the app.
+
+Press the connection indicator in the app to bring up a debug
+connection dialog.  Press "Connect with Token."
+
+See that the connection indicator turns green.  This indicates that you 
+successfully connected.  If it is not green, the problem likely lies
+with one of these two issues:
+- The emulator can't reach the server
+- The emulator doesn't like the server's certificate
 
 ### Other Notes / Caveats
 
 #### Metro Launch
 During the ios build, react-native uses curl to query http://localhost:8081/status
 to determine if the metro bundler is running.  If you have http_proxy defined
-on your system, make sure you also have no_proxy set to exclude
-localhost from proxy traffic.  Otherwise, the build will not find your running
-metro and will attempt to launch a new one (which will fail because the port
-will already be in use).
+on your system, make sure you also have no_proxy set with your local domain
+information to exclude localhost from proxy traffic.
+Otherwise, the build will not find your running metro and will attempt to 
+launch a new one (which will fail because the port will already be in use).
 
 #### Metro Symlinks
 The Metro bundler doesn't seem to support symlinks.  This creates
@@ -235,24 +229,6 @@ When first running the android build, the following error came up:
 This was fixed by installing realpath using:
 ```
 brew install coreutils
-```
-
-#### ADB Command
-Can check the status of running android emulator(s) using:
-```
-adb devices		#or:
-~/Library/Android/sdk/platform-tools/adb devices
-
-```
-
-#### Navigation in React Native
-Setting up React Navigation: https://reactnavigation.org/docs/getting-started
-(Follow procedures for both Android and IOS)
-```
-  npm install --save @react-navigation/native
-  npm install --save react-native-screens react-native-safe-area-context
-  npx pod-install ios
-  npm install --save @react-navigation/native-stack
 ```
 
 #### RN 0.68 to 0.69

@@ -6,7 +6,7 @@
 //- 
 
 const Message = require('wyseman/lib/client_msg')
-var log = console.log	//Print debug messages from library
+var debug	// = console.log	//Print debug messages from library
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LocalStore = {
@@ -30,6 +30,6 @@ console.log("Local set:", key, !!value)
 
 var instance
 module.exports = (function() {
-  if (!instance) instance = new Message(LocalStore, log)
+  if (!instance) instance = new Message(LocalStore, {debug})
   return instance
 }())

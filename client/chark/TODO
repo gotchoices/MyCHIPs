@@ -1,17 +1,33 @@
 Chark mobile application development
-Project overview: https://github.com/gotchoices/MyCHIPs/blob/dev/doc/Project/MyCHIPs_Mobile.md
 
-Phase 1:
-X- New user can sign up on mychips.net site and receive connection token/link
-X- Existing users can refresh their connection token
-- App draws language data from backend
--  App automatically knows user's language of locale (or choice)
--  App display info reactive to language changes
-- User can download/install apk file from index.html
--  npm script for building/installing latest apk
--  npm script for building/installing latest ios (testflight?)
-X- Scanning QR code connects correctly
--  Show helpful status on success and/or failure
+Maintenance:
+X- Can build/run on android emulator
+- Can build/run on IOS simulator
+- Build version and post in App Store
+- Build version and post in Play Store
+- Can we build IOS version from command line (make npm script)
+
+Update:
+- Connect to backend with cid->cuid update
+- Fix all references to cid->cuid
+
+Progress:
+- Examine how wyseman API handles async messages
+- wm.request() can call cb() multiple times but is currently wrapped in a promise
+  in services/request.js.  Call to fetchTallies initially pulls from localStorage.
+  Is later cb() ignored when real data comes?
+- Language changes update UI
+- Test all signup vectors
+  - Download app on App/Play
+  - See app on mychips.org
+  - Signup on mychips.net
+  - Receive tally invitation
+  - Receive CHIP payment
+- MyCHIPs.net uses auth library for account/password maintenance
+- Launch app w/o Internet connection
+  - Can generate local payments
+
+Old:
 - App knows when new user has not connected yet:
 -  Displays simplified page allowing only: scan QR
 -  Processing of deep links also allowed at this point
@@ -26,24 +42,3 @@ X- Scanning QR code connects correctly
 -   personal photo (scale down and store in file_v_me)
 -   create signing key
 -   store signing key securely
--   
-
-Phase 2:
-- User can create/edit draft tallies
-- Can use a draft tally as a template to create a tally invitation
-- Properly display tally invitation QR generated in the backend
-- Tally invitation can be shared as QR or as a deep link
-- 
-
-Phase 3:
-- Receipt of tally deep link launches to tally editing page to respond to proposed tally
--  User can:
--   Accept
--   Modify
--   Reject
-- 
-- 
-
-Phase 4:
-Phase 5:
-Phase 6:
