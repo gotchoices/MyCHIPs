@@ -49,12 +49,17 @@ if [ -z "$APP_STORE_FILE" ]; then
 fi
 
 if [ -z "$APP_STORE_PASSWORD" ]; then
-  read -p "Enter individual key password: " APP_STORE_PASSWORD
+  read -sp "Enter keystore password: " APP_STORE_PASSWORD
+  echo
   export APP_STORE_PASSWORD
 fi
 
 if [ -z "$APP_KEY_PASSWORD" ]; then
-  read -p "Enter individual key password: " APP_KEY_PASSWORD
+  read -sp "Enter individual key password (enter if same): " APP_KEY_PASSWORD
+  echo
+  if [ -z "$APP_KEY_PASSWORD" ]; then
+    APP_KEY_PASSWORD="$APP_STORE_PASSWORD"
+  fi
   export APP_KEY_PASSWORD
 fi
 
