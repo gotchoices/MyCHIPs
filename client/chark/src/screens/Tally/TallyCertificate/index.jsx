@@ -62,7 +62,7 @@ const TallyCertificate = (props) => {
   }, []);
 
   const name = Object.values((cert?.name ?? {})).join(' ')
-  const cid = cert?.chad?.cid ?? '';
+  const cuid = cert?.chad?.cuid ?? '';
   const agent = cert?.chad?.agent ?? '';
   const email = useMemo(() => {
     const found = (cert?.connect ?? []).find(connect => connect.media === 'email')
@@ -226,7 +226,7 @@ const TallyCertificate = (props) => {
     ): (
       <DefaultCertificate
         name={name}
-        cid={cid}
+        cuid={cuid}
         email={email}
         agent={agent}
       />

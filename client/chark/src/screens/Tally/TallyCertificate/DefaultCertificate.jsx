@@ -13,8 +13,8 @@ const DefaultCertificate = (props) => {
       />
 
       <CertificateItem
-        label={'cid_text'}
-        value={props.cid}
+        label={'cuid_text'}
+        value={props.cuid}
       />
 
       <CertificateItem
@@ -32,7 +32,7 @@ const DefaultCertificate = (props) => {
 
 DefaultCertificate.proptypes = {
   name: PropTypes.string.isRequired,
-  cid: PropTypes.string.isRequired,
+  cuid: PropTypes.string.isRequired,
   email: PropTypes.string.isRequired,
   agent: PropTypes.string.isRequired,
 };

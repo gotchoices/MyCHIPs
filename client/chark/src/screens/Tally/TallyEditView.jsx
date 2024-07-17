@@ -44,7 +44,7 @@ const TallyEditView = props => {
 
   const partName = Object.values(tally.part_cert?.name ?? {}).join(' ');
   const partChipAddress = hasPartCert
-    ? `${tally.part_cert?.chad?.cid ?? ''}-${
+    ? `${tally.part_cert?.chad?.cuid ?? ''}-${
         tally.part_cert?.chad?.agent ?? ''
       }`
     : '';
@@ -61,7 +61,7 @@ const TallyEditView = props => {
 
   const holdName = Object.values(tally.hold_cert?.name ?? {}).join(' ');
   const holdChipAddress = hasHoldCert
-    ? `${tally.hold_cert?.chad?.cid ?? ''}-${
+    ? `${tally.hold_cert?.chad?.cuid ?? ''}-${
         tally.hold_cert?.chad?.agent ?? ''
       }`
     : '';

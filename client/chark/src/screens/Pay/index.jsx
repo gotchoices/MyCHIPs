@@ -26,7 +26,7 @@ const PayModal = (props) => {
   const partName = partCert?.type === 'o'
     ? `${partCert?.name}`
     : `${partCert?.name?.first}${partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''} ${partCert?.name?.surname}`
-  const description = `${partCert?.chad?.cid}:${formatRandomString(partCert?.chad?.agent)}`
+  const description = `${partCert?.chad?.cuid}:${formatRandomString(partCert?.chad?.agent)}`
 
   const onViewTally = () => {
     props.onClose()
@@ -84,7 +84,7 @@ const PayModal = (props) => {
       date: props?.tally?.tally_date,
       net: props?.tally?.net,
       net_pc: props?.tally?.net_pc,
-      cid: partCert?.chad?.cid,
+      cuid: partCert?.chad?.cuid,
     });
   };
 

@@ -100,7 +100,7 @@ const PaymentDetail = (props) => {
 
     setChitInputError(false);
     setDisabled(true);
-    const _chad = `chip://${chad.cid}:${chad.agent}`
+    const _chad = `chip://${chad.cuid}:${chad.agent}`
     const date = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ')
     const uuid = uuidv5(date + Math.random(), uuidv5(_chad, uuidv5.URL));
     const referenceJson = JSON.stringify({});

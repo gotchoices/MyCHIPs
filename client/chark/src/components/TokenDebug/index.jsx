@@ -15,7 +15,7 @@ var pktId = 1
 function query_users(wm) {
   wm.request(pktId++, 'select', {
     view: 'mychips.users_v_me',
-    fields: ['id', 'std_name', 'peer_cid', 'peer_agent']
+    fields: ['id', 'std_name', 'peer_cuid', 'peer_agent']
   }, data => {
 console.log('Data:', JSON.stringify(data,null,2))
   })

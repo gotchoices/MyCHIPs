@@ -101,7 +101,7 @@ export const getGoodChits = createAsyncThunk('activity/getGoodChits', async (arg
   try {
     const fields = [
       'chit_ent','chit_seq', 'chit_idx', 'chit_uuid', 'net_pc', 'units', 
-      'net', 'memo', 'reference', 'json_core', 'chit_date', 'state', 'part_cid',
+      'net', 'memo', 'reference', 'json_core', 'chit_date', 'state', 'part_cuid',
       'issuer', 'tally_type', 'tally_uuid',
     ];
 

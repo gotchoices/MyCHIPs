@@ -2,32 +2,32 @@ import React, { useState } from "react";
 import { StyleSheet, TextInput, View, Text, Alert } from "react-native";
 import { colors, toastVisibilityTime } from "../../config/constants";
 import Button from "../../components/Button";
-import { updateCID } from "../../services/profile";
+import { updateCUID } from "../../services/profile";
 import useSocket from "../../hooks/useSocket";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import useMessageText from '../../hooks/useMessageText';
 import CustomToast from '../../components/Toast';
 
-const UpdateCID = (props) => {
+const UpdateCUID = (props) => {
   const { wm } = useSocket();
-  const [cid, setCid] = useState()
+  const [cuid, setCuid] = useState()
   const [disabled, setDdisabled] = useState(false);
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
 
   const onUpdate = () => {
-    if (!cid) {
+    if (!cuid) {
       return Toast.show({
         type: 'error',
-        text1: 'Enter CID to continue',
+        text1: 'Enter CUID to continue',
         visibilityTime: toastVisibilityTime,
       })
     }
     setDdisabled(true);
-    updateCID(
+    updateCUID(
       wm,
       {
-        peer_cid: cid.toString(),
+        peer_cuid: cuid.toString(),
         where: {
           user_ent: props.userId
         }
@@ -38,7 +38,7 @@ const UpdateCID = (props) => {
         text1: charkText?.updated?.help ?? '',
         visibilityTime: toastVisibilityTime,
       });
-      props.success(cid.toString());
+      props.success(cuid.toString());
 
     }).catch(ex => {
       console.log("ERROR ==> ", ex);
@@ -55,8 +55,8 @@ const UpdateCID = (props) => {
     <TextInput
       style={styles.textInput}
       placeholder=""
-      value={cid}
-      onChangeText={setCid}
+      value={cuid}
+      onChangeText={setCuid}
     />
     <View style={styles.row}>
       <Button
@@ -115,4 +115,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default UpdateCID;
+export default UpdateCUID;

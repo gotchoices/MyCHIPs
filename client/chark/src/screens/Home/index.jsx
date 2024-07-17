@@ -13,7 +13,7 @@ import { setPersonal } from '../../redux/profileSlice';
 import useTitle from '../../hooks/useTitle'
 
 import CenteredModal from '../../components/CenteredModal';
-import UpdateCID from '../UpdateCID';
+import UpdateCUID from '../UpdateCUID';
 import { useCharkText } from "../../hooks/useLanguage";
 
 const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
@@ -41,9 +41,9 @@ const HomeScreen = (props) => {
 
   useEffect(() => {
     const userId = user?.curr_eid;
-    const cid = personal?.cid;
+    const cuid = personal?.cuid;
 
-    if (userId === cid && useId !== undefined && userId !== null && cid !== undefined && cid !== null) {
+    if (userId === cuid && useId !== undefined && userId !== null && cuid !== undefined && cuid !== null) {
       showUpdateDialog();
     }
   }, [user, personal])
@@ -102,11 +102,11 @@ const HomeScreen = (props) => {
   const dismissUpdateDialog = () => {
     setVisible(false);
   }
-  const onSuccess = (cid) => {
-    console.log("CID ==> ", cid);
+  const onSuccess = (cuid) => {
+    console.log("CUID ==> ", cuid);
     dispatch(setPersonal({
       ...personal,
-      cid: cid,
+      cuid: cuid,
     }))
     dismissUpdateDialog();
   }
@@ -127,7 +127,7 @@ const HomeScreen = (props) => {
         isVisible={visible}
         onClose={dismissUpdateDialog}
       >
-        <UpdateCID
+        <UpdateCUID
           userId={user?.curr_eid}
           cancel={dismissUpdateDialog}
           success={onSuccess}

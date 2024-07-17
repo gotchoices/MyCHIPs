@@ -75,7 +75,7 @@ const PendingChits = (props) => {
             {partName}
           </Text>
 
-          <Text style={styles.cid}>
+          <Text style={styles.cuid}>
             {description}
           </Text>
         </Header>
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     fontFamily: 'inter',
     color: colors.black,
   },
-  cid: {
+  cuid: {
     fontSize: 16,
     fontFamily: 'inter',
     fontWeight: '500',

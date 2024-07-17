@@ -29,7 +29,7 @@ export const getComm = (wm, user_ent) => {
 
 export const getPersonal = (wm, user_ent) => {
   const spec = {
-    fields: ['user_ent', 'tax_id', 'born_date', 'country', 'cas_name', "peer_cid", 'cert', 'ent_type', 'ent_name'],
+    fields: ['user_ent', 'tax_id', 'born_date', 'country', 'cas_name', "peer_cuid", 'cert', 'ent_type', 'ent_name'],
     view: 'mychips.users_v_me',
     where: {
       user_ent,
@@ -44,7 +44,7 @@ export const getPersonal = (wm, user_ent) => {
       country: user?.country ?? '',
       tax_id: user?.tax_id ?? '',
       cas_name: user?.ent_type === 'p' ? user?.cas_name : user?.ent_name ?? '',
-      cid: user?.peer_cid ?? '',
+      cuid: user?.peer_cuid ?? '',
       user_id: user?.user_ent ?? '',
       cert: user?.cert,
     }
@@ -162,9 +162,9 @@ export const getFile = (wm, user_ent) => {
   return request(wm, 'get_image' + random(), 'select', spec);
 }
 
-export const updateCID = (wm, args) => {
+export const updateCUID = (wm, args) => {
   const fields = {
-    peer_cid: args.peer_cid
+    peer_cuid: args.peer_cuid
   }
   const spec = {
     fields,
@@ -174,7 +174,7 @@ export const updateCID = (wm, args) => {
   if (args.where) {
     spec.where = args.where
   }
-  return request(wm, "_update_cid" + random(), 'update', spec);
+  return request(wm, "_update_cuid" + random(), 'update', spec);
 }
 
 export const updatePublicKey = (wm, args) => {

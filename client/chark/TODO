@@ -8,10 +8,12 @@ X- Can build/run on android emulator
 - Can we build IOS version from command line (make npm script)
 
 Update:
-- Connect to backend with cid->cuid update
-- Fix all references to cid->cuid
+X- Connect to backend with cid->cuid update
+X- Fix all references to cid->cuid
 
 Progress:
+- Profile email/phone show "primary_text" rather than "Primary"
+- Review App->linking->getStateFromPath; fix path logic
 - Examine how wyseman API handles async messages
 - wm.request() can call cb() multiple times but is currently wrapped in a promise
   in services/request.js.  Call to fetchTallies initially pulls from localStorage.

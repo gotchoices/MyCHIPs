@@ -63,7 +63,7 @@ const CustomCertificateItem = (props) => {
 
         {type === 'chad' && (
           <Chad
-            cid={data.cid}
+            cuid={data.cuid}
             agent={data.agent}
           />
         )}
@@ -194,11 +194,11 @@ function Chad(props) {
   return (
     <View>
       <Text style={styles.value}>
-        Agent: {props.cid}
+        Agent: {props.agent}
       </Text>
 
       <Text style={styles.value}>
-        CID: {props.agent}
+        CUID: {props.cuid}
       </Text>
     </View>
   )

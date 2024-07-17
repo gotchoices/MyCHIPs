@@ -33,17 +33,17 @@ const TallyReviewView = props => {
 
   const canEdit = props.canEdit ?? true;
 
-  const holdCIDAgent = props.holdCert?.chad?.cid
-    ? props.holdCert?.chad?.cid + ':' + props.holdCert?.chad?.agent 
+  const holdCUIDAgent = props.holdCert?.chad?.cuid
+    ? props.holdCert?.chad?.cuid + ':' + props.holdCert?.chad?.agent 
     : '';
 
-  const partCIDAgent = props.partCert?.chad?.cid
-    ? props.partCert?.chad?.cid + ':' + props.partCert?.chad?.agent
+  const partCUIDAgent = props.partCert?.chad?.cuid
+    ? props.partCert?.chad?.cuid + ':' + props.partCert?.chad?.agent
     : '';
 
 
-  const holdText = props.holdCert?.chad?.cid + '...';
-  const partText = props.partCert?.chad?.cid ?? ''+ '...';
+  const holdText = props.holdCert?.chad?.cuid + '...';
+  const partText = props.partCert?.chad?.cuid ?? ''+ '...';
 
   const holdLimit = props?.holdTerms?.limit;
   const partLimit = props?.partTerms?.limit;

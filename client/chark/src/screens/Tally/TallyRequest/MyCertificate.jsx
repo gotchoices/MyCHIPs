@@ -28,7 +28,7 @@ const MyCertificate = props => {
       <View style={styles.content}>
         <DefaultCertificate
           name={'Joe Anderson'}
-          cid={'p111'}
+          cuid={'p111'}
           email={'alex@gmail.com'}
           agent={'FKa-cxeWgnnqUp3lpsdlsk708xkDLSlklasdfLdsfD'}
         />

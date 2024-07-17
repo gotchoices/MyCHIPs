@@ -39,7 +39,7 @@ const TallyItem = props => {
       <View style={{flex: 1}}>
         <Text style={styles.name}>{partName}</Text>
         <Text style={[styles.description, {marginTop: 4}]}>
-          {partCert?.chad?.cid}:{formatRandomString(partCert?.chad?.agent)}
+          {partCert?.chad?.cuid}:{formatRandomString(partCert?.chad?.agent)}
         </Text>
       </View>
 

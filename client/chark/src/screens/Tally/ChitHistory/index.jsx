@@ -36,7 +36,7 @@ const ChitHistory = (props) => {
       wm,
       {
         fields: [
-          'part_cid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 
+          'part_cuid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 
           'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx', 'action'
         ],
         where: {

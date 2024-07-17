@@ -14,12 +14,12 @@ export const createLiftsPay = (wm, payload) => {
     units = 0,
   } = payload;
 
-  const [cid, agent] = chad?.split(":");
+  const [cuid, agent] = chad?.split(":");
   const sign = 'Signature';
 
   const auth = { memo, ref, sign };
   const _units = parseInt(units) * 1000;
-  const find = { cid, agent }
+  const find = { cuid, agent }
 
   const spec = {
     fields: {

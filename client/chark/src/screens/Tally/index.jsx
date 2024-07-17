@@ -63,11 +63,11 @@ const Tally = props => {
     if (text.length >= 2) {
       const newTallies = sortedTallies.filter(tally => {
         const partName = getTallyName(tally);
-        const cid = tally.part_cert?.chad?.cid;
+        const cuid = tally.part_cert?.chad?.cuid;
 
         return (
           partName.toLowerCase().includes(text.toLowerCase()) ||
-          cid.toLowerCase().includes(text.toLowerCase())
+          cuid.toLowerCase().includes(text.toLowerCase())
         );
       });
 

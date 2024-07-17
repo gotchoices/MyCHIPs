@@ -11,7 +11,7 @@ import Avatar from "../../../../components/Avatar";
 import useMessageText from "../../../../hooks/useMessageText";
 
 const ChistHistoryHeader = (props) => {
-  const { part_name, cid, date, net, wm, avatar, net_pc } = props.args ?? {};
+  const { part_name, cuid, date, net, wm, avatar, net_pc } = props.args ?? {};
   const { preferredCurrency } = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
@@ -74,7 +74,7 @@ const ChistHistoryHeader = (props) => {
         />
         <View style={{ flex: 1, marginStart: 12, justifyContent: 'center' }}>
           <Text style={styles.title}>{part_name}</Text>
-          <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cid}</Text>
+          <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cuid}</Text>
         </View>
       </View>
     </View >

@@ -108,7 +108,7 @@ const TallyRequest = props => {
       {visibility.requestStart && (
         <RequestStart
           onStart={onStart}
-          name={invite?.chad?.cid}
+          name={invite?.chad?.cuid}
           agent={invite?.chad?.agent ?? ''}
           navigation={props.navigation}
           commonText={commonText}

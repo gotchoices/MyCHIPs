@@ -567,7 +567,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.mychips.mychips;
 				PRODUCT_NAME = chark;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = CharkApp;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = MyCHIPs;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
