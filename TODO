@@ -1,29 +1,12 @@
 TODO:
 
-Cleanups:
-X- Change cid to cuid across all source
-X- Change users.peer_ to users.user_ *
-X- Update documentation of chip addresses
-- Change cid to cuid in the mobile app
-
 - Payment testing:
-X-  Modify test/auto/pay.js to use netn structure
-X-  Fix error on sites 1-3
-X-  New test in pay.js for ChipNet discovery
-X-  Make separate json_p, json fields in DB for user and agent to sign
-X-  Agent (lift.js) evaluates payor's authorization signature
-X- Local lifts working with local agent signature
-X- Remote lifts invoke chipNet (process init.seek)
-X- Refactor crypto->subcrypto and noisecrypto as async/promise by default
-X- Peer2peer maintains separate signing and communication keys
-X- Fix peernoise error (null.cuid)
-X- Make old tally tests run with real agent keys
-X- Strip out code in bin/mychips.js for faux agent keys?
 X- Add to noiseCrypto module sign/verify routines
 X- Simplify noisecrypto to become gencrypto?
 X- Agent signs lift record using ed key
 X-  How can we do this in test mode, where keys are fake?
-- Recheck lifts.ITL check (include status = seek?)
+X- Recheck lifts.ITL check (include status = seek?)
+X- Adapt to new chipnet intents structure
 - Evaluate seek/exec states.  When to transition?
 - Send plans to backend which must choose one and launch chipnet
 - 
