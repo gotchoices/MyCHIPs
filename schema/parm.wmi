@@ -25,6 +25,12 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  ,('lifts', 'limit', 'int', 0, null, null, 'The maximum number of lifts the database may perform per request cycle')
  ,('lifts', 'minimum', 'int', 10000, null, null, 'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
 
+ ,('chipnet', 'edges_int', 'int', 10, null, null, 'Score weight for internal segment length')
+ ,('chipnet', 'min_int', 'int', -1, null, null, 'Score weight for internal lift capacity')
+ ,('chipnet', 'min_ext', 'int', 1, null, null, 'Score weight for external lift capacity')
+ ,('chipnet', 'refs_comp', 'int', 10, null, null, 'Score weight for external lift capacity')
+ ,('chipnet', 'refs_ideal', 'int', 50, null, null, 'Ideal number of external referees')
+
  ,('chip', 'interval', 'text', null, '12 * * * *', null, 'CRON scheduling specification for when to update chip exchange value')
  ,('exchange', 'interval', 'int', 42000, null,null, 'The number of seconds between checks for updated exchange data')
 

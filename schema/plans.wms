@@ -1,0 +1,99 @@
+#Functions for evaluating chipnet lift pathways
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+#Turn the plans array from chipnet into a relational table with
+#relevant characteristics that can be weighted and scored.
+#This can be customized to pick optimal lift pathways as per site preferences
+#----------------------------------------------------------------
+function {mychips.plan_flatten(plans jsonb, cuid text)} {} {
+  returns table (
+    session	text
+  , idx		bigint
+  , via		uuid
+  , tag		text
+  , value	float
+  ) language plpgsql as $$
+  begin
+    return query select
+      plan->>'sessionCode'		as session
+    , plan_idx - 1			as idx
+    , (plan->>'via')::uuid		as via
+    , u.tag				as tag
+    , u.value				as value
+                
+    from
+      jsonb_array_elements(plans) with ordinality as plan(plan, plan_idx)
+
+    , lateral (select
+        count(*) as members
+      , count(*) filter (where
+          (memb.value->'types')::jsonb ? 'R' and not (memb.value->'types')::jsonb ? 'P'
+        ) as refs
+      , count(*) filter (where (memb.value->'types')::jsonb ? 'P') as parts
+      from jsonb_each(plan->'members') as memb
+    ) m
+
+    , lateral (select
+        min((path->'intents'->'L'->>'min')::bigint) as minmin from
+          jsonb_array_elements(plan->'path') as path
+        where path->'intents'->'L'->>'min' notnull
+    ) p
+    
+    , lateral (select edges, min from mychips.tallies_v_paths tp where
+        tp.inp_cuid = cuid and tp.top_uuid = (plan->>'via')::uuid and foro
+    ) s
+
+-- Each tag in this section should correspond to tags optionally stored in base.parm
+-- Values from base.parm are multiplied by the value returned from this subquery
+-- The results are summed up to effectively score alternative pathways
+    , lateral (
+        select 'refs' as tag, m.refs::float as value
+
+        union all	-- Inverse distance from ideal number of referees
+        select 'refs_comp', 1.0 / (abs(base.parm('chipnet','refs_ideal',1) - m.refs) + 1.0)
+        
+        union all
+        select 'edges_ext', jsonb_array_length(plan->'path')::float as length
+
+        union all
+        select 'min_ext', coalesce(p.minmin::float, 0.0)
+
+        union all
+        select 'edges_int', s.edges::float
+
+        union all
+        select 'min_int', s.min::float
+    ) as u;
+  end;
+$$;}
+
+#Join flattened plans with local parameters to score each characteristic
+#----------------------------------------------------------------
+function {mychips.plan_score(plans jsonb, cuid text)} {mychips.plan_flatten(jsonb,text) base.parm_v} {
+  returns table (
+    session	text
+  , idx		bigint
+  , via		uuid
+  , tag		text
+  , value	float
+  , weight	float
+  , score	float
+  ) language plpgsql as $$
+  begin
+    return query select
+    f.session, f.idx, f.via, f.tag
+  , f.value as value
+  , p.value::float as weight
+  , f.value * p.value::float as score from
+    mychips.plan_flatten(plans, cuid) f
+  , base.parm_v p where p.module = 'chipnet' and p.parm = f.tag;
+  end;
+$$;}
+
+view mychips.lift_plans {mychips.lifts mychips.plan_score(jsonb,text)} {
+  select l.lift_uuid,l.lift_seq, f.* from
+    mychips.lifts_v l
+  , lateral mychips.plan_score(l.transact, l.origin->>'cuid') f
+  order by 1,2,f.idx,f.tag;
+}

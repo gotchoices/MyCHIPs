@@ -428,6 +428,66 @@ create schema json;
 create schema mychips;
 select wm.create_role('mychips_1');
 grant usage on schema mychips to mychips_1;
+create function mychips.plan_flatten(plans jsonb, cuid text) returns table (
+    session	text
+  , idx		bigint
+  , via		uuid
+  , tag		text
+  , value	float
+  ) language plpgsql as $$
+  begin
+    return query select
+      plan->>'sessionCode'		as session
+    , plan_idx - 1			as idx
+    , (plan->>'via')::uuid		as via
+    , u.tag				as tag
+    , u.value				as value
+                
+    from
+      jsonb_array_elements(plans) with ordinality as plan(plan, plan_idx)
+
+    , lateral (select
+        count(*) as members
+      , count(*) filter (where
+          (memb.value->'types')::jsonb ? 'R' and not (memb.value->'types')::jsonb ? 'P'
+        ) as refs
+      , count(*) filter (where (memb.value->'types')::jsonb ? 'P') as parts
+      from jsonb_each(plan->'members') as memb
+    ) m
+
+    , lateral (select
+        min((path->'intents'->'L'->>'min')::bigint) as minmin from
+          jsonb_array_elements(plan->'path') as path
+        where path->'intents'->'L'->>'min' notnull
+    ) p
+    
+    , lateral (select edges, min from mychips.tallies_v_paths tp where
+        tp.inp_cuid = cuid and tp.top_uuid = (plan->>'via')::uuid and foro
+    ) s
+
+
+
+
+    , lateral (
+        select 'refs' as tag, m.refs::float as value
+
+        union all	-- Inverse distance from ideal number of referees
+        select 'refs_comp', 1.0 / (abs(base.parm('chipnet','refs_ideal',1) - m.refs) + 1.0)
+        
+        union all
+        select 'edges_ext', jsonb_array_length(plan->'path')::float as length
+
+        union all
+        select 'min_ext', coalesce(p.minmin::float, 0.0)
+
+        union all
+        select 'edges_int', s.edges::float
+
+        union all
+        select 'min_int', s.min::float
+    ) as u;
+  end;
+$$;
 create function neqnocase(text,text) returns boolean language plpgsql immutable as $$
     begin return upper($1) != upper($2); end;
 $$;
@@ -2465,6 +2525,25 @@ create function mychips.parm_tf_change() returns trigger language plpgsql securi
       return null;
     end;
 $$;
+create function mychips.plan_score(plans jsonb, cuid text) returns table (
+    session	text
+  , idx		bigint
+  , via		uuid
+  , tag		text
+  , value	float
+  , weight	float
+  , score	float
+  ) language plpgsql as $$
+  begin
+    return query select
+    f.session, f.idx, f.via, f.tag
+  , f.value as value
+  , p.value::float as weight
+  , f.value * p.value::float as score from
+    mychips.plan_flatten(plans, cuid) f
+  , base.parm_v p where p.module = 'chipnet' and p.parm = f.tag;
+  end;
+$$;
 create table mychips.tallies (
 tally_ent	text		references mychips.users on update cascade on delete cascade
   , tally_seq	int	      , primary key (tally_ent, tally_seq)
@@ -3247,6 +3326,10 @@ create function mychips.lift_notify_user(ent text, lift mychips.lifts) returns r
       return lift;
     end;
 $$;
+create view mychips.lift_plans as select l.lift_uuid,l.lift_seq, f.* from
+    mychips.lifts_v l
+  , lateral mychips.plan_score(l.transact, l.origin->>'cuid') f
+  order by 1,2,f.idx,f.tag;
 create function mychips.lifts_tf_bpiu() returns trigger language plpgsql security definer as $$
     declare
       trec	record;
@@ -4425,7 +4508,7 @@ create function mychips.lifts_tf_bi() returns trigger language plpgsql security 
             new.life = base.parm('lifts', 'life', '2 minutes'::text)::interval;
           end if;
         end if;
-        
+
         if array_length(new.signs,1) != array_length(new.tallies,1) then
           for i in array_lower(new.tallies,1) .. array_upper(new.tallies,1) loop
             if new.signs[i] is null then
@@ -5678,17 +5761,17 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
 
       if lift.request = 'init' then
         jmerge = jmerge || jsonb_build_object(
-          'init', jsonb_build_object(
+          'aux', jsonb_build_object(
             'auth',		lrec.payor_auth
           , 'pub',		lrec.user_psig
           , 'core',		lrec.json_pay
         ));
 
-      elsif lift.request = 'seek' then
+      elsif lift.request in ('seek','exec') then
         jmerge = jmerge || jsonb_build_object(
-          'seek', jsonb_build_object(
+          'aux', jsonb_build_object(
             'origin',		lift.origin
-          , 'paths',		lift.transact
+          , 'trans',		lift.transact
         ));
 
       end if;
@@ -5726,7 +5809,7 @@ raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
 
       if uuid notnull and seq notnull then	-- Explicit lift referenced for update
 raise notice ' find by seq:%-%', uuid, seq;
-        select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state
+        select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state,l.origin
           from mychips.lifts_v l where l.lift_uuid = uuid and l.lift_seq = seq;
       else				-- Find lift by base tally
 raise notice ' find % by bot/top tally:%', uuid, msg->>'tally';
@@ -5764,11 +5847,24 @@ raise notice ' Lift route check:% c:%', recipe->'update', jsonb_array_length(jre
           upspec = upspec || jsonb_build_object('status', 'void', 'request', null);
         end if;
         recipe = jsonb_set(recipe, '{update}', upspec);
+      end if;
 
+      if recipe ? 'pick' then		-- Pick a single path with the highest score
+        jrec = recipe->'update'->'transact'->'plans';
+raise notice ' Lift path pick s:% l:%', jrec->0->'sessionCode', jsonb_array_length(jrec);
+        select into qrec idx,via,sum(score) as score
+          from mychips.plan_score(jrec, lrec.origin->>'cuid') ps
+          group by 1,2 order by 3 desc limit 1;
+        if jrec notnull and qrec.idx notnull then
+          upspec = recipe->'update';
+          upspec = jsonb_set(upspec, '{transact, pick}', to_jsonb(qrec.idx), true);
+          recipe = jsonb_set(recipe, '{update}', upspec);
+raise notice ' p:%', qrec.idx;
+        end if;
       end if;
 
       if recipe ? 'update' then
-raise notice 'Lift update s:% u:%', curState, recipe->'update';
+
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
 
@@ -5779,9 +5875,9 @@ raise notice 'Lift update s:% u:%', curState, recipe->'update';
           '{status, request, origin, referee, find, lift_uuid, tallies, signature, agent_auth, transact}', 
           case when recipe->'update' ? 'request' then '{}'::text[] else '{"request = null"}' end
         );
-raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
+
         execute qstrg || ' lift_uuid = $1 and lift_seq = $2 
-          returning payor_ent, payee_ent, lift_uuid, lift_seq, request, status, state, units' into lrec using lrec.lift_uuid, lrec.lift_seq;
+          returning payor_ent, payee_ent, lift_uuid, lift_seq, request, status, state, units, transact' into lrec using lrec.lift_uuid, lrec.lift_seq;
 
         return to_json(lrec.state);
       end if;
@@ -10074,6 +10170,15 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','file_v_part','std_name','base','ent_v','std_name','f','f'),
   ('mychips','file_v_part','tally_ent','mychips','tallies','tally_ent','f','f'),
   ('mychips','file_v_part','tally_seq','mychips','tallies','tally_seq','f','f'),
+  ('mychips','lift_plans','idx','mychips','lift_plans','idx','f','f'),
+  ('mychips','lift_plans','lift_seq','mychips','lifts','lift_seq','f','t'),
+  ('mychips','lift_plans','lift_uuid','mychips','lifts','lift_uuid','f','t'),
+  ('mychips','lift_plans','score','mychips','lift_plans','score','f','f'),
+  ('mychips','lift_plans','session','mychips','lift_plans','session','f','f'),
+  ('mychips','lift_plans','tag','mychips','lift_plans','tag','f','f'),
+  ('mychips','lift_plans','value','mychips','lift_plans','value','f','f'),
+  ('mychips','lift_plans','via','mychips','lift_plans','via','f','f'),
+  ('mychips','lift_plans','weight','mychips','lift_plans','weight','f','f'),
   ('mychips','lifts','agent_auth','mychips','lifts','agent_auth','f','f'),
   ('mychips','lifts','circuit','mychips','lifts','circuit','f','f'),
   ('mychips','lifts','crt_by','mychips','lifts','crt_by','f','f'),
@@ -12479,6 +12584,12 @@ insert into base.parm (module, parm, type, v_int, v_text, v_boolean, cmt) values
  ,('lifts', 'interval', 'int', 60, null,null, 'The number of seconds between sending requests to the database to process lifts')
  ,('lifts', 'limit', 'int', 0, null, null, 'The maximum number of lifts the database may perform per request cycle')
  ,('lifts', 'minimum', 'int', 10000, null, null, 'The smallest number of units to consider lifting, absent other guidance from the user or his tallies')
+
+ ,('chipnet', 'edges_int', 'int', 10, null, null, 'Score weight for internal segment length')
+ ,('chipnet', 'min_int', 'int', -1, null, null, 'Score weight for internal lift capacity')
+ ,('chipnet', 'min_ext', 'int', 1, null, null, 'Score weight for external lift capacity')
+ ,('chipnet', 'refs_comp', 'int', 10, null, null, 'Score weight for external lift capacity')
+ ,('chipnet', 'refs_ideal', 'int', 50, null, null, 'Ideal number of external referees')
 
  ,('chip', 'interval', 'text', null, '12 * * * *', null, 'CRON scheduling specification for when to update chip exchange value')
  ,('exchange', 'interval', 'int', 42000, null,null, 'The number of seconds between checks for updated exchange data')

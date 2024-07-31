@@ -7,9 +7,11 @@ X- Agent signs lift record using ed key
 X-  How can we do this in test mode, where keys are fake?
 X- Recheck lifts.ITL check (include status = seek?)
 X- Adapt to new chipnet intents structure
-- Evaluate seek/exec states.  When to transition?
-- Send plans to backend which must choose one and launch chipnet
-- 
+X- Evaluate seek/exec states.  When to transition?
+X- Send plans to backend which must choose one and launch chipnet
+X- Fill in code for lift_notify_agent, action=exec
+X- Fill in code for local_exec in lib/lift.js
+- Integrate next step with chipnet: build topology
 - 
 - Test distributed payments with app:
 -  User is notified?

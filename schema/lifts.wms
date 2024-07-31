@@ -89,7 +89,7 @@ function mychips.lifts_tf_bi() {mychips.j2h(jsonb) mychips.tallies_v} {
             new.life = base.parm('lifts', 'life', '2 minutes'::text)::interval;
           end if;
         end if;
-        
+
         if array_length(new.signs,1) != array_length(new.tallies,1) then
           for i in array_lower(new.tallies,1) .. array_upper(new.tallies,1) loop
             if new.signs[i] is null then
@@ -213,17 +213,17 @@ function {mychips.lift_notify_agent(lift mychips.lifts)} {mychips.lifts_v_dist} 
 
       if lift.request = 'init' then
         jmerge = jmerge || jsonb_build_object(
-          'init', jsonb_build_object(
+          'aux', jsonb_build_object(
             'auth',		lrec.payor_auth
           , 'pub',		lrec.user_psig
           , 'core',		lrec.json_pay
         ));
 
-      elsif lift.request = 'seek' then
+      elsif lift.request in ('seek','exec') then
         jmerge = jmerge || jsonb_build_object(
-          'seek', jsonb_build_object(
+          'aux', jsonb_build_object(
             'origin',		lift.origin
-          , 'paths',		lift.transact
+          , 'trans',		lift.transact
         ));
 
       end if;
@@ -420,7 +420,7 @@ raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
 
       if uuid notnull and seq notnull then	-- Explicit lift referenced for update
 raise notice ' find by seq:%-%', uuid, seq;
-        select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state
+        select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state,l.origin
           from mychips.lifts_v l where l.lift_uuid = uuid and l.lift_seq = seq;
       else				-- Find lift by base tally
 raise notice ' find % by bot/top tally:%', uuid, msg->>'tally';
@@ -458,11 +458,24 @@ raise notice ' Lift route check:% c:%', recipe->'update', jsonb_array_length(jre
           upspec = upspec || jsonb_build_object('status', 'void', 'request', null);
         end if;
         recipe = jsonb_set(recipe, '{update}', upspec);
-
       end if;		-- recipe ? 'route'
 
+      if recipe ? 'pick' then		-- Pick a single path with the highest score
+        jrec = recipe->'update'->'transact'->'plans';
+raise notice ' Lift path pick s:% l:%', jrec->0->'sessionCode', jsonb_array_length(jrec);
+        select into qrec idx,via,sum(score) as score
+          from mychips.plan_score(jrec, lrec.origin->>'cuid') ps
+          group by 1,2 order by 3 desc limit 1;
+        if jrec notnull and qrec.idx notnull then
+          upspec = recipe->'update';
+          upspec = jsonb_set(upspec, '{transact, pick}', to_jsonb(qrec.idx), true);
+          recipe = jsonb_set(recipe, '{update}', upspec);
+raise notice ' p:%', qrec.idx;
+        end if;
+      end if;		-- recipe ? 'pick'
+
       if recipe ? 'update' then
-raise notice 'Lift update s:% u:%', curState, recipe->'update';
+--raise notice 'Lift update s:% u:%', curState, recipe->'update';
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
 --raise notice 'Lift Z:% C:%', jsonb_build_array(curState), recipe->'context';
@@ -473,9 +486,9 @@ raise notice 'Lift update s:% u:%', curState, recipe->'update';
           '{status, request, origin, referee, find, lift_uuid, tallies, signature, agent_auth, transact}', 
           case when recipe->'update' ? 'request' then '{}'::text[] else '{"request = null"}' end
         );
-raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
+--raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
         execute qstrg || ' lift_uuid = $1 and lift_seq = $2 
-          returning payor_ent, payee_ent, lift_uuid, lift_seq, request, status, state, units' into lrec using lrec.lift_uuid, lrec.lift_seq;
+          returning payor_ent, payee_ent, lift_uuid, lift_seq, request, status, state, units, transact' into lrec using lrec.lift_uuid, lrec.lift_seq;
 
         return to_json(lrec.state);
       end if;		-- recipe ? 'update'
