@@ -31,7 +31,7 @@ function {mychips.plan_flatten(plans jsonb, cuid text)} {} {
           (memb.value->'types')::jsonb ? 'R' and not (memb.value->'types')::jsonb ? 'P'
         ) as refs
       , count(*) filter (where (memb.value->'types')::jsonb ? 'P') as parts
-      from jsonb_each(plan->'members') as memb
+      from jsonb_array_elements(plan->'members') as memb
     ) m
 
     , lateral (select
@@ -91,9 +91,9 @@ function {mychips.plan_score(plans jsonb, cuid text)} {mychips.plan_flatten(json
   end;
 $$;}
 
-view mychips.lift_plans {mychips.lifts mychips.plan_score(jsonb,text)} {
+view mychips.lift_plans {mychips.lifts_v mychips.plan_score(jsonb,text)} {
   select l.lift_uuid,l.lift_seq, f.* from
     mychips.lifts_v l
-  , lateral mychips.plan_score(l.transact, l.origin->>'cuid') f
+  , lateral mychips.plan_score(l.transact->'plans', l.origin->>'cuid') f
   order by 1,2,f.idx,f.tag;
 }

@@ -1,5 +1,5 @@
 {
- "hash": "EbrJ3sfSpoFZvmCgNm2QmWhFET/UeInkJKsBi6/10VU=",
+ "hash": "CAbNIkb75KoHlLKXPTi9kZcL1ax0TTEsQ0XnIEfZsAw=",
  "module": "mychips",
  "release": 1,
  "publish": 0,
@@ -152,7 +152,7 @@
    "delta": [],
    "grants": [],
    "col_data": [],
-   "create": "eJyNVE1v2zAMPdu/gocAsjfbW68plh12GrDDsD9gMDbtaJBlVaLT5N8P+ojTLEVbn8wPPT4+UuosIRMMi+5Yzhqmc3eQxjVGoW4HhcykC284+Otmva+gW2QPTCcuwRIvVjtg3CuCIgcAcOScnHXmM3KACmR/yrK9HKWO9lFili2L7IPFOGbX3COqhbJBzejtEhTqccGRwCgzuicF6GCzyQH2NEod6kUO8LSQPYMjRR0HP4BnXe92IjH6MfcksgzdhWJIq0JaK/sT1PCQhbjsTylWXDCOEkW53XraIeUoMaUsTWgheBnH1Rtbif7wn1hdv+AY7DylSNC3RWvx3JKiiTS7KH0Jz5IPMNtealSSz14HHwnhawtlnsorZLKooLgRBKCbF83Fp9Kfn2jak3UpVl1jg1RMFornA9mXrAt/IvZV7wSfDTmvSaAN30H8EYC6Bz3zu6m/xYobuFga3iPyAcwAZdDyBcuLm2Ql7A5pmiJ1LlYZ8khkek++SeqiMMiHeiekZj8gUe/EL+FXZJLa84mbHqGlnqR+OeI3x1zvhMe+tMGH9VAU4K3CXnW9KJU6Mfm6YHfdAPUjuQou1NYrz6iUJNceW1/JARu4XQE2jdSmDQ/At/gO+IGzaXg27RLdr12ZkDbMdk70XO6//9itZRJN4ZdCQLxWFUyNt7fb8DjAeqnWU4v2zxcqldU1/NRHso6gl45RdxQblT2hAr346cM8+K0jS+Rerdx282REBQ/NV/gCBe5dsUdHjUE7FcIrpolFFXMDsqgeSqgT0RI++6Plin1P9K5sGExLJxbVzZYo0iMfbnfkhRAx/IoSdwUmqRN8N6Mi11FhmrilCa+Cr570h8lK7dFcE6yE8VEml7PX6vn6ICyPOQDp/jHfbB7/AWRK91Q=",
+   "create": "eJyNVE1zmzAQPcOv2INnBC3Q5OpM3UNPnemh0z/AyLBgdcRKkRbH/vcdSRjHTZqEE/v19u3TSp1DyQjDTB0rQzCdu4OyvrFaUjtoyYxUBMPDH29oX0E3qx4YT1yCQ54deWC51whFDgDg0XtlKAsZOUAFqj9l2V6NipJ9VDLL5ln10WI5Ztfco9QzZoM2MtglaEnjLEcEq+3oHzVID5tNDrDHUVHslzjA44zuDB41dhz9AIF1vduJhdF306PIMukvFGNaFdNa1Z+ghvssxlV/WmLFBeOopCi320A7phyVXFLmJo4QvSzH1ZtGSf74v7C6ftExODMtkahvK52T5xY1Tkjsk/QlPCk+gHG9IqkVn4MOIRLD1xHKfGmvJaOTGoobQQA6MxMXn8pQP+G0R+eXWHWNDUozOiieDuiesy5CRZqr3gk+W/RBk0gbvoH4LUBSD2T43dRfYsWNXBwO7xH5AGaEstLxBSuI+39Z651YNBCrIHmiNL0n5KSoKKzkQ70TijhginonfoqwLJOiwCztfIJWNCl6fthvHni9EwH7MhAf1qIkxVuNg/40a71MYvN11V5MA9iP6Cu4UFsvP0utFfr22IZOHtjC7TKwbRTZNj4FX9OLEI6ebcPGtnNyv3Z5YtpgnFno+Tx8/7Bb2yw0RVgPAemCVTA1wd5u4zMB6/Vaq2YKD5nUOqtr+EFHdB6hV54ldZgGVT1KDTSH0wczhP1Dh+hf7dx2ZrKigvvmDr5AIfe+2EuPjZVuKkRQjJBFlXIjsqjuS6gXoiV8DqXliv2S6Iu28WBaPLGobrZEI418uN2RZ0Kk8CtKvGgwKVrgOyM1+g4L26QtXfAquAukP0xWUUDzTbQWjI8yudReu+fr0zA/5ABI/UO+2Tz8BSD8+54=",
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1ivIScyLT8tJLClJzdPIKs7PS9IpSa0o0bQGAH3cFcc="
   },
   {
@@ -4849,23 +4849,6 @@
    "drop": "eJxLKcovUEgrzUsuyczPU8hMU0ityCwuKVbIrUzOyCwo1svJTCuJz8svyUyrjC8tTi3SKEmtKNFBli3WtAYArUQaxQ=="
   },
   {
-   "obj_typ": "view",
-   "obj_nam": "mychips.lift_plans",
-   "obj_ver": 1,
-   "module": "mychips",
-   "min_rel": 1,
-   "max_rel": 1,
-   "deps": [
-    "mychips.lifts",
-    "mychips.plan_score(jsonb,text)"
-   ],
-   "delta": [],
-   "grants": [],
-   "col_data": [],
-   "create": "eJxVjMEKwjAQBe/9inerSgzoVeivlJhs6sK2qbtptX8vogjehhmYqBQqYWV6YNzijWfzwrn2s4TJEAxGQrFCPnpZOLkvG90dsj8gaxkbAH8H61dIAzhIqKRBfvW97i0WpZ34qmGyEKuD+KI88HTsujYunNo9cgMUTaS4bji5s8ue09NlX8NweQFpBEAg",
-   "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWy8lMK4kvyEnMK7YGACgsDvI="
-  },
-  {
    "obj_typ": "function",
    "obj_nam": "mychips.lifts_tf_bpiu()",
    "obj_ver": 1,
@@ -6397,6 +6380,23 @@
    ],
    "create": "eJxtUctugzAQvPMVe4NEhENV9VI1v2ItsBRHflB7S8TfV2ubtEW5jXdmx+PxEAiZYNV0B7sNs15iN2lDalULBgaMcNc8A6Mxm5yaSIYGrgAgDxU5bguM9NWC7OXhLXrXKwwBN0WGLDmOTaIHCny51nJTfRJbQclzCt4+koirpqhWZYU9tRXAwtgfg5Qo3TFQ9ydWHjzC/duT2y/Xa21p1FiLe0LtgR71J0VOfIYtPLWZfLCYdRkejQZvpYykKHgPtD+9f3tdX3psniZIlc0Y57KUSktKaakCyN2krrpzC4vsd+ffgoVIJ0MTw81rBz1GKl+f9eBdNtg7A+fZfRsD6MZimfQSBD6yVvD7Dw0ZxsM=",
    "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWS8vMSY0viy9ILCqxBgA3KA9R"
+  },
+  {
+   "obj_typ": "view",
+   "obj_nam": "mychips.lift_plans",
+   "obj_ver": 1,
+   "module": "mychips",
+   "min_rel": 1,
+   "max_rel": 1,
+   "deps": [
+    "mychips.lifts_v",
+    "mychips.plan_score(jsonb,text)"
+   ],
+   "delta": [],
+   "grants": [],
+   "col_data": [],
+   "create": "eJxVjcsKwjAQRff9iruLShrQrdBfKWMyqYFpUzNptX8vPhDcXc6Bc31hqow18R3j5q9pVicp1n4WmhSkUBb2FfLBy5KC/W7lm0V0B8SSxwbAX0H7FdIAFkKVC8nPvtK9+lx4J64WmpR8bTvzvjQW4nJJQ5rarjN+ScHsERsgl8AFlw1He7LRpfCw0VUazk++QEL3",
+   "drop": "eJxLKcovUCjLTC1XyExTSK3ILC4pVsitTM7ILCjWy8lMK4kvyEnMK7YGACgsDvI="
   },
   {
    "obj_typ": "trigger",

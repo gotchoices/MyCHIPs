@@ -452,7 +452,7 @@ create function mychips.plan_flatten(plans jsonb, cuid text) returns table (
           (memb.value->'types')::jsonb ? 'R' and not (memb.value->'types')::jsonb ? 'P'
         ) as refs
       , count(*) filter (where (memb.value->'types')::jsonb ? 'P') as parts
-      from jsonb_each(plan->'members') as memb
+      from jsonb_array_elements(plan->'members') as memb
     ) m
 
     , lateral (select
@@ -3326,10 +3326,6 @@ create function mychips.lift_notify_user(ent text, lift mychips.lifts) returns r
       return lift;
     end;
 $$;
-create view mychips.lift_plans as select l.lift_uuid,l.lift_seq, f.* from
-    mychips.lifts_v l
-  , lateral mychips.plan_score(l.transact, l.origin->>'cuid') f
-  order by 1,2,f.idx,f.tag;
 create function mychips.lifts_tf_bpiu() returns trigger language plpgsql security definer as $$
     declare
       trec	record;
@@ -5075,6 +5071,10 @@ grant select on table mychips.file_v_part to user_2;
 grant insert on table mychips.file_v_part to user_2;
 grant update on table mychips.file_v_part to user_2;
 grant delete on table mychips.file_v_part to user_3;
+create view mychips.lift_plans as select l.lift_uuid,l.lift_seq, f.* from
+    mychips.lifts_v l
+  , lateral mychips.plan_score(l.transact->'plans', l.origin->>'cuid') f
+  order by 1,2,f.idx,f.tag;
 create trigger mychips_lifts_tr_bi before insert on mychips.lifts for each row execute procedure mychips.lifts_tf_bi();
 create view mychips.lifts_v_dist as select lf.*
   , tt.hold_chad					as top_chad
