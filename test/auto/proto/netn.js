@@ -310,15 +310,15 @@ describe("Create simulated network", function() {
       let t = `  subgraph cluster_${s.idx} {\n    label = "Site: ${s.idx}, Agent: ${truncAgent}"\n`
       Object.values(userData).forEach(u => {	//log.debug("U-check:", u.cuid, u.site.idx)
         if (u.site.idx == s.idx) {
-          t += `    ${u.cuid} [label="${u.id}\n${u.cuid}"];\n`
+          t += `    ${u.cuid} [label="${u.id}\\n${u.cuid}"];\n`
         }
       })
       text += t + `\n  }\n\n`
     })
     tallyData.forEach(t => {
-      let [orig, subj, units ] = t
+      let [orig, subj, units, format ] = t
         , cuidO = userData[orig].cuid, cuidS = userData[subj].cuid
-      text += `  ${cuidO} -> ${cuidS} [label="${units}"]\n`
+      text += `  ${cuidO} -> ${cuidS} [label="${units}"${format ? ','+format: ''}]\n`
     })
     text += `\n`
     

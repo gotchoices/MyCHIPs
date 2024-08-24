@@ -4,7 +4,8 @@ WMPATH = $(shell npm exec wyseman-info path)
 ifeq ("$(WMPATH)","")
   WMPATH = ../node_modules/wyseman
 endif
-WM=npm exec wyseman --
+CWD=$(shell pwd)
+WM=npm exec --prefix $(CWD) wyseman --
 
 objects:
 	${WM} objects

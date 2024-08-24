@@ -4523,7 +4523,8 @@ create view mychips.lifts_v as select
   , mychips.lift_json_c(lf)					as json_core
   , mychips.lift_json_p(lf)					as json_pay
   , mychips.lift_json_c(lf) || jsonb_build_object(
-      'auth',		lf.payor_auth
+      'auth',	lf.payor_auth,
+      'life',	extract(epoch from lf.life)
     )								as json
   , lf.lift_date + lf.life					as expires
   , lf.lift_date + lf.life - crt_date				as remains
@@ -5863,8 +5864,29 @@ raise notice ' p:%', qrec.idx;
         end if;
       end if;
 
-      if recipe ? 'update' then
+      if recipe ? 'promise' then	-- Populate lift with provisional chits
+raise notice ' promise:%', recipe->'promise';
 
+
+        jrec = recipe->'promise';
+        select into qrec inp, ath, uuids, signs from mychips.paths_find(
+          (select user_ent from mychips.users where peer_agent = jrec->'inp'->>'agent' and peer_cuid = jrec->'inp'->>'cuid'),
+          (select user_ent from mychips.users where peer_agent = jrec->'top'->>'agent' and peer_cuid = jrec->'top'->>'cuid'),
+          (jrec->>'units')::bigint
+        ) where foro 
+          and out_agent = jrec->'out'->>'agent' and out_cuid = jrec->'out'->>'cuid'
+          order by edges desc limit 1;
+        if qrec.uuids notnull and array_length(qrec.uuids,1) > 0 then
+          upspec = recipe->'update';
+          upspec = jsonb_set(upspec, '{tallies}', to_jsonb('{' || array_to_string(qrec.uuids,',') || '}'), true);
+          upspec = jsonb_set(upspec, '{signs}', to_jsonb('{' || array_to_string(qrec.signs,',') || '}'), true);
+          recipe = jsonb_set(recipe, '{update}', upspec);
+        end if;
+raise notice ' pr:%', qrec;
+      end if;
+
+      if recipe ? 'update' then
+raise notice 'Lift update s:% u:%', curState, recipe->'update';
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
 
@@ -5872,10 +5894,10 @@ raise notice ' p:%', qrec.idx;
         end if;
 
         qstrg = mychips.state_updater(recipe, 'mychips.lifts_v', 
-          '{status, request, origin, referee, find, lift_uuid, tallies, signature, agent_auth, transact}', 
+          '{status, request, origin, referee, find, lift_uuid, tallies, signs, signature, agent_auth, transact}', 
           case when recipe->'update' ? 'request' then '{}'::text[] else '{"request = null"}' end
         );
-
+raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
         execute qstrg || ' lift_uuid = $1 and lift_seq = $2 
           returning payor_ent, payee_ent, lift_uuid, lift_seq, request, status, state, units, transact' into lrec using lrec.lift_uuid, lrec.lift_seq;
 

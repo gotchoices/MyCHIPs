@@ -3,53 +3,37 @@ digraph testNet {
   label = "Test Network"
   subgraph cluster_0 {
     label = "Site: 0, Agent: NhM..GFg"
-    c_0_0 [label="p1000
-c_0_0"];
-    c_0_1 [label="p1001
-c_0_1"];
-    c_0_2 [label="p1002
-c_0_2"];
-    c_0_3 [label="p1003
-c_0_3"];
+    c_0_0 [label="p1000\nc_0_0"];
+    c_0_1 [label="p1001\nc_0_1"];
+    c_0_2 [label="p1002\nc_0_2"];
+    c_0_3 [label="p1003\nc_0_3"];
 
   }
 
   subgraph cluster_1 {
     label = "Site: 1, Agent: 5uB..7rc"
-    c_1_0 [label="p1100
-c_1_0"];
-    c_1_1 [label="p1101
-c_1_1"];
-    c_1_2 [label="p1102
-c_1_2"];
-    c_1_3 [label="p1103
-c_1_3"];
+    c_1_0 [label="p1100\nc_1_0"];
+    c_1_1 [label="p1101\nc_1_1"];
+    c_1_2 [label="p1102\nc_1_2"];
+    c_1_3 [label="p1103\nc_1_3"];
 
   }
 
   subgraph cluster_2 {
     label = "Site: 2, Agent: zhD..bcc"
-    c_2_0 [label="p1200
-c_2_0"];
-    c_2_1 [label="p1201
-c_2_1"];
-    c_2_2 [label="p1202
-c_2_2"];
-    c_2_3 [label="p1203
-c_2_3"];
+    c_2_0 [label="p1200\nc_2_0"];
+    c_2_1 [label="p1201\nc_2_1"];
+    c_2_2 [label="p1202\nc_2_2"];
+    c_2_3 [label="p1203\nc_2_3"];
 
   }
 
   subgraph cluster_3 {
     label = "Site: 3, Agent: 5Nv..cqk"
-    c_3_0 [label="p1300
-c_3_0"];
-    c_3_1 [label="p1301
-c_3_1"];
-    c_3_2 [label="p1302
-c_3_2"];
-    c_3_3 [label="p1303
-c_3_3"];
+    c_3_0 [label="p1300\nc_3_0"];
+    c_3_1 [label="p1301\nc_3_1"];
+    c_3_2 [label="p1302\nc_3_2"];
+    c_3_3 [label="p1303\nc_3_3"];
 
   }
 
