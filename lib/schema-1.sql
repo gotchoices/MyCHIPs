@@ -5765,7 +5765,7 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
           'aux', jsonb_build_object(
             'auth',		lrec.payor_auth
           , 'pub',		lrec.user_psig
-          , 'core',		lrec.json_pay
+          , 'pay',		lrec.json_pay
         ));
 
       elsif lift.request in ('seek','exec') then
@@ -5798,9 +5798,9 @@ create function mychips.lift_process(msg jsonb, recipe jsonb) returns jsonb lang
         units		bigint		= obj->>'units';
         find		jsonb		= obj->'find';
         req		text		= 'relay';
+        curState	text		= 'null';
         lrec		record;
         qrec		record;
-        curState	text;
         qstrg		text;
         remain		interval;
         jrec		jsonb;
@@ -5812,14 +5812,15 @@ raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
 raise notice ' find by seq:%-%', uuid, seq;
         select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state,l.origin
           from mychips.lifts_v l where l.lift_uuid = uuid and l.lift_seq = seq;
-      else				-- Find lift by base tally
-raise notice ' find % by bot/top tally:%', uuid, msg->>'tally';
-        select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state
-          from mychips.lifts_v_dist l where l.lift_uuid = uuid and 
-            (l.bot_tally = (msg->>'tally')::uuid or l.top_tally = (msg->>'tally')::uuid);
+raise notice ' found:%', found;
+        if found then curState = lrec.state; end if;
+
+
+
+
+
       end if;
-      if not found then return null; end if;
-      curState = lrec.state;
+
 
       if recipe ? 'route' and lrec.payor_ent notnull then
         if lrec.payee_ent notnull then
@@ -5865,15 +5866,15 @@ raise notice ' p:%', qrec.idx;
       end if;
 
       if recipe ? 'promise' then	-- Populate lift with provisional chits
-raise notice ' promise:%', recipe->'promise';
+raise notice ' promise:% u:%', recipe->'promise', recipe->'update';
 
 
         jrec = recipe->'promise';
         select into qrec inp, ath, uuids, signs from mychips.paths_find(
           (select user_ent from mychips.users where peer_agent = jrec->'inp'->>'agent' and peer_cuid = jrec->'inp'->>'cuid'),
-          (select user_ent from mychips.users where peer_agent = jrec->'top'->>'agent' and peer_cuid = jrec->'top'->>'cuid'),
-          (jrec->>'units')::bigint
+          '', (jrec->>'units')::bigint
         ) where foro 
+          and (jrec->'via' isnull or (jrec->>'via')::uuid = top_uuid)
           and out_agent = jrec->'out'->>'agent' and out_cuid = jrec->'out'->>'cuid'
           order by edges desc limit 1;
         if qrec.uuids notnull and array_length(qrec.uuids,1) > 0 then
@@ -5885,11 +5886,23 @@ raise notice ' promise:%', recipe->'promise';
 raise notice ' pr:%', qrec;
       end if;
 
-      if recipe ? 'update' then
+      if recipe ? 'insert' and recipe ? 'update' and curState = 'null' then
+        insert into mychips.lifts_v (
+          lift_uuid, lift_date, life, units, tallies, signs, status
+        ) values (
+          uuid, (obj->>'lift_date')::timestamptz, 
+          (obj->'life')::bigint,(obj->>'units')::bigint, 
+          (recipe->'update'->'tallies')::uuid[],
+          (recipe->'update'->'signs')::int[],
+          (recipe->'update'->'status')::int[]
+        ) returning state into lrec;
+        return to_json(lrec.state);
+        
+      elsif recipe ? 'update' then
 raise notice 'Lift update s:% u:%', curState, recipe->'update';
 
         if not (jsonb_build_array(curState) <@ (recipe->'context')) then	--Not in any applicable state (listed in our recipe context)
-
+raise notice 'Lift Z:% C:%', jsonb_build_array(curState), recipe->'context';
           return to_jsonb(curState);
         end if;
 
@@ -5899,7 +5912,7 @@ raise notice 'Lift update s:% u:%', curState, recipe->'update';
         );
 raise notice 'SQL:% % %', qstrg, lrec.lift_uuid, lrec.lift_seq;
         execute qstrg || ' lift_uuid = $1 and lift_seq = $2 
-          returning payor_ent, payee_ent, lift_uuid, lift_seq, request, status, state, units, transact' into lrec using lrec.lift_uuid, lrec.lift_seq;
+          returning state' into lrec using lrec.lift_uuid, lrec.lift_seq;
 
         return to_json(lrec.state);
       end if;

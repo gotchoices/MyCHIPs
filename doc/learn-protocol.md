@@ -3,17 +3,16 @@
   <a href="learn-message.md">Next</a>
 </div>
 
-## MyCHIPs Protocol Description 1.4 (working draft)
-Nov 2023; Copyright MyCHIPs.org
+## MyCHIPs Protocol Description 1.5 (working draft)
+Sep 2024; Copyright MyCHIPs.org
 
 ### Overview ([TL;DR](#protocol-layers "Skip to the meat"))
-As the project began, it was impossible to imagine a comprehensive top-down design for the system.
-I had a basic, intuitive idea about how sites and nodes should communicate with each other,
-and what types of messages they would send back and forth, but I didn't understand it
-in a formal enough way to create a detailed description of the protocol.
-Instead, I jumped in and started coding.
+As the project began, it was impossible to conceive of a comprehensive top-down design.
+I had a basic, intuitive idea about how nodes would communicate with each other
+but I didn't understand it well enough to create a detailed description of the protocol.
+So I just jumped in and started coding.
 
-While that is probably not the most inspiring approach, it did give me a working prototype of a MyCHIPs site, albeit not yet secure.
+While that is not the most inspiring approach, it did produce a framework I could iterate on.
 In conjunction with the agent-model simulator, I could generate random data sets.
 And with the network visualizer, I could now actually see what a network might evolve into and what type of scenarios the protocol would have to handle.
 
@@ -24,26 +23,23 @@ Next came the DSR study, which revealed some security/liveness flaws in the way 
 
 As of Summer 2021, the preliminary results from the BYU study indicated that the addition of the referee would allow a distributed lift that is acceptably live and secure.
 This triggered the rework of the protocol to version 1.x.
-Admittedly, the referee is a compromise from the original goal of a fully distributed system.
-But it is still highly decentralized, and the referee's primary role is one of time-keeping so it is a reasonable compromise to achieve safety and liveness.
+Admittedly, the referee was a compromise from the original goal of a fully distributed system.
+But it was still highly decentralized, and the referee's primary role is one of time-keeping so it is a reasonable compromise to achieve safety and liveness.
 
-Now in 2023, a working mobile application is on the horizon and a beta release of the backend seems imminent.
-Much progress has been made in the way tallies and chits are negotiated between stock and foil.
+In 2023 we produced a working mobile application to connect to the backend server.
+Much progress was made in the way tallies and chits are negotiated between stock and foil.
 
-More importantly, there have been breakthroughs in the way routes are discovered through the network.
-Current testing indicates that routes can be discovered very efficiently in real-time.
-This largely eliminates the need for caching of routes as implemented in the 1.x protocol.
-Furthermore, there are early indications that the referee may be dispensed with again, in favor of a more fully distributed consensus pattern.
+More important were the breakthroughs in how lift routes could be discovered through the network in real time.
+This eliminated the need for caching of routes as implemented in the earlier protocol.
 
-These developments trigger the jump to 1.4 protocol definition with the following goals:
-- Tally/chit protocols have improved consensus and error recovery
-- Route discovery is no longer a separate protocol layer but is instead incorporated into the first phase of the lift layer
-- This new lift protocol is moved to an independent external library
-- The lift protocol should remain flexible enough to support multiple methods:
-  - Local lift (all parties are on a single site)
-  - Refereed lift (referee rules on the timeout)
-  - Ring voting/consensus (majority rules on timeout)
-  - Other future methods as they may evolve
+The referee has now been replaced by a more general consensus scheme where every
+participant in the lift can vote and/or specify one or more third-party referees
+to vote on lift completion.  This should get us back to the original hopes of a fully
+distributed model while still maintaining satisfactory liveness.  In the special case
+where no participant votes, but a single external referee has been nominated, we
+devolve back to a special case roughly equivalent with the prior protocol.
+
+Version 1.5 is intended to incorporate these enhancements.
 
 ### Protocol Layers
 This document defines the model state level **protocol** whereby nodes communicate with each other to:
@@ -54,6 +50,9 @@ This document defines the model state level **protocol** whereby nodes communica
 
 At a lower level, sites will communicate with each other over an encrypted secure connection which uses
 [Noise Protocol](http://noiseprotocol.org) and is discussed in more detail [here](/doc/learn-noise.md).
+
+The current intention is to eventually replace the noise protocol layer with a more general 
+design based on [libp2p](https://libp2p.io/).
 
 ### State Processing
 The tally/chit protocol is implemented as a state transition model.
@@ -448,23 +447,26 @@ It is enough that each node remain aware of any chit marked as good, and keep co
 ### Lift Protocol
 Readers not already familiar with credit lifts, should refer to [this section on lifts](learn-lift.md) before proceeding.
 
-Starting with version protocol 1.5, we will offload outside route discovery and
-lift negotiation to an [external library](https://github.com/gotchoices/ChipNet).
+Starting with version protocol 1.5, all distributed route discovery and lift negotiation 
+will be handled by the [ChipNet library](https://github.com/gotchoices/ChipNet).
 
 This is to facilitate the following objectives:
 - Increase site bandwidth and scalability
 - Encourage multiple MyCHIPs-compatible implementations
-- Support multiple consensus methods (besides single referee) for assessing lift validity/timeout
+- Support more flexible consensus patterns (besides single referee) for assessing lift validity/timeout
 
 Please refer to the ChipNet repository for more detailed information.
+
+Local sites with more than one user can still perform linear and clearing lifts
+on their own as long as they propertly respect the tally/chit protocol layers.
 
 ### Route Discovery
 Before a lift can be performed, it is necessary to first discover whether there
 exists a viable pathway through entities willing to serve as participants in the lift.
 
-In prior versions, routes were discovered proactively and stored in a local routing table.
+In prior protocol versions, routes were discovered proactively and stored in a local routing table.
 When a lift was needed, it would be proposed via pathways deemed to be likely according to the cached routing information.
-Now, a routing request will only be issued when it is needed--as the first step in a lift process.
+Now, a routing query will only be issued when it is needed--as the first step in a lift process.
 
 ![use-route](uml/use-route.svg)
 
@@ -474,11 +476,11 @@ Route discovery requests can be initiated in two ways:
 
 A site containing multiple users in its database has knowledge of all the connections between its users. 
 In some cases, it may be able to find a suitable lift route using only these local connections.
-More commonly, we will call [chipNet ](https://github.com/gotchoices/ChipNet)
-to obtain the cooperation of other sites to perform a lift.
+If not, it will call [chipNet ](https://github.com/gotchoices/ChipNet)
+to obtain the cooperation of other sites to perform the lift.
 
-Upon finding one or more routes, ChipNet will return a structure containing these paths.
-The originator process will select the preferred route and continue on to execute the lift.
+Upon finding one or more routes, ChipNet will return a structure containing available paths.
+The originator process will select the preferred route and continue executing the lift.
 
 ### Lift Sequence
 

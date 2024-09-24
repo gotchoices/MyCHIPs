@@ -11,7 +11,14 @@ X- Evaluate seek/exec states.  When to transition?
 X- Send plans to backend which must choose one and launch chipnet
 X- Fill in code for lift_notify_agent, action=exec
 X- Fill in code for local_exec in lib/lift.js
-- Integrate next step with chipnet: build topology
+X- Integrate next step with chipnet: build topology
+X- Examine lift packet between peers
+X- Include info necessary to preserve lift UUID
+X- What else to include?
+X- Do we call it "object"?
+X- Intermediate node can respond, build lift, promise chits
+- Terminus node promises, records secret data
+- 
 - 
 - Test distributed payments with app:
 -  User is notified?
