@@ -7,11 +7,12 @@ X- What else to include?
 X- Do we call it "object"?
 X- Intermediate node can respond, build lift, promise chits
 X- Generalize paths_find to work on agent,cuid (pathx_find)
+- Adapt lib/lift.js to use pathx_find()
 - Terminus node promises correctly
 - Terminus records secret data
-- 
+- Get test suite running again
 - Eliminate all routing schema
-- Markup unused lift/path schma as deprecatable
+- Markup unused lift/path schema as deprecatable
 - 
 - Test distributed payments with app:
 -  User is notified?

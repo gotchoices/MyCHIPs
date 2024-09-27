@@ -6,7 +6,7 @@
 #relevant characteristics that can be weighted and scored.
 #This can be customized to pick optimal lift pathways as per site preferences
 #----------------------------------------------------------------
-function {mychips.plan_flatten(plans jsonb, cuid text)} {} {
+function {mychips.plan_flatten(plans jsonb, cuid text)} {mychips} {
   returns table (
     session	text
   , idx		bigint
