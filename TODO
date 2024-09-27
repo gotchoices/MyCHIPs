@@ -1,24 +1,17 @@
 TODO:
 
 - Payment testing:
-X- Add to noiseCrypto module sign/verify routines
-X- Simplify noisecrypto to become gencrypto?
-X- Agent signs lift record using ed key
-X-  How can we do this in test mode, where keys are fake?
-X- Recheck lifts.ITL check (include status = seek?)
-X- Adapt to new chipnet intents structure
-X- Evaluate seek/exec states.  When to transition?
-X- Send plans to backend which must choose one and launch chipnet
-X- Fill in code for lift_notify_agent, action=exec
-X- Fill in code for local_exec in lib/lift.js
-X- Integrate next step with chipnet: build topology
 X- Examine lift packet between peers
 X- Include info necessary to preserve lift UUID
 X- What else to include?
 X- Do we call it "object"?
 X- Intermediate node can respond, build lift, promise chits
-- Terminus node promises, records secret data
+X- Generalize paths_find to work on agent,cuid (pathx_find)
+- Terminus node promises correctly
+- Terminus records secret data
 - 
+- Eliminate all routing schema
+- Markup unused lift/path schma as deprecatable
 - 
 - Test distributed payments with app:
 -  User is notified?

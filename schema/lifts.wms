@@ -484,8 +484,7 @@ raise notice ' promise:% u:%', recipe->'promise', recipe->'update';
         select into qrec inp, ath, uuids, signs from mychips.paths_find(
           (select user_ent from mychips.users where peer_agent = jrec->'inp'->>'agent' and peer_cuid = jrec->'inp'->>'cuid'),
           '', (jrec->>'units')::bigint
-        ) where foro 
-          and (jrec->'via' isnull or (jrec->>'via')::uuid = top_uuid)
+        ) where (jrec->'via' isnull or (jrec->>'via')::uuid = top_uuid)
           and out_agent = jrec->'out'->>'agent' and out_cuid = jrec->'out'->>'cuid'
           order by edges desc limit 1;
         if qrec.uuids notnull and array_length(qrec.uuids,1) > 0 then

@@ -2915,7 +2915,7 @@ lift_uuid	uuid
 
   , lift_type	text		not null default 'rel' constraint "!mychips.lifts:IVT" check(lift_type isnull or lift_type in ('in','org','pay','rel'))
   , request	text		constraint "!mychips.lifts:IVR" check(request isnull or request in ('init','seek','exec'))
-  , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','init','seek','exec','call','pend','good','void'))
+  , status	text		not null default 'draft' constraint "!mychips.lifts:IVS" check(status in ('draft','init','seek','exec','part','good','void'))
   , tallies	uuid[]		constraint "!mychips.lifts:ITL" check (status in ('draft', 'init', 'void', 'seek') or tallies notnull)
   , signs	int[]		constraint "!mychips.lifts:ISL" check (array_length(tallies,1) = array_length(signs,1))
 
@@ -4590,11 +4590,11 @@ create view mychips.routes_v as select
     ;
     ;
 create view mychips.tallies_v_edg as with
-  t_all as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
+  t_all as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_chad
   ,  coalesce((part_sets->'clutch')::float, 0) as p_clutch
     from mychips.tallies_v where liftable
   ),
-  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
+  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_chad
   ,  coalesce((part_sets->'target')::bigint, 0) as p_target
   ,  coalesce((part_sets->'bound')::bigint,  0) as p_bound
   ,  coalesce((part_sets->'reward')::float, 0) as p_reward
@@ -4611,7 +4611,7 @@ create view mychips.tallies_v_edg as with
   , greatest(t.target, t.bound) - t.net_pc	as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , case when t.part_ent isnull then t.part_chad else null end	as part
   , false					as inv
     from	t_all as t
 
@@ -4626,7 +4626,7 @@ create view mychips.tallies_v_edg as with
   , greatest(p_target, p_bound) + t.net_pc	as max
   , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
   , case when t.tally_type = 'foil' then 1 else -1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , case when t.part_ent isnull then t.part_chad else null end	as part
   , true					as inv
     from	t_for as t;
 create function mychips.tallies_v_insfunc() returns trigger language plpgsql security definer as $$
@@ -4656,10 +4656,10 @@ grant insert on table mychips.tallies_v_me to tally_2;
 grant update on table mychips.tallies_v_me to tally_2;
 grant delete on table mychips.tallies_v_me to tally_2;
 create view mychips.tallies_v_net as with
-  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
+  t_loc as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_chad
     from mychips.tallies_v where liftable and part_ent notnull
   ),
-  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_addr
+  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_chad
     from mychips.tallies_v where liftable and part_ent isnull
   )
   select 			-- Internal tallies with both stock and foil
@@ -4673,7 +4673,7 @@ create view mychips.tallies_v_net as with
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , case when t.part_ent isnull then t.part_chad else null end	as part
   , false					as inv
   , t.bound - t.net_pc				as canlift
     from	t_loc as t
@@ -4690,7 +4690,7 @@ create view mychips.tallies_v_net as with
   , t.bound - t.net_pc				as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , case when t.part_ent isnull then t.part_chad else null end	as part
   , false					as inv
   , t.bound - t.net_pc				as canlift
     from	t_for as t
@@ -4706,7 +4706,7 @@ create view mychips.tallies_v_net as with
   , 9223372036854775807				as max
   , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
   , case when t.tally_type = 'foil' then 1 else -1 end as sign
-  , case when t.part_ent isnull then t.part_addr else null end	as part
+  , case when t.part_ent isnull then t.part_chad else null end	as part
   , true					as inv
   , 9223372036854775807				as canlift	-- Let the other side limit lifts
     from	t_for as t;
@@ -5272,6 +5272,78 @@ create function mychips.paths_find(bot_node text, top_node text = '', size bigin
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
   join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq
 $$;
+create function mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint = 0, max_dep int = 10) returns table (level int,min int,inp text,bot text,top text,"out" text,src jsonb,dst jsonb,ath text[],uuids uuid[],signs int[],bot_seq int,top_seq int) language plpgsql as $$
+  declare
+    depth int = 1;
+  begin
+    create temp table queue (
+      id	serial,
+      level int,min int,inp text,bot text,top text,"out" text,src jsonb,dst jsonb,ath text[],uuids uuid[],signs int[],bot_seq int,top_seq int,
+      primary key (level, id) include (ath, out)
+    );
+    if (frch notnull) then		-- Start from a foreign input
+      insert into queue(level, inp, out, src, dst, ath, uuids, signs) 
+        select 1, null, e.out, frch, null, array[e.out], array[e.uuid], array[e.sign]
+          from mychips.tallies_v_edg e where e.inp isnull and e.min >= size
+          and e.part->>'cuid' = frch->>'cuid' and e.part->>'agent' = frch->>'agent';
+    elsif (ent notnull) then		-- Start from a local node
+      insert into queue(level, min, inp, out, src, dst, ath, uuids, signs) 
+        values (1, 0, ent, ent, null, null, '{}'::text[], '{}'::uuid[], '{}'::int[]);
+    else
+      raise exception 'Illegal path start specification';
+    end if;
+
+    while exists (select 1 from queue q where q.level = depth) and depth <= max_dep loop
+
+
+
+
+
+
+
+
+      if (toch notnull) then		-- Searching for external node
+
+        if exists (select 1 from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid') then
+          return query select q.level, q.min, q.inp, q.bot, q.top, q."out", q.src, q.dst, q.ath, q.uuids, q.signs, q.bot_seq, q.top_seq
+            from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid';
+          exit;
+        end if;
+      elsif (ent notnull) then		-- Searching for internal node
+
+        if exists (select 1 from queue q where q.level = depth and q.out = ent) then
+          return query select q.level, q.min, q.inp, q.bot, q.top, q."out", q.src, q.dst, q.ath, q.uuids, q.signs, q.bot_seq, q.top_seq
+            from queue q where q.level = depth and q.out = ent;
+          exit;
+        end if;
+      else
+        raise exception 'Illegal path end specification';
+      end if;
+
+
+
+      insert into queue (level, min, inp, bot, bot_seq, top, top_seq, out, src, dst, ath, uuids, signs)
+        select depth + 1, e.min, q.inp,
+          coalesce(q.bot, e.tally_ent), coalesce(q.bot_seq, e.tally_seq), 
+          e.tally_ent, e.tally_seq,
+          e.out,
+          q.src,
+          case when e.out isnull then e.part else null end,
+          q.ath || e.out, 
+          q.uuids || e.uuid,
+          q.signs || e.sign
+        from queue q
+        join mychips.tallies_v_edg e on e.inp = q.out 
+          and (e.out isnull or e.out <> all(array_remove(all(q.ath), null)))
+        where q.level = depth and coalesce(e.min, size) >= size;
+
+      delete from queue q where q.level = depth;
+      depth := depth + 1;
+    end loop;
+
+    drop table if exists queue;
+  end;
+$$;
 create function mychips.route_notify(route mychips.routes) returns void language plpgsql security definer as $$
     declare
         jrec	jsonb;
@@ -5822,7 +5894,7 @@ raise notice ' found:%', found;
       end if;
 
 
-      if recipe ? 'route' and lrec.payor_ent notnull then
+      if recipe ? 'route' then if lrec.payor_ent notnull then
         if lrec.payee_ent notnull then
 raise notice 'Lift local check O:% E:%', lrec.payor_ent, lrec.payee_ent;
           select into qrec uuids, signs
@@ -5849,7 +5921,7 @@ raise notice ' Lift route check:% c:%', recipe->'update', jsonb_array_length(jre
           upspec = upspec || jsonb_build_object('status', 'void', 'request', null);
         end if;
         recipe = jsonb_set(recipe, '{update}', upspec);
-      end if;
+      end if; end if;
 
       if recipe ? 'pick' then		-- Pick a single path with the highest score
         jrec = recipe->'update'->'transact'->'plans';
@@ -5873,8 +5945,7 @@ raise notice ' promise:% u:%', recipe->'promise', recipe->'update';
         select into qrec inp, ath, uuids, signs from mychips.paths_find(
           (select user_ent from mychips.users where peer_agent = jrec->'inp'->>'agent' and peer_cuid = jrec->'inp'->>'cuid'),
           '', (jrec->>'units')::bigint
-        ) where foro 
-          and (jrec->'via' isnull or (jrec->>'via')::uuid = top_uuid)
+        ) where (jrec->'via' isnull or (jrec->>'via')::uuid = top_uuid)
           and out_agent = jrec->'out'->>'agent' and out_cuid = jrec->'out'->>'cuid'
           order by edges desc limit 1;
         if qrec.uuids notnull and array_length(qrec.uuids,1) > 0 then
@@ -5886,15 +5957,17 @@ raise notice ' promise:% u:%', recipe->'promise', recipe->'update';
 raise notice ' pr:%', qrec;
       end if;
 
+raise notice 'Lift insert s:% u:%', curState, recipe->'update';
       if recipe ? 'insert' and recipe ? 'update' and curState = 'null' then
         insert into mychips.lifts_v (
           lift_uuid, lift_date, life, units, tallies, signs, status
         ) values (
           uuid, (obj->>'lift_date')::timestamptz, 
-          (obj->'life')::bigint,(obj->>'units')::bigint, 
-          (recipe->'update'->'tallies')::uuid[],
-          (recipe->'update'->'signs')::int[],
-          (recipe->'update'->'status')::int[]
+          (obj->>'life')::interval,
+          (obj->>'units')::bigint, 
+          (recipe->'update'->>'tallies')::uuid[],
+          (recipe->'update'->>'signs')::int[],
+          recipe->'update'->>'status'
         ) returning state into lrec;
         return to_json(lrec.state);
         
@@ -5992,20 +6065,6 @@ create function mychips.lifts_v_pay_updfunc() returns trigger language plpgsql s
 $$;
 create trigger mychips_lifts_v_tr_ins instead of insert on mychips.lifts_v for each row execute procedure mychips.lifts_v_insfunc();
 create trigger mychips_lifts_v_tr_upd instead of update on mychips.lifts_v for each row execute procedure mychips.lifts_v_updfunc();
-create function mychips.path_find_me(to_node text, size int = 0, max_dep int = 10) returns table (edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
-   security definer language sql as $$
-     select array_length(uuids,1) as edges, uuids[1] as tally, bot as tally_ent, bot_seq as tally_seq, ath[1] as part_ent
-       from mychips.path_find(base.user_id(session_user), to_node, size, max_dep)
-         where top = to_node;
-$$;
-grant execute on function mychips.path_find_me(text,int,int) to mychips_1;
-create function mychips.paths_find_me(to_node text, size int = 0, max_dep int = 10) returns table (min int, edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
-   security definer language sql as $$
-     select min, edges, uuids[1] as tally, bot as tally_ent, bot_seq as tally_seq, ath[1] as part_ent
-       from mychips.paths_find(base.user_id(session_user), to_node, size, max_dep)
-         where top = to_node;
-$$;
-grant execute on function mychips.paths_find_me(text,int,int) to mychips_1;
 create function mychips.routes_find(base record, dest jsonb, currStep int, avoid text) returns jsonb language plpgsql security definer as $$
     declare
       lrec	record;

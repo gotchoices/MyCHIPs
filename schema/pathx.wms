@@ -151,22 +151,107 @@ function {mychips.path_find(inp_node text, out_node text = '', size bigint = 0, 
   end;
 $$;}
 
-function {mychips.paths_find_me(to_node text, size int = 0, max_dep int = 10)} {
-  mychips.paths_find(text,text,bigint,int) base.user_id(text)
+# Discover shortest lift pathway using inp, mid, out using depth-first
+# Three modes possible: mid -> out, inp -> out, inp -> mid
+# inp, out expressed as agent, cuid
+# mid expressed as ent_id
+#----------------------------------------------------------------
+set tab_list {level int min int inp text bot text top text \"out\" text src jsonb dst jsonb ath text\[\] uuids uuid\[\] signs int\[\] bot_seq int top_seq int}
+set tab_pairs [lmap {k v} $tab_list {string cat "$k $v"}]	;#puts "T:$tab_pairs"
+set tab_fields [dict keys [dict create {*}$tab_list]]		;#puts "F:$tab_fields"
+function {mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint = 0, max_dep int = 10)} {
+  mychips.users_v mychips.tallies_v_edg
 } {
- returns table (min int, edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
-   security definer language sql as $$
-     select min, edges, uuids[1] as tally, bot as tally_ent, bot_seq as tally_seq, ath[1] as part_ent
-       from mychips.paths_find(base.user_id(session_user), to_node, size, max_dep)
-         where top = to_node;
-$$;} -grant mychips
+ returns table (eval(join $tab_pairs ,)) language plpgsql as $$
+  declare
+    depth int = 1;
+  begin
+    create temp table queue (
+      id	serial,
+      eval(join $tab_pairs ,),
+      primary key (level, id) include (ath, out)
+    );
+    if (frch notnull) then		-- Start from a foreign input
+      insert into queue(level, inp, out, src, dst, ath, uuids, signs) 
+        select 1, null, e.out, frch, null, array[e.out], array[e.uuid], array[e.sign]
+          from mychips.tallies_v_edg e where e.inp isnull and e.min >= size
+          and e.part->>'cuid' = frch->>'cuid' and e.part->>'agent' = frch->>'agent';
+    elsif (ent notnull) then		-- Start from a local node
+      insert into queue(level, min, inp, out, src, dst, ath, uuids, signs) 
+        values (1, 0, ent, ent, null, null, '{}'::text[], '{}'::uuid[], '{}'::int[]);
+    else
+      raise exception 'Illegal path start specification';
+    end if;
 
-function {mychips.path_find_me(to_node text, size int = 0, max_dep int = 10)} {
-  mychips.path_find(text,text,bigint,int) base.user_id(text)
-} {
- returns table (edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
-   security definer language sql as $$
-     select array_length(uuids,1) as edges, uuids[1] as tally, bot as tally_ent, bot_seq as tally_seq, ath[1] as part_ent
-       from mychips.path_find(base.user_id(session_user), to_node, size, max_dep)
-         where top = to_node;
-$$;} -grant mychips
+    while exists (select 1 from queue q where q.level = depth) and depth <= max_dep loop
+--raise notice 'L%: ath:%', depth, (select string_agg(array_to_string(q.ath, ','), '; ') from queue q where q.level = depth);
+
+--if depth = 2 then
+--raise notice 'X:%', depth;
+--return query select eval(fld_list $tab_fields q) from queue q where q.level = depth;
+--exit;
+--end if;
+
+      if (toch notnull) then		-- Searching for external node
+--raise notice 'External:%', toch;
+        if exists (select 1 from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid') then
+          return query select eval(fld_list $tab_fields q)
+            from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid';
+          exit;
+        end if;
+      elsif (ent notnull) then		-- Searching for internal node
+--raise notice 'Internal:%', ent;
+        if exists (select 1 from queue q where q.level = depth and q.out = ent) then
+          return query select eval(fld_list $tab_fields q)
+            from queue q where q.level = depth and q.out = ent;
+          exit;
+        end if;
+      else
+        raise exception 'Illegal path end specification';
+      end if;
+
+--raise notice 'Inserting: %:%', depth, max_dep;
+        -- Insert neighbors into the next level if they haven't been visited
+      insert into queue (level, min, inp, bot, bot_seq, top, top_seq, out, src, dst, ath, uuids, signs)
+        select depth + 1, e.min, q.inp,
+          coalesce(q.bot, e.tally_ent), coalesce(q.bot_seq, e.tally_seq), 
+          e.tally_ent, e.tally_seq,
+          e.out,
+          q.src,
+          case when e.out isnull then e.part else null end,
+          q.ath || e.out, 
+          q.uuids || e.uuid,
+          q.signs || e.sign
+        from queue q
+        join mychips.tallies_v_edg e on e.inp = q.out 
+          and (e.out isnull or e.out <> all(array_remove(all(q.ath), null)))
+        where q.level = depth and coalesce(e.min, size) >= size;
+
+      delete from queue q where q.level = depth;        -- Clean up the current level
+      depth := depth + 1;
+    end loop;
+
+    drop table if exists queue;		-- Cleanup
+  end;
+$$;}
+
+#Do we need these?
+#function {mychips.paths_find_me(to_node text, size int = 0, max_dep int = 10)} {
+#  mychips.paths_find(text,text,bigint,int) base.user_id(text)
+#} {
+# returns table (min int, edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
+#   security definer language sql as $$
+#     select min, edges, uuids[1] as tally, bot as tally_ent, bot_seq as tally_seq, ath[1] as part_ent
+#       from mychips.paths_find(base.user_id(session_user), to_node, size, max_dep)
+#         where top = to_node;
+#$$;} -grant mychips
+#
+#function {mychips.path_find_me(to_node text, size int = 0, max_dep int = 10)} {
+#  mychips.path_find(text,text,bigint,int) base.user_id(text)
+#} {
+# returns table (edges int, tally uuid, tally_ent text, tally_seq int, part_ent text)
+#   security definer language sql as $$
+#     select array_length(uuids,1) as edges, uuids[1] as tally, bot as tally_ent, bot_seq as tally_seq, ath[1] as part_ent
+#       from mychips.path_find(base.user_id(session_user), to_node, size, max_dep)
+#         where top = to_node;
+#$$;} -grant mychips
