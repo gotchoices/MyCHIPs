@@ -7,7 +7,11 @@ X- What else to include?
 X- Do we call it "object"?
 X- Intermediate node can respond, build lift, promise chits
 X- Generalize paths_find to work on agent,cuid (pathx_find)
-- Adapt lib/lift.js to use pathx_find()
+X- Adapt lib/lift.js to use pathx_find()
+X- Cleaning/understanding pass on lib/lift.js
+- Include tally_uuid on all promise-related lift update messages
+- Nodes lookup tally uuids only if they are not included in the message
+- Terminus node can throw away any packets that don't include the tally ID
 - Terminus node promises correctly
 - Terminus records secret data
 - Get test suite running again

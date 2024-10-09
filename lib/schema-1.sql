@@ -428,66 +428,6 @@ create schema json;
 create schema mychips;
 select wm.create_role('mychips_1');
 grant usage on schema mychips to mychips_1;
-create function mychips.plan_flatten(plans jsonb, cuid text) returns table (
-    session	text
-  , idx		bigint
-  , via		uuid
-  , tag		text
-  , value	float
-  ) language plpgsql as $$
-  begin
-    return query select
-      plan->>'sessionCode'		as session
-    , plan_idx - 1			as idx
-    , (plan->>'via')::uuid		as via
-    , u.tag				as tag
-    , u.value				as value
-                
-    from
-      jsonb_array_elements(plans) with ordinality as plan(plan, plan_idx)
-
-    , lateral (select
-        count(*) as members
-      , count(*) filter (where
-          (memb.value->'types')::jsonb ? 'R' and not (memb.value->'types')::jsonb ? 'P'
-        ) as refs
-      , count(*) filter (where (memb.value->'types')::jsonb ? 'P') as parts
-      from jsonb_array_elements(plan->'members') as memb
-    ) m
-
-    , lateral (select
-        min((path->'intents'->'L'->>'min')::bigint) as minmin from
-          jsonb_array_elements(plan->'path') as path
-        where path->'intents'->'L'->>'min' notnull
-    ) p
-    
-    , lateral (select edges, min from mychips.tallies_v_paths tp where
-        tp.inp_cuid = cuid and tp.top_uuid = (plan->>'via')::uuid and foro
-    ) s
-
-
-
-
-    , lateral (
-        select 'refs' as tag, m.refs::float as value
-
-        union all	-- Inverse distance from ideal number of referees
-        select 'refs_comp', 1.0 / (abs(base.parm('chipnet','refs_ideal',1) - m.refs) + 1.0)
-        
-        union all
-        select 'edges_ext', jsonb_array_length(plan->'path')::float as length
-
-        union all
-        select 'min_ext', coalesce(p.minmin::float, 0.0)
-
-        union all
-        select 'edges_int', s.edges::float
-
-        union all
-        select 'min_int', s.min::float
-    ) as u;
-  end;
-$$;
 create function neqnocase(text,text) returns boolean language plpgsql immutable as $$
     begin return upper($1) != upper($2); end;
 $$;
@@ -788,6 +728,66 @@ create function mychips.lift_state(status text, request text) returns text stabl
       case when request isnull then '' else '.' || request end;
 $$;
 grant execute on function mychips.lift_state(text,text) to mychips_1;
+create function mychips.plan_flatten(plans jsonb, cuid text) returns table (
+    session	text
+  , idx		bigint
+  , via		uuid
+  , tag		text
+  , value	float
+  ) language plpgsql as $$
+  begin
+    return query select
+      plan->>'sessionCode'		as session
+    , plan_idx - 1			as idx
+    , (plan->>'via')::uuid		as via
+    , u.tag				as tag
+    , u.value				as value
+                
+    from
+      jsonb_array_elements(plans) with ordinality as plan(plan, plan_idx)
+
+    , lateral (select
+        count(*) as members
+      , count(*) filter (where
+          (memb.value->'types')::jsonb ? 'R' and not (memb.value->'types')::jsonb ? 'P'
+        ) as refs
+      , count(*) filter (where (memb.value->'types')::jsonb ? 'P') as parts
+      from jsonb_array_elements(plan->'members') as memb
+    ) m
+
+    , lateral (select
+        min((path->'intents'->'L'->>'min')::bigint) as minmin from
+          jsonb_array_elements(plan->'path') as path
+        where path->'intents'->'L'->>'min' notnull
+    ) p
+    
+    , lateral (select edges, min from mychips.tallies_v_paths tp where
+        tp.inp_cuid = cuid and tp.top_uuid = (plan->>'via')::uuid and foro
+    ) s
+
+
+
+
+    , lateral (
+        select 'refs' as tag, m.refs::float as value
+
+        union all	-- Inverse distance from ideal number of referees
+        select 'refs_comp', 1.0 / (abs(base.parm('chipnet','refs_ideal',1) - m.refs) + 1.0)
+        
+        union all
+        select 'edges_ext', jsonb_array_length(plan->'path')::float as length
+
+        union all
+        select 'min_ext', coalesce(p.minmin::float, 0.0)
+
+        union all
+        select 'edges_int', s.edges::float
+
+        union all
+        select 'min_int', s.min::float
+    ) as u;
+  end;
+$$;
 create function mychips.route_sorter(status text, expired boolean) returns int stable language plpgsql as $$
     begin return case
       when status = 'good' and not expired	then	0
@@ -5272,22 +5272,22 @@ create function mychips.paths_find(bot_node text, top_node text = '', size bigin
   join	mychips.tallies_v	tt on tt.tally_ent = tpr.top and tt.tally_seq = tpr.top_tseq
   join	mychips.tallies_v	bt on bt.tally_ent = tpr.bot and bt.tally_seq = tpr.bot_tseq
 $$;
-create function mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint = 0, max_dep int = 10) returns table (level int,min int,inp text,bot text,top text,"out" text,src jsonb,dst jsonb,ath text[],uuids uuid[],signs int[],bot_seq int,top_seq int) language plpgsql as $$
+create function mychips.pathx_find(inpt uuid, ent text, outt uuid, size bigint = 0, max_dep int = 10) returns table (level int,min int,inp text,bot text,top text,"out" text,bot_uuid uuid,top_uuid uuid,ath text[],uuids uuid[],signs int[],bot_seq int,top_seq int) language plpgsql as $$
   declare
     depth int = 1;
   begin
     create temp table queue (
       id	serial,
-      level int,min int,inp text,bot text,top text,"out" text,src jsonb,dst jsonb,ath text[],uuids uuid[],signs int[],bot_seq int,top_seq int,
+      level int,min int,inp text,bot text,top text,"out" text,bot_uuid uuid,top_uuid uuid,ath text[],uuids uuid[],signs int[],bot_seq int,top_seq int,
       primary key (level, id) include (ath, out)
     );
-    if (frch notnull) then		-- Start from a foreign input
-      insert into queue(level, inp, out, src, dst, ath, uuids, signs) 
-        select 1, null, e.out, frch, null, array[e.out], array[e.uuid], array[e.sign]
+    if (inpt notnull) then		-- Start from a foreign input
+      insert into queue(level, inp, out, bot_uuid, top_uuid, ath, uuids, signs) 
+        select 1, null, e.out, inpt, null, array[e.out], array[e.uuid], array[e.sign]
           from mychips.tallies_v_edg e where e.inp isnull and e.min >= size
-          and e.part->>'cuid' = frch->>'cuid' and e.part->>'agent' = frch->>'agent';
+          and e.uuid = inpt;
     elsif (ent notnull) then		-- Start from a local node
-      insert into queue(level, min, inp, out, src, dst, ath, uuids, signs) 
+      insert into queue(level, min, inp, out, bot_uuid, top_uuid, ath, uuids, signs) 
         values (1, 0, ent, ent, null, null, '{}'::text[], '{}'::uuid[], '{}'::int[]);
     else
       raise exception 'Illegal path start specification';
@@ -5302,17 +5302,17 @@ create function mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint
 
 
 
-      if (toch notnull) then		-- Searching for external node
+      if (outt notnull) then		-- Searching for external tally
 
-        if exists (select 1 from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid') then
-          return query select q.level, q.min, q.inp, q.bot, q.top, q."out", q.src, q.dst, q.ath, q.uuids, q.signs, q.bot_seq, q.top_seq
-            from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid';
+        if exists (select 1 from queue q where q.level = depth and q.top_uuid = outt) then
+          return query select q.level, q.min, q.inp, q.bot, q.top, q."out", q.bot_uuid, q.top_uuid, q.ath, q.uuids, q.signs, q.bot_seq, q.top_seq
+            from queue q where q.level = depth and q.top_uuid = outt;
           exit;
         end if;
       elsif (ent notnull) then		-- Searching for internal node
 
         if exists (select 1 from queue q where q.level = depth and q.out = ent) then
-          return query select q.level, q.min, q.inp, q.bot, q.top, q."out", q.src, q.dst, q.ath, q.uuids, q.signs, q.bot_seq, q.top_seq
+          return query select q.level, q.min, q.inp, q.bot, q.top, q."out", q.bot_uuid, q.top_uuid, q.ath, q.uuids, q.signs, q.bot_seq, q.top_seq
             from queue q where q.level = depth and q.out = ent;
           exit;
         end if;
@@ -5322,13 +5322,13 @@ create function mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint
 
 
 
-      insert into queue (level, min, inp, bot, bot_seq, top, top_seq, out, src, dst, ath, uuids, signs)
+      insert into queue (level, min, inp, bot, bot_seq, top, top_seq, out, bot_uuid, top_uuid, ath, uuids, signs)
         select depth + 1, e.min, q.inp,
           coalesce(q.bot, e.tally_ent), coalesce(q.bot_seq, e.tally_seq), 
           e.tally_ent, e.tally_seq,
           e.out,
-          q.src,
-          case when e.out isnull then e.part else null end,
+          q.bot_uuid,
+          e.uuid,
           q.ath || e.out, 
           q.uuids || e.uuid,
           q.signs || e.sign
@@ -5816,7 +5816,13 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
 
 
 
-        select into lrec l.json_pay, l.json, l.payor_ent, l.payor_auth, l.find, l.origin, l.transact, u.user_psig
+        select into lrec l.json_pay, l.json, l.payor_ent, l.payor_auth, l.find, l.origin, l.transact, u.user_psig,
+          jsonb_build_object(
+            'cuid', u.peer_cuid,
+            'agent', u.peer_agent,
+            'host', u.peer_host,
+            'port', u.peer_port
+          ) as payor_chad
           from mychips.lifts_v l
           join mychips.users_v u on u.id = l.payor_ent
           where lift_uuid = lift.lift_uuid and lift_seq = lift.lift_seq;
@@ -5843,7 +5849,7 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
       elsif lift.request in ('seek','exec') then
         jmerge = jmerge || jsonb_build_object(
           'aux', jsonb_build_object(
-            'origin',		lift.origin
+            'origin',		lrec.payor_chad
           , 'trans',		lift.transact
         ));
 
@@ -5942,12 +5948,10 @@ raise notice ' promise:% u:%', recipe->'promise', recipe->'update';
 
 
         jrec = recipe->'promise';
-        select into qrec inp, ath, uuids, signs from mychips.paths_find(
-          (select user_ent from mychips.users where peer_agent = jrec->'inp'->>'agent' and peer_cuid = jrec->'inp'->>'cuid'),
-          '', (jrec->>'units')::bigint
-        ) where (jrec->'via' isnull or (jrec->>'via')::uuid = top_uuid)
-          and out_agent = jrec->'out'->>'agent' and out_cuid = jrec->'out'->>'cuid'
-          order by edges desc limit 1;
+        qstrg = (select user_ent from mychips.users where peer_agent = jrec->'sub'->>'agent' and peer_cuid = jrec->'sub'->>'cuid');
+        select into qrec inp, ath, uuids, signs from mychips.pathx_find(
+          (jrec->>'it')::uuid, qstrg, (jrec->>'ot')::uuid, (jrec->>'units')::bigint
+        ) order by level desc, min limit 1;
         if qrec.uuids notnull and array_length(qrec.uuids,1) > 0 then
           upspec = recipe->'update';
           upspec = jsonb_set(upspec, '{tallies}', to_jsonb('{' || array_to_string(qrec.uuids,',') || '}'), true);

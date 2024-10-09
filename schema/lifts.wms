@@ -195,7 +195,13 @@ function {mychips.lift_notify_agent(lift mychips.lifts)} {mychips.lifts_v_dist} 
 --raise notice 'Lift_notify R:%', lift.request;
 
 --      if lift.request in ('init','seek') then
-        select into lrec l.json_pay, l.json, l.payor_ent, l.payor_auth, l.find, l.origin, l.transact, u.user_psig
+        select into lrec l.json_pay, l.json, l.payor_ent, l.payor_auth, l.find, l.origin, l.transact, u.user_psig,
+          jsonb_build_object(
+            'cuid', u.peer_cuid,
+            'agent', u.peer_agent,
+            'host', u.peer_host,
+            'port', u.peer_port
+          ) as payor_chad
           from mychips.lifts_v l
           join mychips.users_v u on u.id = l.payor_ent
           where lift_uuid = lift.lift_uuid and lift_seq = lift.lift_seq;
@@ -222,7 +228,7 @@ function {mychips.lift_notify_agent(lift mychips.lifts)} {mychips.lifts_v_dist} 
       elsif lift.request in ('seek','exec') then
         jmerge = jmerge || jsonb_build_object(
           'aux', jsonb_build_object(
-            'origin',		lift.origin
+            'origin',		lrec.payor_chad
           , 'trans',		lift.transact
         ));
 
@@ -481,12 +487,10 @@ raise notice ' promise:% u:%', recipe->'promise', recipe->'update';
 -- find the correct/best outbound segment for this lift
 -- adjust upspec
         jrec = recipe->'promise';
-        select into qrec inp, ath, uuids, signs from mychips.paths_find(
-          (select user_ent from mychips.users where peer_agent = jrec->'inp'->>'agent' and peer_cuid = jrec->'inp'->>'cuid'),
-          '', (jrec->>'units')::bigint
-        ) where (jrec->'via' isnull or (jrec->>'via')::uuid = top_uuid)
-          and out_agent = jrec->'out'->>'agent' and out_cuid = jrec->'out'->>'cuid'
-          order by edges desc limit 1;
+        qstrg = (select user_ent from mychips.users where peer_agent = jrec->'sub'->>'agent' and peer_cuid = jrec->'sub'->>'cuid');
+        select into qrec inp, ath, uuids, signs from mychips.pathx_find(
+          (jrec->>'it')::uuid, qstrg, (jrec->>'ot')::uuid, (jrec->>'units')::bigint
+        ) order by level desc, min limit 1;
         if qrec.uuids notnull and array_length(qrec.uuids,1) > 0 then
           upspec = recipe->'update';
           upspec = jsonb_set(upspec, '{tallies}', to_jsonb('{' || array_to_string(qrec.uuids,',') || '}'), true);

@@ -151,15 +151,14 @@ function {mychips.path_find(inp_node text, out_node text = '', size bigint = 0, 
   end;
 $$;}
 
-# Discover shortest lift pathway using inp, mid, out using depth-first
-# Three modes possible: mid -> out, inp -> out, inp -> mid
-# inp, out expressed as agent, cuid
-# mid expressed as ent_id
+# Discover shortest lift pathway using inpt, ent, outt using depth-first
+# Three modes possible: ent -> outt, inpt -> outt, inpt -> ent
+# inpt, outt are tally_ids, ent is an entity ID
 #----------------------------------------------------------------
-set tab_list {level int min int inp text bot text top text \"out\" text src jsonb dst jsonb ath text\[\] uuids uuid\[\] signs int\[\] bot_seq int top_seq int}
+set tab_list {level int min int inp text bot text top text \"out\" text bot_uuid uuid top_uuid uuid ath text\[\] uuids uuid\[\] signs int\[\] bot_seq int top_seq int}
 set tab_pairs [lmap {k v} $tab_list {string cat "$k $v"}]	;#puts "T:$tab_pairs"
 set tab_fields [dict keys [dict create {*}$tab_list]]		;#puts "F:$tab_fields"
-function {mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint = 0, max_dep int = 10)} {
+function {mychips.pathx_find(inpt uuid, ent text, outt uuid, size bigint = 0, max_dep int = 10)} {
   mychips.users_v mychips.tallies_v_edg
 } {
  returns table (eval(join $tab_pairs ,)) language plpgsql as $$
@@ -171,13 +170,13 @@ function {mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint = 0, 
       eval(join $tab_pairs ,),
       primary key (level, id) include (ath, out)
     );
-    if (frch notnull) then		-- Start from a foreign input
-      insert into queue(level, inp, out, src, dst, ath, uuids, signs) 
-        select 1, null, e.out, frch, null, array[e.out], array[e.uuid], array[e.sign]
+    if (inpt notnull) then		-- Start from a foreign input
+      insert into queue(level, inp, out, bot_uuid, top_uuid, ath, uuids, signs) 
+        select 1, null, e.out, inpt, null, array[e.out], array[e.uuid], array[e.sign]
           from mychips.tallies_v_edg e where e.inp isnull and e.min >= size
-          and e.part->>'cuid' = frch->>'cuid' and e.part->>'agent' = frch->>'agent';
+          and e.uuid = inpt;
     elsif (ent notnull) then		-- Start from a local node
-      insert into queue(level, min, inp, out, src, dst, ath, uuids, signs) 
+      insert into queue(level, min, inp, out, bot_uuid, top_uuid, ath, uuids, signs) 
         values (1, 0, ent, ent, null, null, '{}'::text[], '{}'::uuid[], '{}'::int[]);
     else
       raise exception 'Illegal path start specification';
@@ -192,11 +191,11 @@ function {mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint = 0, 
 --exit;
 --end if;
 
-      if (toch notnull) then		-- Searching for external node
---raise notice 'External:%', toch;
-        if exists (select 1 from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid') then
+      if (outt notnull) then		-- Searching for external tally
+--raise notice 'External:%', outt;
+        if exists (select 1 from queue q where q.level = depth and q.top_uuid = outt) then
           return query select eval(fld_list $tab_fields q)
-            from queue q where q.level = depth and q.dst->>'agent' = toch->>'agent' and q.dst->>'cuid' = toch->>'cuid';
+            from queue q where q.level = depth and q.top_uuid = outt;
           exit;
         end if;
       elsif (ent notnull) then		-- Searching for internal node
@@ -212,13 +211,13 @@ function {mychips.pathx_find(frch jsonb, ent text, toch jsonb, size bigint = 0, 
 
 --raise notice 'Inserting: %:%', depth, max_dep;
         -- Insert neighbors into the next level if they haven't been visited
-      insert into queue (level, min, inp, bot, bot_seq, top, top_seq, out, src, dst, ath, uuids, signs)
+      insert into queue (level, min, inp, bot, bot_seq, top, top_seq, out, bot_uuid, top_uuid, ath, uuids, signs)
         select depth + 1, e.min, q.inp,
           coalesce(q.bot, e.tally_ent), coalesce(q.bot_seq, e.tally_seq), 
           e.tally_ent, e.tally_seq,
           e.out,
-          q.src,
-          case when e.out isnull then e.part else null end,
+          q.bot_uuid,
+          e.uuid,
           q.ath || e.out, 
           q.uuids || e.uuid,
           q.signs || e.sign
