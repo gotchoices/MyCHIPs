@@ -16,13 +16,13 @@ const clearSql = `begin;
         delete from mychips.agents;
         update mychips.users set _last_tally = 0; commit`
 const agree = {domain:"mychips.org", name:"test", version:1}
-const {Sites, SiteBase, Users, portBase, tallyData, initSites} = require('./def-net')
+const {tallyData, initSites} = require('./def-net')
 var siteData = []
 var userData = {}
 var interTest = {}			//Pass values from one test to another
 
 //Establish a tally between two users
-const establishTally = function(dataO, dataS, units) {
+const establishTally = function(dataO, dataS, units, tallyCB) {
   const dbcO = dataO.dConf, cuidO = dataO.cuid, userO = dataO.id, agentO = dataO.agent
   const dbcS = dataS.dConf, cuidS = dataS.cuid, userS = dataS.id, agentS = dataS.agent
   const busO = new Bus('busO'), busS = new Bus('busS')
@@ -64,6 +64,7 @@ const establishTally = function(dataO, dataS, units) {
       let ticket = res[2].rows[0]		;log.debug("Ticket:", ticket)
       interTest.tallyO = tal
       interTest.ticket = ticket
+      tallyCB(tal)
       done()
     })
   })
@@ -293,14 +294,16 @@ describe("Create simulated network", function() {
     })
   })
 
-  tallyData.forEach(t => {		//log.debug('Tally:', t)
+  tallyData.forEach((t,idx) => {		//log.debug('Tally:', idx, t)
     let [ orig, subj, units ] = t
     describe("Establish tally between " + orig + " and " + subj, function() {
-      establishTally(userData[orig], userData[subj], units)
+      establishTally(userData[orig], userData[subj], units, tal => {
+        tallyData[idx].uuid = tal.tally_uuid		//;log.debug('T-post:', tal.tally_uuid)
+      })
     })
   })
 
-  it("Build visualization graph", function(done) {
+  after("Build visualization graph", function(done) {
     let top = `@startdot\ndigraph testNet {\n  label = "Test Network"\n`
       , bot = `}\n@enddot\n`
       , file = Path.join(__dirname, '..', 'data', 'testNet.puml')
@@ -318,7 +321,8 @@ describe("Create simulated network", function() {
     tallyData.forEach(t => {
       let [orig, subj, units, format ] = t
         , cuidO = userData[orig].cuid, cuidS = userData[subj].cuid
-      text += `  ${cuidO} -> ${cuidS} [label="${units}"${format ? ','+format: ''}]\n`
+        , truncUuid = t?.uuid?.slice(-4)	//;log.debug('T:', t, t.uuid)
+      text += `  ${cuidO} -> ${cuidS} [label="${truncUuid}\n${units}"${format ? ','+format: ''}]\n`
     })
     text += `\n`
     

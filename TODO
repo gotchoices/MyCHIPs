@@ -9,11 +9,12 @@ X- Intermediate node can respond, build lift, promise chits
 X- Generalize paths_find to work on agent,cuid (pathx_find)
 X- Adapt lib/lift.js to use pathx_find()
 X- Cleaning/understanding pass on lib/lift.js
-- Include tally_uuid on all promise-related lift update messages
-- Nodes lookup tally uuids only if they are not included in the message
-- Terminus node can throw away any packets that don't include the tally ID
-- Terminus node promises correctly
-- Terminus records secret data
+X- Include tally_uuid on all promise-related lift update messages
+X- Terminus node can throw away any packets that don't include the tally ID
+X- Terminus node promises correctly
+X- Terminus records secret data
+- All nodes commit lifts
+- Implement abort callback
 - Get test suite running again
 - Eliminate all routing schema
 - Markup unused lift/path schema as deprecatable

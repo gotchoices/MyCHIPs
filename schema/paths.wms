@@ -5,11 +5,11 @@
 # View showing one entry for each tally capable of a lift
 #----------------------------------------------------------------
 view mychips.tallies_v_edg {mychips.tallies_v} {with
-  t_all as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_chad
+  t_all as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, hold_chad, part_chad
   ,  coalesce((part_sets->'clutch')::float, 0) as p_clutch
     from mychips.tallies_v where liftable
   ),
-  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, part_chad
+  t_for as (select tally_ent, tally_seq, tally_type, tally_uuid, part_ent, target, reward, bound, clutch, net_pc, hold_chad, part_chad
   ,  coalesce((part_sets->'target')::bigint, 0) as p_target
   ,  coalesce((part_sets->'bound')::bigint,  0) as p_bound
   ,  coalesce((part_sets->'reward')::float, 0) as p_reward
@@ -26,7 +26,8 @@ view mychips.tallies_v_edg {mychips.tallies_v} {with
   , greatest(t.target, t.bound) - t.net_pc	as max
   , case when t.tally_type = 'foil' then 'lift' else 'drop' end as type
   , case when t.tally_type = 'foil' then -1 else 1 end as sign
-  , case when t.part_ent isnull then t.part_chad else null end	as part
+  , t.part_chad   as inp_chad
+  , t.hold_chad   as out_chad
   , false					as inv
     from	t_all as t
 
@@ -41,7 +42,8 @@ view mychips.tallies_v_edg {mychips.tallies_v} {with
   , greatest(p_target, p_bound) + t.net_pc	as max
   , case when t.tally_type = 'foil' then 'drop' else 'lift' end as type
   , case when t.tally_type = 'foil' then 1 else -1 end as sign
-  , case when t.part_ent isnull then t.part_chad else null end	as part
+  , t.hold_chad   as inp_chad
+  , t.part_chad   as out_chad
   , true					as inv
     from	t_for as t
 }
