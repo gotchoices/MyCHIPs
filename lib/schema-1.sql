@@ -3289,7 +3289,8 @@ create function mychips.lift_chitcheck(lf mychips.lifts) returns mychips.lifts l
             chit_ent, chit_seq, chit_type, chit_uuid, lift_seq, chit_date, units, status
           ) values (
             trec.tally_ent, trec.tally_seq, 'lift', lf.lift_uuid, lf.lift_seq, lf.lift_date, lf.units * sign, stat
-          );
+          ) on conflict on constraint "!mychips.chits:CUU" do
+            update set status = stat;
 
           get diagnostics rows = ROW_COUNT; if rows < 1 then
             raise exception '!mychips.lifts:CIF';
@@ -3315,7 +3316,7 @@ create function mychips.lift_notify_user(ent text, lift mychips.lifts) returns r
         'target',	'lift',
         'entity',	ent,
         'lift',		lift.lift_uuid,
-        'sequence',	lift.lift_seq,
+        'seq',		lift.lift_seq,
         'units',	lift.units,
         'memo',		lift.payor_auth->'memo',
         'ref',		lift.payor_auth->'ref',
@@ -3534,7 +3535,6 @@ create function mychips.lift_json_p(lf mychips.lifts) returns jsonb stable langu
 $$;
 create function mychips.lifts_tf_ai() returns trigger language plpgsql security definer as $$
     begin
-
       if new.tallies notnull then			-- Always on insert if edges specified
         return mychips.lift_chitcheck(new);
       end if;
@@ -4492,28 +4492,28 @@ create function mychips.lifts_tf_bi() returns trigger language plpgsql security 
       trec	record;
       i		int;
     begin
-        if new.lift_uuid isnull then
-          new.lift_uuid = uuid_generate_v4();
-          new.lift_seq = 0;
-        elsif new.lift_seq isnull then		-- This is not safe for concurrent insertions
-          select into new.lift_seq coalesce(max(lift_seq)+1,0) from mychips.lifts where lift_uuid = new.lift_uuid;
-        end if;
+      if new.lift_uuid isnull then
+        new.lift_uuid = uuid_generate_v4();
+        new.lift_seq = 0;
+      elsif new.lift_seq isnull then		-- This is not safe for concurrent insertions
+        select into new.lift_seq coalesce(max(lift_seq)+1,0) from mychips.lifts where lift_uuid = new.lift_uuid;
+      end if;
 
-        if new.status = 'draft' and new.request = 'seek' then	-- General consistency check
-          if new.life isnull then
-            new.life = base.parm('lifts', 'life', '2 minutes'::text)::interval;
+      if new.status = 'draft' and new.request = 'seek' then	-- General consistency check
+        if new.life isnull then
+          new.life = base.parm('lifts', 'life', '2 minutes'::text)::interval;
+        end if;
+      end if;
+
+      if array_length(new.signs,1) != array_length(new.tallies,1) then
+        for i in array_lower(new.tallies,1) .. array_upper(new.tallies,1) loop
+          if new.signs[i] is null then		-- Make direction assumption about missing signs
+            new.signs[i] = -1;
           end if;
-        end if;
+        end loop;
+      end if;
 
-        if array_length(new.signs,1) != array_length(new.tallies,1) then
-          for i in array_lower(new.tallies,1) .. array_upper(new.tallies,1) loop
-            if new.signs[i] is null then
-              new.signs[i] = -1;
-            end if;
-          end loop;
-        end if;
-
-        return new;
+      return new;
     end;
 $$;
 create view mychips.lifts_v as select 
@@ -5112,7 +5112,7 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
 
       elsif lift.request = 'exec' then		--Give details about the outbound tally
         select into erec inp, inp_chad, uuid, out, out_chad from mychips.tallies_v_edg
-          where out isnull and 			-- Depends on valid pick, via existing from _process routine
+          where out isnull and 			-- Depends on valid pick & via from process routine
           uuid = (lift.transact->'plans'->((lift.transact->'pick')::int)->>'via')::uuid;
         jmerge = jmerge || jsonb_build_object(
           'aux', jsonb_build_object(
@@ -5127,7 +5127,7 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
 
       jret = jsonb_build_object('target', 'lift'
         , 'action',	lift.request
-        , 'sequence',	lift.lift_seq
+        , 'seq',	lift.lift_seq
         , 'object',	lrec.json
       ) || jmerge;
 
@@ -5839,8 +5839,10 @@ $$;
 create function mychips.lift_process(msg jsonb, recipe jsonb) returns jsonb language plpgsql as $$
     declare
         obj		jsonb		= msg->'object';
-        seq		int		= msg->'sequence';
-        uuid		uuid		= obj->>'lift';
+        seq		int		= msg->'seq';
+        itally		uuid		= msg->>'it';
+        otally		uuid		= msg->>'ot';
+        uuid		uuid		= obj->>'lift'uuid;
         units		bigint		= obj->>'units';
         find		jsonb		= obj->'find';
         req		text		= 'relay';
@@ -5854,19 +5856,16 @@ create function mychips.lift_process(msg jsonb, recipe jsonb) returns jsonb lang
     begin
 raise notice 'Lift process uuid:% seq:% rec:% u:%', uuid, seq, recipe, units;
 
-      if uuid notnull and seq notnull then	-- Explicit lift referenced for update
-raise notice ' find by seq:%-%', uuid, seq;
+      if uuid notnull and (seq notnull or itally notnull or otally notnull) then
+raise notice ' find % by seq:% it:% ot:%', uuid, seq, itally, otally;
         select into lrec l.lift_type,l.lift_uuid,l.lift_seq,l.payor_ent,l.payee_ent,l.units,l.state,l.origin
-          from mychips.lifts_v l where l.lift_uuid = uuid and l.lift_seq = seq;
-raise notice ' found:%', found;
+          from mychips.lifts_v l where l.lift_uuid = uuid
+            and (seq isnull or l.lift_seq = seq)
+            and (itally isnull or l.tallies[array_lower(l.tallies,1)] = itally)
+            and (otally isnull or l.tallies[array_upper(l.tallies,1)] = otally);
+raise notice ' found:% s:%', found, lrec.state;
         if found then curState = lrec.state; end if;
-
-
-
-
-
       end if;
-
 
       if recipe ? 'route' then if lrec.payor_ent notnull then
         if lrec.payee_ent notnull then
@@ -5929,8 +5928,8 @@ raise notice ' promise:% u:%', recipe->'promise', recipe->'update';
 raise notice ' pr:%', qrec;
       end if;
 
-raise notice 'Lift insert s:% u:%', curState, recipe->'update';
       if recipe ? 'insert' and recipe ? 'update' and curState = 'null' then
+raise notice 'Lift insert s:% u:%', curState, recipe->'update';
         insert into mychips.lifts_v (
           lift_uuid, lift_date, life, units, tallies, signs, status, payor_auth, find, lift_type
         ) values (

@@ -13,9 +13,10 @@ X- Include tally_uuid on all promise-related lift update messages
 X- Terminus node can throw away any packets that don't include the tally ID
 X- Terminus node promises correctly
 X- Terminus records secret data
-- All nodes commit lifts
-- Implement abort callback
+X- All nodes commit lifts
+X- Implement abort callback
 - Get test suite running again
+- Save transaction record on all lift nodes
 - Eliminate all routing schema
 - Markup unused lift/path schema as deprecatable
 - 
