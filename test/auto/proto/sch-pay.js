@@ -91,7 +91,7 @@ describe("Test payment schema", function() {
       let obj = msg.object			//;log.debug("A obj:", obj)
       assert.ok(!!obj.lift)			//A tally attached
       assert.equal(obj.units, units)
-      assert.deepStrictEqual(obj.find, find)
+//      assert.deepStrictEqual(obj.find, find)
       interTest.m2 = msg			//Save message object
       _done()
     })

@@ -1,4 +1,4 @@
-//Test payment lifts
+//Test payment lifts (OBSOLETE?)
 //After: net1 net02
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------

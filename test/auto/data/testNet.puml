@@ -37,47 +37,47 @@ digraph testNet {
 
   }
 
-  c_0_0 -> c_0_1 [label="f02a
+  c_0_0 -> c_0_1 [label="8dfe
 4"]
-  c_0_1 -> c_0_2 [label="8d75
+  c_0_1 -> c_0_2 [label="4573
 5"]
-  c_0_2 -> c_0_3 [label="b763
+  c_0_2 -> c_0_3 [label="fd48
 6"]
-  c_0_0 -> c_1_1 [label="5890
+  c_0_0 -> c_1_1 [label="659f
 10"]
-  c_0_1 -> c_1_2 [label="326b
+  c_0_1 -> c_1_2 [label="c027
 20"]
-  c_0_2 -> c_1_3 [label="2526
+  c_0_2 -> c_1_3 [label="eda6
 30"]
-  c_1_0 -> c_1_1 [label="fea7
+  c_1_0 -> c_1_1 [label="1cfa
 4"]
-  c_1_1 -> c_1_2 [label="9da2
+  c_1_1 -> c_1_2 [label="6b23
 5"]
-  c_1_2 -> c_1_3 [label="4d8d
+  c_1_2 -> c_1_3 [label="9c4f
 6"]
-  c_1_0 -> c_2_1 [label="7cca
+  c_1_0 -> c_2_1 [label="ce65
 10"]
-  c_1_1 -> c_2_2 [label="baf3
+  c_1_1 -> c_2_2 [label="f3e4
 20"]
-  c_1_2 -> c_2_3 [label="aa27
+  c_1_2 -> c_2_3 [label="862e
 30"]
-  c_2_0 -> c_2_1 [label="ce3c
+  c_2_0 -> c_2_1 [label="e1c2
 4"]
-  c_2_1 -> c_2_2 [label="9402
+  c_2_1 -> c_2_2 [label="c5df
 5"]
-  c_2_2 -> c_2_3 [label="afa4
+  c_2_2 -> c_2_3 [label="53f9
 6"]
-  c_2_0 -> c_3_1 [label="4957
+  c_2_0 -> c_3_1 [label="a657
 10"]
-  c_2_1 -> c_3_2 [label="665d
+  c_2_1 -> c_3_2 [label="fbad
 20"]
-  c_2_2 -> c_3_3 [label="eaff
+  c_2_2 -> c_3_3 [label="170b
 30"]
-  c_3_0 -> c_3_1 [label="218d
+  c_3_0 -> c_3_1 [label="6c8f
 4"]
-  c_3_1 -> c_3_2 [label="8d6f
+  c_3_1 -> c_3_2 [label="c064
 5"]
-  c_3_2 -> c_3_3 [label="c95a
+  c_3_2 -> c_3_3 [label="28c8
 6"]
 
 }

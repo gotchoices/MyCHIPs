@@ -43,7 +43,8 @@ const establishTally = function(dataO, dataS, units, tallyCB) {
   })
 
   it("Originator builds draft tally and token", function(done) {
-    let s1 = Format(`insert into mychips.tallies_v (tally_ent, tally_type, contract) values(%L,'foil',%L)`, userO, contract)
+    let uuid = mkUuid(cuidO, agentO, cuidS+agentS, true)
+      , s1 = Format(`insert into mychips.tallies_v (tally_ent, tally_type, tally_uuid, contract) values(%L,'foil', %L, %L)`, userO, uuid, contract)
       , sql = `with row as (${s1} returning tally_ent, tally_seq, false)
           insert into mychips.tokens (token_ent, tally_seq, reuse) select * from row returning *;
           select * from mychips.tallies_v where tally_ent = '${userO}' order by tally_seq desc limit 1;
@@ -187,11 +188,11 @@ const establishTally = function(dataO, dataS, units, tallyCB) {
   })
 
   it("Create chit signature independant of DB", function(done) {
-    let uuid = mkUuid(cuidO, agentO)
-      , type = 'tran'
+    let type = 'tran'
       , by = 'foil'
       , ref = {payee: cuidS}
       , memo = 'Pay: ' + units
+      , uuid = mkUuid(cuidO, agentO, memo, true)
       , tally = interTest.tallyO.tally_uuid
       , date = new Date().toISOString()
       , key = dataO.priv

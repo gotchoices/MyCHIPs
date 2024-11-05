@@ -2931,9 +2931,7 @@ lift_uuid	uuid
   , find	jsonb
 
   , agent_auth	jsonb
-
-
-  , transact	jsonb
+  , trans	jsonb		-- ChipNet
 
 
   , session	text
@@ -3326,6 +3324,12 @@ create function mychips.lift_notify_user(ent text, lift mychips.lifts) returns r
       return lift;
     end;
 $$;
+create table mychips.lifts_rec (
+lift_uuid	uuid		unique not null
+  , lift_seq	int		default 0
+  , record	jsonb		not null
+  , foreign key (lift_uuid, lift_seq) references mychips.lifts on update cascade on delete cascade
+);
 create function mychips.lifts_tf_bpiu() returns trigger language plpgsql security definer as $$
     declare
       trec	record;
@@ -3366,7 +3370,7 @@ create function mychips.lifts_tf_notify() returns trigger language plpgsql secur
       if doagent then perform mychips.lift_notify_agent(new); end if;
       
 
-      if douser and new.status in ('good', 'void', 'exec') then
+      if douser and new.status in ('good', 'void') then
         if new.payor_ent notnull then
           perform mychips.lift_notify_user(new.payor_ent, new);
         end if;
@@ -4517,7 +4521,7 @@ create function mychips.lifts_tf_bi() returns trigger language plpgsql security 
     end;
 $$;
 create view mychips.lifts_v as select 
-    lf.lift_uuid, lf.request, lf.find, lf.origin, lf.referee, lf.tallies, lf.signs, lf.status, lf.signature, lf.agent_auth, lf.payor_auth, lf.transact, lf.lift_date, lf.lift_type, lf.units, lf.life, lf.circuit, lf.lift_seq, lf.payor_ent, lf.payee_ent, lf.crt_by, lf.mod_by, lf.crt_date, lf.mod_date
+    lf.lift_uuid, lf.request, lf.find, lf.origin, lf.referee, lf.tallies, lf.signs, lf.status, lf.signature, lf.agent_auth, lf.payor_auth, lf.trans, lf.lift_date, lf.lift_type, lf.units, lf.life, lf.circuit, lf.lift_seq, lf.payor_ent, lf.payee_ent, lf.crt_by, lf.mod_by, lf.crt_date, lf.mod_date
   , mychips.lift_state(lf.status, lf.request)			as state
 
   , mychips.lift_json_c(lf)					as json_core
@@ -4527,8 +4531,10 @@ create view mychips.lifts_v as select
     )								as json
   , lf.lift_date + lf.life					as expires
   , lf.lift_date + lf.life - crt_date				as remains
+  , lr.record
 
     from	mychips.lifts	lf
+    left join	mychips.lifts_rec lr on lr.lift_uuid = lf.lift_uuid
 
     ;
     ;
@@ -5084,7 +5090,7 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
     begin
 
 
-        select into lrec l.json_pay, l.json, l.payor_ent, l.payor_auth, l.find, l.origin, l.transact, u.user_psig,
+        select into lrec l.json_pay, l.json, l.payor_ent, l.payor_auth, l.find, l.origin, l.trans, u.user_psig,
           jsonb_build_object(
             'cuid', u.peer_cuid,
             'agent', u.peer_agent
@@ -5107,19 +5113,19 @@ create function mychips.lift_notify_agent(lift mychips.lifts) returns boolean la
           'aux', jsonb_build_object(
             'find',		lrec.find
           , 'origin',		lrec.payor_chad
-          , 'trans',		lift.transact
+          , 'trans',		lift.trans
         ));
 
       elsif lift.request = 'exec' then		--Give details about the outbound tally
         select into erec inp, inp_chad, uuid, out, out_chad from mychips.tallies_v_edg
           where out isnull and 			-- Depends on valid pick & via from process routine
-          uuid = (lift.transact->'plans'->((lift.transact->'pick')::int)->>'via')::uuid;
+          uuid = (lift.trans->'plans'->((lift.trans->'pick')::int)->>'via')::uuid;
         jmerge = jmerge || jsonb_build_object(
           'aux', jsonb_build_object(
             'find',		lrec.find
           , 'auth',		lrec.payor_auth
           , 'origin',		lrec.payor_chad
-          , 'trans',		lift.transact
+          , 'trans',		lift.trans
           , 'edge',		to_jsonb(erec)
         ));
 
@@ -5140,17 +5146,35 @@ raise notice 'Lift notify:% %', channel, lift.request;
 $$;
 create view mychips.lift_plans as select l.lift_uuid,l.lift_seq, f.* from
     mychips.lifts_v l
-  , lateral mychips.plan_score(l.transact->'plans', l.origin->>'cuid') f
+  , lateral mychips.plan_score(l.trans->'plans', l.origin->>'cuid') f
   order by 1,2,f.idx,f.tag;
 create trigger mychips_lifts_tr_bi before insert on mychips.lifts for each row execute procedure mychips.lifts_tf_bi();
+create function mychips.lifts_vf_pre(new mychips.lifts_v, old mychips.lifts_v, tgop text) returns mychips.lifts_v language plpgsql security definer as $$
+    declare
+      doUp boolean = true;
+    begin
+      if new.record isnull or (tgop = 'UPDATE' and new.record = old.record) then
+        doUp = false;
+      end if;
+
+      if doUp then
+        insert into mychips.lifts_rec (lift_uuid, record) values (new.lift_uuid, new.record)
+        on conflict (lift_uuid) do
+          update set record = new.record;
+      end if;
+      return new;
+    end;
+$$;
 create function mychips.lifts_v_insfunc() returns trigger language plpgsql security definer as $$
   declare
+    nrec mychips.lifts_v;
     trec record;
     str  varchar;
   begin
+    nrec = new; new = mychips.lifts_vf_pre(nrec, null, TG_OP); if new is null then return null; end if;
     execute 'select string_agg(val,'','') from wm.column_def where obj = $1;' into str using 'mychips.lifts_v';
     execute 'select ' || str || ';' into trec using new;
-    insert into mychips.lifts (lift_uuid,request,find,origin,referee,tallies,signs,status,signature,agent_auth,payor_auth,transact,lift_date,lift_type,units,life,circuit,crt_by,mod_by,crt_date,mod_date) values (new.lift_uuid,trec.request,trec.find,trec.origin,trec.referee,trec.tallies,trec.signs,trec.status,trec.signature,trec.agent_auth,trec.payor_auth,trec.transact,trec.lift_date,trec.lift_type,trec.units,trec.life,trec.circuit,session_user,session_user,current_timestamp,current_timestamp) returning lift_uuid,lift_seq into new.lift_uuid, new.lift_seq;
+    insert into mychips.lifts (lift_uuid,request,find,origin,referee,tallies,signs,status,signature,agent_auth,payor_auth,trans,lift_date,lift_type,units,life,circuit,crt_by,mod_by,crt_date,mod_date) values (new.lift_uuid,trec.request,trec.find,trec.origin,trec.referee,trec.tallies,trec.signs,trec.status,trec.signature,trec.agent_auth,trec.payor_auth,trec.trans,trec.lift_date,trec.lift_type,trec.units,trec.life,trec.circuit,session_user,session_user,current_timestamp,current_timestamp) returning lift_uuid,lift_seq into new.lift_uuid, new.lift_seq;
     select into new * from mychips.lifts_v where lift_uuid = new.lift_uuid and lift_seq = new.lift_seq;
     return new;
   end;
@@ -5167,8 +5191,11 @@ create view mychips.lifts_v_pay as select
         where old.status = 'void'
         do instead delete from mychips.lifts where lift_uuid = old.lift_uuid and lift_seq = old.lift_seq;
 create function mychips.lifts_v_updfunc() returns trigger language plpgsql security definer as $$
+  declare
+    nrec mychips.lifts_v; orec mychips.lifts_v;
   begin
-    update mychips.lifts set lift_uuid = new.lift_uuid,request = new.request,find = new.find,origin = new.origin,referee = new.referee,tallies = new.tallies,signs = new.signs,status = new.status,signature = new.signature,agent_auth = new.agent_auth,payor_auth = new.payor_auth,transact = new.transact,mod_by = session_user,mod_date = current_timestamp where lift_uuid = old.lift_uuid and lift_seq = old.lift_seq returning lift_uuid,lift_seq into new.lift_uuid, new.lift_seq;
+    nrec = new; orec = old; new = mychips.lifts_vf_pre(nrec, orec, TG_OP); if new is null then return null; end if;
+    update mychips.lifts set lift_uuid = new.lift_uuid,request = new.request,find = new.find,origin = new.origin,referee = new.referee,tallies = new.tallies,signs = new.signs,status = new.status,signature = new.signature,agent_auth = new.agent_auth,payor_auth = new.payor_auth,trans = new.trans,mod_by = session_user,mod_date = current_timestamp where lift_uuid = old.lift_uuid and lift_seq = old.lift_seq returning lift_uuid,lift_seq into new.lift_uuid, new.lift_seq;
     select into new * from mychips.lifts_v where lift_uuid = new.lift_uuid and lift_seq = new.lift_seq;
     return new;
   end;
@@ -5889,7 +5916,7 @@ raise notice ' found U:% S:% Q:%', qrec.uuids, qrec.signs, recipe->'update';
 raise notice ' Lift route check:% c:%', recipe->'update', jsonb_array_length(jrec);
         upspec = recipe->'update';
         if jsonb_array_length(jrec) > 0 then		-- Found outbound paths
-          upspec = upspec || jsonb_build_object('transact', jrec);
+          upspec = upspec || jsonb_build_object('trans', jrec);
         else
           upspec = upspec || jsonb_build_object('status', 'void', 'request', null);
         end if;
@@ -5897,14 +5924,14 @@ raise notice ' Lift route check:% c:%', recipe->'update', jsonb_array_length(jre
       end if; end if;
 
       if recipe ? 'pick' then		-- Pick a single path with the highest score
-        jrec = recipe->'update'->'transact'->'plans';
+        jrec = recipe->'update'->'trans'->'plans';
 raise notice ' Lift path pick s:% l:%', jrec->0->'sessionCode', jsonb_array_length(jrec);
         select into qrec idx,via,sum(score) as score
           from mychips.plan_score(jrec, lrec.origin->>'cuid') ps
           group by 1,2 order by 3 desc limit 1;
         if jrec notnull and qrec.idx notnull then
           upspec = recipe->'update';
-          upspec = jsonb_set(upspec, '{transact, pick}', to_jsonb(qrec.idx), true);
+          upspec = jsonb_set(upspec, '{trans, pick}', to_jsonb(qrec.idx), true);
           recipe = jsonb_set(recipe, '{update}', upspec);
 raise notice ' p:%', qrec.idx;
         end if;
@@ -5954,7 +5981,7 @@ raise notice 'Lift Z:% C:%', jsonb_build_array(curState), recipe->'context';
         end if;
 
         qstrg = mychips.state_updater(recipe, 'mychips.lifts_v', 
-          '{status, request, origin, referee, find, lift_uuid, tallies, signs, signature, agent_auth, payor_auth, transact}', 
+          '{status, request, origin, referee, find, lift_uuid, tallies, signs, signature, agent_auth, payor_auth, trans, record}', 
           case when recipe->'update' ? 'request' then '{}'::text[] else '{"request = null"}' end
         );
 
@@ -10240,7 +10267,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','file_v_part','tally_seq','mychips','tallies','tally_seq','f','f'),
   ('mychips','lift_plans','idx','mychips','lift_plans','idx','f','f'),
   ('mychips','lift_plans','lift_seq','mychips','lifts','lift_seq','f','t'),
-  ('mychips','lift_plans','lift_uuid','mychips','lifts','lift_uuid','f','t'),
+  ('mychips','lift_plans','lift_uuid','mychips','lifts_rec','lift_uuid','f','f'),
   ('mychips','lift_plans','score','mychips','lift_plans','score','f','f'),
   ('mychips','lift_plans','session','mychips','lift_plans','session','f','f'),
   ('mychips','lift_plans','tag','mychips','lift_plans','tag','f','f'),
@@ -10270,8 +10297,11 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','lifts','signs','mychips','lifts','signs','f','f'),
   ('mychips','lifts','status','mychips','lifts','status','f','f'),
   ('mychips','lifts','tallies','mychips','lifts','tallies','f','f'),
-  ('mychips','lifts','transact','mychips','lifts','transact','f','f'),
+  ('mychips','lifts','trans','mychips','lifts','trans','f','f'),
   ('mychips','lifts','units','mychips','lifts','units','f','f'),
+  ('mychips','lifts_rec','lift_seq','mychips','lifts_rec','lift_seq','f','f'),
+  ('mychips','lifts_rec','lift_uuid','mychips','lifts_rec','lift_uuid','f','f'),
+  ('mychips','lifts_rec','record','mychips','lifts_rec','record','f','f'),
   ('mychips','lifts_v','agent_auth','mychips','lifts','agent_auth','f','f'),
   ('mychips','lifts_v','circuit','mychips','lifts','circuit','f','f'),
   ('mychips','lifts_v','crt_by','mychips','lifts','crt_by','f','f'),
@@ -10285,13 +10315,14 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','lifts_v','lift_date','mychips','lifts','lift_date','f','f'),
   ('mychips','lifts_v','lift_seq','mychips','lifts','lift_seq','f','t'),
   ('mychips','lifts_v','lift_type','mychips','lifts','lift_type','f','f'),
-  ('mychips','lifts_v','lift_uuid','mychips','lifts','lift_uuid','f','t'),
+  ('mychips','lifts_v','lift_uuid','mychips','lifts_rec','lift_uuid','f','f'),
   ('mychips','lifts_v','mod_by','mychips','lifts','mod_by','f','f'),
   ('mychips','lifts_v','mod_date','mychips','lifts','mod_date','f','f'),
   ('mychips','lifts_v','origin','mychips','lifts','origin','f','f'),
   ('mychips','lifts_v','payee_ent','mychips','lifts','payee_ent','f','f'),
   ('mychips','lifts_v','payor_auth','mychips','lifts','payor_auth','f','f'),
   ('mychips','lifts_v','payor_ent','mychips','lifts','payor_ent','f','f'),
+  ('mychips','lifts_v','record','mychips','lifts_rec','record','f','f'),
   ('mychips','lifts_v','referee','mychips','lifts','referee','f','f'),
   ('mychips','lifts_v','remains','mychips','lifts_v','remains','f','f'),
   ('mychips','lifts_v','request','mychips','lifts','request','f','f'),
@@ -10300,7 +10331,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','lifts_v','state','mychips','lifts_v','state','f','f'),
   ('mychips','lifts_v','status','mychips','lifts','status','f','f'),
   ('mychips','lifts_v','tallies','mychips','lifts','tallies','f','f'),
-  ('mychips','lifts_v','transact','mychips','lifts','transact','f','f'),
+  ('mychips','lifts_v','trans','mychips','lifts','trans','f','f'),
   ('mychips','lifts_v','units','mychips','lifts','units','f','f'),
   ('mychips','lifts_v_me','chit_ent','mychips','chits','chit_ent','f','t'),
   ('mychips','lifts_v_me','chit_uuid','mychips','chits','chit_uuid','f','f'),
@@ -10314,7 +10345,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','lifts_v_pay','json','mychips','lifts_v','json','f','f'),
   ('mychips','lifts_v_pay','lift_date','mychips','lifts','lift_date','f','f'),
   ('mychips','lifts_v_pay','lift_seq','mychips','lifts','lift_seq','f','t'),
-  ('mychips','lifts_v_pay','lift_uuid','mychips','lifts','lift_uuid','f','t'),
+  ('mychips','lifts_v_pay','lift_uuid','mychips','lifts_rec','lift_uuid','f','f'),
   ('mychips','lifts_v_pay','mod_by','mychips','lifts','mod_by','f','f'),
   ('mychips','lifts_v_pay','mod_date','mychips','lifts','mod_date','f','f'),
   ('mychips','lifts_v_pay','origin','mychips','lifts','origin','f','f'),
@@ -10329,7 +10360,7 @@ insert into wm.column_native (cnt_sch,cnt_tab,cnt_col,nat_sch,nat_tab,nat_col,na
   ('mychips','lifts_v_pay_me','id','mychips','lifts_v_pay_me','id','f','f'),
   ('mychips','lifts_v_pay_me','lift_date','mychips','lifts','lift_date','f','f'),
   ('mychips','lifts_v_pay_me','lift_seq','mychips','lifts','lift_seq','f','t'),
-  ('mychips','lifts_v_pay_me','lift_uuid','mychips','lifts','lift_uuid','f','t'),
+  ('mychips','lifts_v_pay_me','lift_uuid','mychips','lifts_rec','lift_uuid','f','f'),
   ('mychips','lifts_v_pay_me','memo','mychips','lifts_v_pay_me','memo','f','f'),
   ('mychips','lifts_v_pay_me','net','mychips','lifts_v_pay_me','net','f','f'),
   ('mychips','lifts_v_pay_me','payor_auth','mychips','lifts','payor_auth','f','f'),

@@ -94,6 +94,6 @@ $$;}
 view mychips.lift_plans {mychips.lifts_v mychips.plan_score(jsonb,text)} {
   select l.lift_uuid,l.lift_seq, f.* from
     mychips.lifts_v l
-  , lateral mychips.plan_score(l.transact->'plans', l.origin->>'cuid') f
+  , lateral mychips.plan_score(l.trans->'plans', l.origin->>'cuid') f
   order by 1,2,f.idx,f.tag;
 }

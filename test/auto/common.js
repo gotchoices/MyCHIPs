@@ -178,11 +178,11 @@ function queryJson(fileBase, db, sql, done, rows = 1, write = false) {
 }
 
 // -----------------------------------------------------------------------------
-function mkUuid(cuid, agent, mix = 'x') {	//Build a unique identifier
-  let chad = 'chip://' + cuid + ':' + agent
+function mkUuid(cuid, agent, mix = 'x', det = false) {	//Build a unique identifier
+  let chad = 'chip://' + cuid + ':' + agent + '/' + mix
     , date = new Date().toISOString()
-    , uuid = Uuid.v5(date+mix, Uuid.v5(chad, Uuid.v5.URL))
-//  , uuid = Uuid.v5(cuid, Uuid.v5.DNS)	//Deterministic
+    , uuid = det ? Uuid.v5(chad, Uuid.v5.DNS)		//Deterministic
+                 : Uuid.v5(date, Uuid.v5(chad, Uuid.v5.URL))
 //console.log('date/mix:', date, 'uuid:', uuid)
   return uuid
 }

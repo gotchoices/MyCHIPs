@@ -1,9 +1,11 @@
-//Test payment lifts on sample network; run
+//Test payment lifts on sample network from netn; run
 //After: netn
 //Copyright MyCHIPs.org; See license in root of this package
 // -----------------------------------------------------------------------------
-// This simulates lifts on the test network created in netn.js
 //TODO:
+//- Can query intermediate serveers for correct lift records
+//- Breaks when all lifts enabled
+//- Try a lift scenario that re-enters a node
 //- 
 
 const { dbConf, testLog, Format, Bus, assert, mkUuid, getRow, dbClient, libModule, SubCrypto, peerTest, timeLong } = require('../common')
@@ -15,14 +17,13 @@ const clearSql = `begin;
         commit;`
 const { Sites, initSites } = require('./def-net')
 var liftData = [
-//  ['p1003','p1000', 4],
-//  ['p1103','p1100', 4],
-//  ['p1203','p1200', 4],
-//  ['p1303','p1300', 4],
+//  ['p1003','p1000', 1],
+//  ['p1103','p1100', 1],
+//  ['p1203','p1200', 1],
+//  ['p1303','p1300', 1],
 //  ['p1103','p1002', 20],
-  ['p1303','p1100', 4],
-//  ['p1304','p1100', 4],
-//  ['p1203','p1001', 20],
+//  ['p1303','p1100', 2],
+  ['p1203','p1001', 20],
 ]
 var siteData = []
 var userData = {}
@@ -84,7 +85,7 @@ const liftPayment = function(dataO, dataS, units, succeed = true) {
       , sql = `insert into mychips.lifts_v_pay (payor_ent, find, lift_date, units, lift_uuid, payor_auth, request)
 	    	values($1,$2,$3,$4,$5,$6,'init') returning *;`
       , parms = [userO, find, date, units, lift, auth]
-      , dc = succeed ? 4 : 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
+      , dc = succeed ? 3 : 2, _done = () => {if (!--dc) done()}	//dc _done's to be done
 log.debug("Sql:", sql, JSON.stringify(parms))
     dbO.query(sql, parms, (e, res) => {if (e) done(e)		//;log.debug("Res:", res)
       let pay = getRow(res, 0)					//;log.debug("Pay:", JSON.stringify(pay))
@@ -103,8 +104,9 @@ log.debug("Sql:", sql, JSON.stringify(parms))
       _done()
     })
     busO.register('po', (msg) => {		log.debug("O msg:", msg)
+      let status = succeed ? 'good' : 'void'
       assert.equal(msg.target, 'lift')
-//      assert.equal(msg.status, succeed ? 'good' : 'void')
+      assert.equal(msg.status, status)
       assert.equal(msg.entity, userO)
       assert.equal(msg.memo, memo)
       assert.equal(msg.units, units)
