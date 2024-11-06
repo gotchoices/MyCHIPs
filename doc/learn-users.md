@@ -12,34 +12,34 @@ Due to the [decentralized](learn-general.md#decentralization) nature of its
 design, the transactions themselves become quite private as well--certainly much
 more private than we can achieve with a <i>public</i> block chain.
 
-### Identities
+### Private Credit Identities
 One of the challenges with some credit-based systems relates to establishing a
 genuine identity for each of the participants.  For example, what if someone
 enters a credit pool with a false identity, creates a bunch of credit-based money,
 and then leaves without standing behind those credits?
 
-This problem is largely mitigated with MyCHIPs.  Only those people who connect
-directly (share a [tally](learn-tally.md)) with each other need to be concerned with 
-the identity of their trading partners.  And users are encouraged to connect only 
-with people and companies they already have some degree of implicit trust in (such as 
-employers, regular customers and regular suppliers).
+This problem is largely mitigated with MyCHIPs.
+Users typically need only concern themselves with the credit-worthiness of those
+they connect directly to (share a [tally](learn-tally.md) with).
+Users are encouraged to connect only with people and companies they already have some 
+degree of implicit trust in (such as employers, regular customers and regular suppliers).
 
-Furthermore we will [quantify and limit](learn-tally#credit-terms) the trust each
-trading partner has with the other so no one needs to take any more risk than a 
-particular relationship might warrant.
+Furthermore, users can [quantify and limit](learn-tally#credit-terms) the trust they
+have for their partners so no one needs to take any more risk than a 
+particular relationship warrants.
 
 True, entities could potentially join the MyCHIPs network through multiple different 
 relationships (and possibly even different identities).
 But unless they can develop a sufficiently strong real-world reputation to earn a 
-non-zero credit limit, they will be very limited in the kind of damage they can inflict.
+non-zero credit limit, they will be limited in the kind of damage they can inflict.
 
-### Resource Addresses
-Our historical Internet experience makes us familiar with a model where digital resources are
-accessed using some kind of public address such as a [URI](https://en.wikipedia.org/wiki/URI).
+### Traditional Resource Addresses
+We are familiar with the traditional Internet model where digital resources are
+accessed using a public address in [URI](https://en.wikipedia.org/wiki/URI) format.
 A host address is an important part of the URI which may also include a port number.
 Host addresses are typically specified as a domain name or possibly an IP number.
 
-IP numbers are a rather <i>hard-coded</i> way of addressing resources.  More often
+IP numbers are a more <i>hard-coded</i> way of addressing resources.  More often
 we prefer to use a logical domain name so that if we want to move a computer to a location
 where the IP number is different, people can still address the information at the
 expected place without having to know to change the host address to the new location.
@@ -54,14 +54,17 @@ the owner of the intended domain?  What if your local DNS server fools you into 
 an imposter IP number just so a phony site can harvest confidential information like your
 passwords or account numbers?
 
+This problem was largely solved by introducing SSL certificates and the https protocol.
+But this solution is not without its own set of problems.
+
 MyCHIPs emphasizes two important objectives:
-- First, we don't always want user information to be publicly available.
+- First, users may not always want their identity to be publicly available.
   A public-facing company might want as many people as possible connected with
   a direct credit relationship.  But private users are more likely to want to stay
   that way--private.
 - Second, MyCHIPs is all about decentralization.  This is a conscious choice made to
-  optimize the freedom and independence of users.  Unfortunately, DNS, relies on
-  a centralized, hierarchical authority to vouch for the authenticity of each digital 
+  optimize the freedom and independence of users.  Unfortunately, DNS and https, rely
+  on a centralized, hierarchical authority to vouch for the authenticity of each digital 
   resource you access.
   There are currently a limited number of these authorities established in a reliable 
   way and you typically have to pay one of them to participate.
@@ -70,57 +73,68 @@ MyCHIPs is designed to work with <i>or without</i> DNS.  And user addresses are 
 to be private unless and until the owner chooses to make them known.
 
 ### CHIP Addresses
-On the MyCHIPS network, entities (people and companies) can be referred to by a
-CHIP User Identifier (CUID) which can best be thought of as a unique username on their
-host system.  It s analogous to the first part of an email address--the part prior
-to the '@' symbol.
+MyCHIPs user entities (people and companies) can be reached using a _CHIP address_.
 
-The CUID is combined with an agent ID (or just "agent") that represents the public key 
-of a server process that handles business on behalf of the MyCHIPs user.  This agent
-address is similar to a CID as used in a [Distributed Hash Table](https://en.wikipedia.org/wiki/Distributed_hash_table).
+A fundamental part of the CHIP address is an agent ID (or just "agent") which 
+represents a process (a program running on a computer) that handles transactions on 
+behalf of one or more users.
 
-In situations where an agent handles business for only a single user, the CUID may be omitted.
+Where an agent services multiple users, each user is referred to by a unique
+CHIP User Identifier (CUID).
+This can be thought of as a username on the agent system.
+It is similar to the first part of an email address--the part prior to the '@' symbol.
 
-Together, the CUID and agent form a basic CHIP Address (CHAD) normally presented like this:
+### Agent Key
+As mentioned, the agent ID is associated with a public key.
+In early MyCHIPs implementations, the agent ID was generated simply by encoding
+the agent's public key into base64url format.
+While simple and elegant, this limited the system to use of a specific cryptographic algorithm.
+
+As of November 2024, MyCHIPs will migrate toward using [libp2p](https://libp2p.io/)
+for peer communications.
+Therefore, the agent ID is now generalized to be a libp2p [peer ID](https://docs.libp2p.io/concepts/fundamentals/peers/).
+
+The agent ID is no longer _the very_ public key, but is now a multihash derived _from the public key_.
+
+This has several implications:
+- The agent ID now can use a variety of hashing algorithms and formats.
+- The ID can represent keys in virtually any algorithm (including post-quantum varieties).
+- When peers negotiate a new connection, the actual public key must now be disclosed, in addition to the agent address.
+- It may also be necessary to disclose one or more bootstrap peers (particularly to brand new users).
+
+Implentation over libp2p has several advantages over the legacy design:
+- Communications are not limited to noise protocol
+- Communications are not limited to tcp/ip
+- Agents can be located behind firewalls or reached through relays
+- A large amount of complexity is removed from the code-base
+- It may now be possible to implement a complete MyCHIPs service on a mobile device
+
+### Legacy CHIP Addresses
+In the legacy design, the CUID and agent formed a basic CHIP Address (CHAD) presented like this:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE
   6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE		(single-user site)
 ```
-Note: the term "agent" is used here in a different context than the 
-[agent-based model](sim-agent.md) that is used as part of the simulation environment
-for testing and evaluating MyCHIPs.
-In this context, it simply means a software service that acts *on behalf* of one or more
-users on a host site.
-
-### Portals
-Notably, the CHIP address is missing any kind of location information that might help us
-find a physical address on the Internet for the user.  That is by design to facilitate a 
-greater degree of privacy and decentralization.
-
-But a MyCHIPs user *will* have to divulge a physical address to his trading partners.
-So there is more we can add to the CHIP address to make it clear where other users can connect.
-
-This additional information consists of a regular host address and a port number we will
-refer to as a portal.
-In web technology, this is sometimes called an "origin" and it is rendered like this:
+It was also necessary to know a physical address which was understood to consist of
+a host (IP address or hostname) and a TCP/IP port number.
+This was rendered like this:
 ```
   mychips.net:57423
 ```
-We can put these two pieces of information together, separated by an '@' symbol, to 
-form a more explicit CHAD such as:
+These two parts were put together to form a more explicit CHAD:
 ```
   suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
-We can form a fully qualified CHAD URI as in:
+Or a fully qualified CHAD URI as in:
 ```
   chip://suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
-This also provides the potential for adding additional parameters in an optional
-query string.  This might include things like a connection token, a peer name, or
+The URI format has the potential for adding additional parameters in an optional
+query string.  This could include things like a connection token, a peer name, or
 other applicable information.
 
-The CHIP address (and other MyCHIPs message components) may optionally be encoded as a JSON (XML or other) structure.
-For example, we might see a CHIP address presented as something like:
+A CHIP address (and other MyCHIPs message components) may be presented as a JSON (or similar data) structure.
+For example:
 ```
   {
     cuid: suzie,
@@ -129,76 +143,25 @@ For example, we might see a CHIP address presented as something like:
     port: 57423
   }
 ```
-Note: we expect a one-to-one relationship between an agent and its portal at any given time.
-That is, an agent with a particular key value should be reachable on a single portal. 
-And a portal address should serve only one agent.
 
-### Obscured CUID
-The CHIP address convention also allows a CHIP User ID to be made more private by specifying it
-as a hash that only the host site will recognize.  For example, a user might be
-asked to send money to an address such as:
+### CHIP Addresses With Libp2p
+Under libp2p, a peer's logical address is its peer ID.
+But its physical address is specified as a [multiaddress](https://docs.libp2p.io/concepts/fundamentals/addressing/) as follows:
 ```
-  aGxz38Dyylkj:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE
+  /dns/mychips.org/tcp/57423
 ```
-This presumes the specified agent is part of a site that can recognize 'aGxz38Dyylkj'
-as meaning 'suzie'.
-
-The sender (and even the sender's host system) may have no way of knowing who the 
-target user is or what system hosts his service.  Yet, they can still transact a
-payment to the correct destination.
-
-### Exposed Addresses
-In some cases it may be helpful to be more clear about the affiliation associated 
-with a CUID.  For example, it might be specified like this:
+The CHIP address might be expressed as a multiaddress like so:
 ```
-  suzie@mychips.org
+  /chip/6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE/cuid/susie
 ```
-Keep in mind that such a system would likely have to rely on a 
-[certificate authority](https://en.wikipedia.org/wiki/Certificate_authority) to 
-securely contact mychips.org, somehow obtain a connection public key and portal, and 
-then carry out the connection.
-
-It is unclear (at the time of this writing) whether this notation will be useful.
-But the most likely scenario would be when specifing a
-[linear lift](old-lift.md#linear-lifts) payment.  The point would be to expect
-some peer site along the way to recognize the username and domain address and
-already know the correct agent key and port number.
-
-This form also has the desirable side effect of allowing certain sites to correlate
-CHIP addresses directly with their users' email addresses.
-
-### Explicit Agent Addresses
-In some parts of the protocol, it may be helpful to specify the agent and portal
-only (i.e. no particular user).  For example, a [lift](learn-lifts.md) initiator may 
-want to publish a portal where it can be contacted to obtain information about a 
-pending lift.
-
-Such information would necessarily include a connection key so as to guarantee that
-the correct host has been reached.  This might look like:
+And these can be combined for a full address as follows:
 ```
-  6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
+  /dns/mychips.org/tcp/57423/chip/6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE/cuid/susie
 ```
+Most users don't need to concern themselves much with physical addresses.
+Most often, peers will be identified by their peer ID and physical addresses can be discovered in real time as needed.
 
-### Agent Key
-As mentioned, the agent is identified by a public key.
-To create the Agent ID, we encode the public key according to a 
-[variant of base 64](https://datatracker.ietf.org/doc/html/rfc4648#section-5).
-
-A client can decode this public key and use it to validate a connection at the specified
-port.  This will ensure that the process answering on the other end of the port is 
-really controlled by the private key associated with the specified agent public key.
-
-This provides several benefits:
-- The agent ID serves as a logical address of sorts, akin to a domain name, but which is
-  not automatically known to the public.
-- Peers can share portal information with each other as needed to facilitate private
-  connections.
-- Portal specifications can specify a host address as a domain name or as an IP number.
-  If a domain name is specified, the agent key will protect the connection initiator
-  from being spoofed by an imposter site.
-- If the portal is specified by IP number, the site can change to a new IP number 
-  later as long as it communicates to a finite set of trading partners where the
-  new portal is for future connections.
+This allows peers to change physical addresses or even to roam about the network.
 
 <div style="display: flex; justify-content: space-between;">
   <a href="README.md#contents">Back to Index</a>
