@@ -54,8 +54,12 @@ the owner of the intended domain?  What if your local DNS server fools you into 
 an imposter IP number just so a phony site can harvest confidential information like your
 passwords or account numbers?
 
-This problem was largely solved by introducing SSL certificates and the https protocol.
-But this solution is not without its own set of problems.
+This is where SSL certificates and the https protocol come in to offer the needed security.
+But authority-based site certificates are not without their own set of problems.
+They rely on a centralized, hierarchical authority to vouch for the authenticity of 
+each digital resource you access.
+There are a limited number of such authorities and their service tends to be available
+only at a cost.
 
 MyCHIPs emphasizes two important objectives:
 - First, users may not always want their identity to be publicly available.
@@ -63,14 +67,8 @@ MyCHIPs emphasizes two important objectives:
   a direct credit relationship.  But private users are more likely to want to stay
   that way--private.
 - Second, MyCHIPs is all about decentralization.  This is a conscious choice made to
-  optimize the freedom and independence of users.  Unfortunately, DNS and https, rely
-  on a centralized, hierarchical authority to vouch for the authenticity of each digital 
-  resource you access.
-  There are currently a limited number of these authorities established in a reliable 
-  way and you typically have to pay one of them to participate.
-
-MyCHIPs is designed to work with <i>or without</i> DNS.  And user addresses are meant
-to be private unless and until the owner chooses to make them known.
+  optimize the freedom and independence of users.  The centralized certificate 
+  authority system inherent in https is not a suitable solution.
 
 ### CHIP Addresses
 MyCHIPs user entities (people and companies) can be reached using a _CHIP address_.
@@ -129,20 +127,21 @@ Or a fully qualified CHAD URI as in:
 ```
   chip://suzie:6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE@mychips.org:57423
 ```
-The URI format has the potential for adding additional parameters in an optional
+The URI format had the potential for adding additional parameters in an optional
 query string.  This could include things like a connection token, a peer name, or
 other applicable information.
 
-A CHIP address (and other MyCHIPs message components) may be presented as a JSON (or similar data) structure.
+CHIP addresses (and other MyCHIPs message components) might also exist as a JSON (or similar data) structure.
 For example:
 ```
   {
-    cuid: suzie,
     agent: 6j9z7de95UMTnZzWobwtob6Mc3MDGDntdhSNR80pGXE,
-    host: mychips.org,
-    port: 57423
+    cuid: suzie,
+    addr: /dns/mychips.org/ip/57423
   }
 ```
+In prior versions, this structure could include the properties _host_ and _port_.
+Those properties are deprecated in favor of the new, optinoal _addr_ multiaddress property.
 
 ### CHIP Addresses With Libp2p
 Under libp2p, a peer's logical address is its peer ID.
