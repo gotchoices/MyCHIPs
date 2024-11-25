@@ -6,11 +6,10 @@
 ## Users and Identities
 
 As discussed [previously](learn-general.md#money-as-credit), MyCHIPs implements
-a monetary system on the basis of <i>private</i> credit.
-
-Due to the [decentralized](learn-general.md#decentralization) nature of its
-design, the transactions themselves become quite private as well--certainly much
-more private than we can achieve with a <i>public</i> block chain.
+a monetary system based on <i>private</i> credit.
+Due to its [fully decentralized](learn-general.md#decentralization)
+design, MyCHIPs transactions are private--particularly when compared
+with a <i>public</i> block chain.
 
 ### Private Credit Identities
 One of the challenges with some credit-based systems relates to establishing a
@@ -33,7 +32,7 @@ relationships (and possibly even different identities).
 But unless they can develop a sufficiently strong real-world reputation to earn a 
 non-zero credit limit, they will be limited in the kind of damage they can inflict.
 
-### Traditional Resource Addresses
+### Traditional Resource Addressing
 We are familiar with the traditional Internet model where digital resources are
 accessed using a public address in [URI](https://en.wikipedia.org/wiki/URI) format.
 A host address is an important part of the URI which may also include a port number.
@@ -61,14 +60,38 @@ each digital resource you access.
 There are a limited number of such authorities and their service tends to be available
 only at a cost.
 
-MyCHIPs emphasizes two important objectives:
-- First, users may not always want their identity to be publicly available.
+MyCHIPs emphasizes these important objectives:
+- Users may not always want their identity to be publicly available.
   A public-facing company might want as many people as possible connected with
   a direct credit relationship.  But private users are more likely to want to stay
   that way--private.
-- Second, MyCHIPs is all about decentralization.  This is a conscious choice made to
-  optimize the freedom and independence of users.  The centralized certificate 
-  authority system inherent in https is not a suitable solution.
+- MyCHIPs is meant to be a fully decentralized, or <i>distributed</i> system.
+  This is a conscious choice made to optimize the freedom and independence of users.
+- MyCHIPs strives to operate independent of any authority, host, platform, operating
+  system, or network.  It is simply a protocol systems can observe to 
+  facilitate the exchange of value.
+
+### Actors
+For purposes of analysis and improved implementation, we will outline the following
+conceptual <i>actors</i> and the various functions they are authorized to perform.
+
+- User: A real-world entity (person or organization).
+  An entity can have multiple users, similar to having multiple email addresses.
+  Each user is associated with a particular private/public key pair.
+  - Creates and shares tally invitations
+  - Participates in tally invitations (proposes terms and identity information)
+  - Accepts/signs proposed tallies
+  - Initiates linear/payment lifts
+  - Establishes/authorizes trading variables and other changeable tally parameters
+- Store: A process authorized to maintain tally data on behalf of a user.
+  - Responds to requests for tally invitations
+  - Receives duly signed direct chits belonging to held tallies
+  - Handles ACID transactions which conditionally promise/commit lift chits
+- Agent:
+  - Proposes routine clearing lifts
+  - Responds to requests for lifts from connected peer users (promise/reject)
+  - Honors a user's authorized tally parameters including trading variables
+  - Signs lift transactions (commit/rollback)
 
 ### CHIP Addresses
 MyCHIPs user entities (people and companies) can be reached using a _CHIP address_.
