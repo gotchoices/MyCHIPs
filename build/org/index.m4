@@ -1,19 +1,35 @@
 define(TITLE,`MyCHIPs Central')
 define(SUBTITLE,`The digital medium designed for exchange!')
 define(CONTENT,`
+
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">What is it?</h4>
+          <p class="card-text"><strong>In 3 seconds:</strong><br>
+            Imagine Venmo without a Venmo (PayPal, Apple, Google or anything else) in the middle.
+          </p>
+          <p class="card-text"><strong>In 10 seconds:</strong><br>
+           MyCHIPs is like a fully decentralized Venmo.  You can send and receive money from people you trust, and you can pay strangers, or be paid by strangers without trusting each other.  Payments without trust happen by finding eventual, indirect connections using only trusted connections.
+          </p>
+          <p class="card-text"><strong>Got more time?:</strong><br>
+            Explore the links below:
+          </p>
+        </div>
+      </div>
+
       <div class="text-center">
         <a href="https://mychips.org/chark.apk" class="btn-get-started scrollto">Android App (APK file)</a>
         <a href="https://testflight.apple.com/join/5IP35ipV" class="btn-get-started scrollto">IOS App (beta mode)</a>
       </div>
 
       <div class="row icon-boxes">
-        LINK_BLOCK(ri-user-line, https://mychips.net/, 
-          `A CHIP service provider',
-          `Sign up for a test account with the first CHIP Service Provider.'
-        )
         LINK_BLOCK(ri-stack-line, https://gotchoices.org/mychips/index.html,
           `How it works',
           `Read The MyCHIPs Papers, which detail how value can be transmitted in a purely peer-to-peer private credit network'.
+        )
+        LINK_BLOCK(ri-user-line, https://mychips.net/, 
+          `A CHIP service provider',
+          `Sign up for a test account with the first CHIP Service Provider.'
         )
         LINK_BLOCK(ri-coin-line, https://chipcentral.net/,
           `The CHIP as a unit of value',
