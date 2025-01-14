@@ -1,4 +1,4 @@
-define(TITLE,`MyCHIPs Central')
+define(TITLE,`MyCHIPs&reg; Central')
 define(SUBTITLE,`The digital medium designed for exchange!')
 define(CONTENT,`
 
