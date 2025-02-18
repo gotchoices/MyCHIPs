@@ -34,6 +34,7 @@ If the folder gets created as "MyCHIPs" (because you copied the github clone lin
 ```
   git clone https://github.com/gotchoices/mychips
   cd mychips
+  git checkout dev
   npm install				#Install dependencies (run on Linux)
 ```
 Now that the software is installed, you have 3 basic options to give it a try.
