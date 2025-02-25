@@ -1,17 +1,26 @@
 Chark mobile application development
 
+Immediate:
+- Review how redux stores state
+- Try to add setting for explicit CHIP conversion
+- How is tally list maintained (in view or local cache of model)?
+- Generalize wyseman to handle sync or async localstorage
+- Should wyseman be caching regular queries or only data dictionary stuff?
+- Can a request() invoke the callback more than once
+- Should a request return a promise if no callback is given?
+- Lazy connection to backend
+- Why do we lose our connection key?
+- 
+
 Maintenance:
 X- Can build/run on android emulator
 - Can build/run on IOS simulator
+- Can run on tethered device
 - Build version and post in App Store
 - Build version and post in Play Store
 - Can we build IOS version from command line (make npm script)
 
-Update:
-X- Connect to backend with cid->cuid update
-X- Fix all references to cid->cuid
-
-Progress:
+Roadmap:
 - Profile email/phone show "primary_text" rather than "Primary"
 - Review App->linking->getStateFromPath; fix path logic
 - Examine how wyseman API handles async messages
@@ -35,6 +44,7 @@ Old:
 -  Processing of deep links also allowed at this point
 - Local connection key stored securely?
 -  Can use of connection key be enabled by biometrics?
+-  Can import/export connection keys?
 - Upon connection, app obtains user profile
 -  User guided/encouraged to complete his own profile
 -   Select unique CHIP ID
