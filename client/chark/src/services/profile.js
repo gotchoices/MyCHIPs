@@ -179,7 +179,7 @@ export const updateCUID = (wm, args) => {
 
 export const updatePublicKey = (wm, args) => {
   const fields = {
-    peer_psig: args.public_key,
+    user_psig: args.public_key,
   }
   const spec = {
     fields,
