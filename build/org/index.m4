@@ -55,6 +55,10 @@ define(CONTENT,`
           `Presentation to the Utah Bitcoin Community',
           `The GotChoices Foundation gives a presentation geared toward cryptocurrency enthusiasts, October 2023.'
         )
+        LINK_BLOCK(ri-file-line, `/ChatGPT-Value.pdf',
+          `A Discussion with ChatGPT',
+          `ChatGPT analyzes the concept of value, how money is valued, the CHIP and MyCHIPs'
+        )
         LINK_BLOCK(ri-fingerprint-line, privacy.html, 
           `Privacy Policy', 
           `How your data is treated.'
