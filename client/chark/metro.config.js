@@ -1,16 +1,22 @@
 /**
- * Metro configuration for React Native
- * https://github.com/facebook/react-native
+ * Metro configuration
+ * https://reactnative.dev/docs/metro
  *
- * @format
- */
+ * @type {import('@react-native/metro-config').MetroConfig}
+*/
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const config = {};
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+
+//Older versions below:
+
 //For running out of local wyseman source package:
 //const path = require('path')
 //const wysemanPath = path.resolve(__dirname, '/../../../wyseman/')
 //const watchFolders = [wysemanPath]
 //const nodeModulesPaths = [wysemanPath]
 
-
+/* 
 const { getDefaultConfig } = require("metro-config");
 
 module.exports = (async () => {
@@ -33,7 +39,7 @@ module.exports = (async () => {
     }
   };
 })();
-
+*/
 /* 
 module.exports = {
 //  resolver: {nodeModulesPaths},
