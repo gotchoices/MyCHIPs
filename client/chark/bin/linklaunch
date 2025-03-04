@@ -1,0 +1,175 @@
+#!/bin/bash
+# linklaunch: Deep link launcher for MyCHIPs app testing
+# 
+# Usage: 
+#   echo "mychips://some/path" | ./linklaunch [options]
+#   ./linklaunch [options] "mychips://some/path"
+#
+# Options:
+#   -h, --help     Show this help message
+#   -l, --list     List available devices
+#   -d DEVICE      Specify device/emulator by id
+#   -p PLATFORM    Target platform: 'android' or 'ios' (default: auto-detect)
+
+APP_PACKAGE=org.mychips.chark
+MAIN_ACTIVITY=org.mychips.chark.MainActivity
+
+function show_help {
+  grep "^# " "$0" | cut -c 3-
+  exit 0
+}
+
+function list_devices {
+  echo "== Android Devices =="
+  if command -v adb >/dev/null 2>&1; then
+    adb devices -l | grep -v "List of devices"
+  else
+    echo "adb not found. Install Android SDK platform tools."
+  fi
+  
+  echo -e "\n== iOS Simulators =="
+  if command -v xcrun >/dev/null 2>&1; then
+    xcrun simctl list devices | grep -v "Unavailable"
+  else
+    echo "xcrun not found. Install Xcode command line tools."
+  fi
+  exit 0
+}
+
+function check_dependencies {
+  local missing=0
+  
+  echo "Checking dependencies..."
+  
+  if ! command -v adb >/dev/null 2>&1 && [ "$platform" = "android" ]; then
+    echo "Warning: adb not found. Android device launching will not work."
+    missing=1
+  fi
+  
+  if ! command -v xcrun >/dev/null 2>&1 && [ "$platform" = "ios" ]; then
+    echo "Warning: xcrun not found. iOS simulator launching will not work."
+    missing=1
+  fi
+  
+  if [ "$missing" -eq 1 ]; then
+    echo "Some dependencies are missing. Continuing anyway..."
+  else
+    echo "All dependencies present."
+  fi
+}
+
+function launch_android {
+  local link="$1"
+  local esclink=$(echo "$link" | sed -e 's/&/\\&/g')
+  
+  echo "Launching on Android device: $device"
+  if ! adb -s "$device" shell am start -W -a android.intent.action.VIEW -d "$esclink" -n "$APP_PACKAGE/$MAIN_ACTIVITY"; then
+    echo "Error: Failed to launch link on Android device."
+    return 1
+  fi
+  
+  echo "Success! Link launched on Android device."
+  return 0
+}
+
+function launch_ios {
+  local link="$1"
+  
+  echo "Launching on iOS simulator: $device"
+  if ! xcrun simctl openurl "$device" "$link"; then
+    echo "Error: Failed to launch link on iOS simulator."
+    return 1
+  fi
+  
+  echo "Success! Link launched on iOS simulator."
+  return 0
+}
+
+# Parse arguments
+platform="auto"
+device=""
+link=""
+stdin_is_tty=false
+
+# Check if stdin is a terminal (not piped input)
+if [ -t 0 ]; then
+  stdin_is_tty=true
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      show_help
+      ;;
+    -l|--list)
+      list_devices
+      ;;
+    -d)
+      device="$2"
+      shift
+      ;;
+    -p)
+      platform="$2"
+      shift
+      ;;
+    *)
+      link="$1"
+      ;;
+  esac
+  shift
+done
+
+# If no link provided as argument and we have piped input, read from stdin
+if [ -z "$link" ] && [ "$stdin_is_tty" = false ]; then
+  read link
+elif [ -z "$link" ]; then
+  # No link provided and no piped input, show help
+  echo "Error: No link provided. Please provide a link as an argument or pipe it to stdin."
+  show_help
+fi
+
+if [ -z "$link" ]; then
+  echo "Error: Empty link provided. Please provide a valid link."
+  show_help
+fi
+
+# Auto-detect platform if not specified
+if [ "$platform" = "auto" ]; then
+  if command -v adb >/dev/null 2>&1; then
+    avdlist="$(adb devices | grep -v 'List of devices' | grep 'device$')"
+    if [ -n "$avdlist" ]; then
+      platform="android"
+      if [ -z "$device" ]; then
+        device=$(echo "$avdlist" | head -n 1 | awk '{print $1}')
+      fi
+    elif command -v xcrun >/dev/null 2>&1; then
+      platform="ios"
+      if [ -z "$device" ]; then
+        device="booted"
+      fi
+    else
+      echo "Error: No Android or iOS devices found and no platform specified."
+      exit 1
+    fi
+  elif command -v xcrun >/dev/null 2>&1; then
+    platform="ios"
+    if [ -z "$device" ]; then
+      device="booted"
+    fi
+  else
+    echo "Error: Could not auto-detect platform. Please specify with -p."
+    exit 1
+  fi
+fi
+
+check_dependencies
+
+# Launch on appropriate platform
+if [ "$platform" = "android" ]; then
+  launch_android "$link"
+elif [ "$platform" = "ios" ]; then
+  launch_ios "$link"
+else
+  echo "Error: Unknown platform: $platform"
+  exit 1
+fi
