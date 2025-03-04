@@ -43,7 +43,7 @@ const SocketProvider = ({ children }) => {
     let address = `${creds.host}:${creds.port}`
 
     const connect = new Connect({
-      webcrypto: window.crypto,
+      webcrypto: global.crypto || window?.crypto,
       listen: [user],
       wm,
     })
