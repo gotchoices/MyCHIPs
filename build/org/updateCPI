@@ -1,13 +1,13 @@
 #!/bin/node --no-warnings
 // Make sure we have the latest CPI data available.  General procedure:
-// 1. Check if we have a data file called <Series>.tsv.
+// 1. Check if we have a data file called <Series>.csv.
 // 2. If not, download it by filtering out the series from the bls raw data file.
 // 3. Check for the file cpi-latest.json.  If not present, jump to 5.
-// 4. Compare today to the date in cpi-latest.json.  If today < latest + 45 days, jump to 8.
+// 4. Compare today to the date in cpi-latest.json.  If today < latest + 75 days, jump to 8.
 // 5. Download latest series data from bls.
-// 6. Add any samples from lateset into <Series>.tsv it may be missing.
+// 6. Add any samples from lateset into <Series>.csv it may be missing.
 // 7. Save latest sample and timestamp to cpi-latest.json.
-// 8. If <Series>.tsv later than chip-dollar.csv, regenerate chip-dollar.csv
+// 8. If <Series>.csv later than chip-dollar.csv, regenerate chip-dollar.csv
 
 const Fs = require('fs')
 const Path = require('path')
@@ -44,10 +44,16 @@ function checkAll(cb) {		// Make sure we have the CPI history file from 1913
           }).map(row => row.split('\t').map(field => field.trim()))
             .map(row => row.slice(1,4).join(','))
         Fs.writeFile(seriesFile, keep.join('\n')+'\n', err => {
-          if (err) throw err
+          if (err) {
+            console.error(`Error writing series file: ${err.message}`)
+            throw err
+          }
           cb()
         })
-      }).catch(err => {throw err})
+      }).catch(err => {
+        console.error(`Error fetching data: ${err.message}`)
+        throw err
+      })
     }
   })
 }
@@ -58,15 +64,17 @@ function checkLatest(ifYes, ifNo) {	// Do we need to grab the latest update
       if (err.code === 'ENOENT') {	//console.log('not found:', latestFile)
         ifYes()				//File not found, so call getter
       } else {
-        throw error
+        console.error(`Error reading latest file: ${err.message}`)
+        throw err
       }
     } else {
       let lastDate
       try {
         let cont = JSON.parse(data)
         lastDate = new Date(cont.date)
-      } catch {
-        throw 'Invalid JSON data'
+      } catch (e) {
+        console.error(`Invalid JSON data in ${latestFile}: ${e.message}`)
+        throw e
       }
       let lastSeconds = Math.floor(lastDate.getTime() / 1000)
         , staleSeconds = lastSeconds + StaleTime
@@ -132,14 +140,27 @@ function updateSeries(done) {
 
     // Grab the latest data from bls.gov
     fetch(UpdateURL).then(res => {			//console.log('Fetch status:', res.status)
-      if (res.status != 200) throw "Data fetch failed"
+      if (res.status != 200) {
+        console.error(`Data fetch failed with status: ${res.status}`)
+        throw new Error(`Data fetch failed with status: ${res.status}`)
+      }
       return res.json()
     }).then(res => {
-      if (res.status != 'REQUEST_SUCCEEDED') throw "JSON fetch failed"
-      res.Results.series?.forEach(s => {		//console.log('p:', s)
+      if (res.status != 'REQUEST_SUCCEEDED') {
+        console.error(`JSON fetch failed with status: ${res.status}`)
+        throw new Error(`JSON fetch failed with status: ${res.status}`)
+      }
+      if (!res.Results || !res.Results.series) {
+        console.error('API response missing Results.series structure')
+        throw new Error('API response missing Results.series structure')
+      }
+      res.Results.series.forEach(s => {		//console.log('p:', s)
         process(s.seriesID, s.data)
       })
-    }).catch(err => {throw err})
+    }).catch(err => {
+      console.error(`Error in API fetch: ${err.message}`)
+      throw err
+    })
   })
 }
 
