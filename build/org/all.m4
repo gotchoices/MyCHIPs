@@ -10,7 +10,7 @@ define(GETAPP,`<div class="content_section_text">
 
 define(LINK_BLOCK, `
         <div class="col-md-6 col-lg-4 d-flex align-items-stretch mb-5 mb-lg-50">
-          <div class="icon-box">
+          <div class="icon-box" style="padding: 30px 20px;">
             <div class="icon"><i class="$1"></i></div>
             <h4 class="title"><a href="$2">$3</a></h4>
             <p class="description">$4</p>
