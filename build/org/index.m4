@@ -63,7 +63,8 @@ define(CONTENT,`
             <div class="card-body">
               <h5 class="card-title"><i class="ri-spotify-line"></i> <span class="text-muted">Mar 2025</span> MyCHIPs founder a guest on <a href="https://www.podpage.com/the-crypto-podcast/">Roy Coughlin&apos;s Crypto Podcast</a></h5>
               <p class="card-text">Discussion about how MyCHIPs provides an alternative to conventional money and cryptocurrency systems.</p>
-              <a href="https://open.spotify.com/episode/7DzNvJkMsYeUA4OmpAKTKF" class="btn btn-primary">Watch</a>
+              <a href="https://www.youtube.com/watch?v=FDbeEVxlbWo" class="btn btn-primary">Watch</a>
+              <a href="https://open.spotify.com/episode/7DzNvJkMsYeUA4OmpAKTKF" class="btn btn-primary">Listen</a>
             </div>
           </div>
         </div>
