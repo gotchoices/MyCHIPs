@@ -2,11 +2,7 @@
   "name": "chark",
   "version": "0.1.7",
   "private": true,
-  "chark": {
-    "versionCode": 39
-  },
   "scripts": {
-    "prebuild:ios": "sh ios/version_ios.sh",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
@@ -15,7 +11,8 @@
     "develop": "bin/develop",
     "build": "bin/build",
     "test:android": "bin/test-e2e",
-    "postinstall": "sh ios/version_ios.sh",
+    "incbuild:ios": "RNV=ios react-native-version -A",
+    "incbuild:android": "RNV=android react-native-version -A",
     "build:ios": "react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --dev=false --platform='ios'",
     "linklaunch": "bin/linklaunch"
   },
@@ -64,6 +61,7 @@
     "react-native-swipeable-list": "^0.1.2",
     "react-native-toast-message": "^2.1.5",
     "react-native-vector-icons": "^9.2.0",
+    "react-native-version": "^4.0.0",
     "react-native-view-shot": "^3.5.0",
     "react-native-walkthrough-tooltip": "^1.4.0",
     "react-native-webview": "^13.13.2",
