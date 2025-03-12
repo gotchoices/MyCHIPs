@@ -75,3 +75,5 @@ yarn-error.log
 
 *.log
 .watchman*
+
+.vscode
