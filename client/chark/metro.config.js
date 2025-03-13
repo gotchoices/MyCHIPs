@@ -1,50 +1,36 @@
 /**
- * Metro configuration for React Native
- * https://github.com/facebook/react-native
+ * Metro configuration
+ * https://reactnative.dev/docs/metro
  *
- * @format
- */
-//For running out of local wyseman source package:
-//const path = require('path')
-//const wysemanPath = path.resolve(__dirname, '/../../../wyseman/')
-//const watchFolders = [wysemanPath]
-//const nodeModulesPaths = [wysemanPath]
+ * @type {import('@react-native/metro-config').MetroConfig}
+*/
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
+// Determine if we're in development mode
+const isDev = process.env.NODE_ENV !== 'production';
 
-const { getDefaultConfig } = require("metro-config");
-
-module.exports = (async () => {
-  const {
-    resolver: { sourceExts, assetExts }
-  } = await getDefaultConfig();
-  return {
-    transformer: {
-      babelTransformerPath: require.resolve("react-native-svg-transformer"),
-      getTransformOptions: async () => ({
-        transform: {
-          experimentalImportSupport: false,
-          inlineRequires: true,
-        },
-      }),
-    },
-    resolver: {
-      assetExts: assetExts.filter(ext => ext !== "svg"),
-      sourceExts: [...sourceExts, "svg"]
-    }
-  };
-})();
-
-/* 
-module.exports = {
-//  resolver: {nodeModulesPaths},
-//  watchFolders,
-  
+// Add SVG transformer support
+const config = {
   transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
+    babelTransformerPath: require.resolve("react-native-svg-transformer"),
+    
+    // Enable detailed source maps in development mode
+    ...(isDev ? {
+      minifierConfig: {
+        keep_classnames: true,
+        keep_fnames: true,
+        mangle: {
+          keep_classnames: true,
+          keep_fnames: true
+        }
       },
-    }),
+      enableBabelRuntime: true
+    } : {})
   },
-}; */
+  resolver: {
+    assetExts: ['png', 'jpg', 'jpeg', 'gif', 'webp'],
+    sourceExts: ['js', 'jsx', 'json', 'ts', 'tsx', 'svg'],
+  }
+};
+
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);

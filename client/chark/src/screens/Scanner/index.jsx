@@ -8,6 +8,7 @@ import {
   Button,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import {Camera, CameraType} from 'react-native-camera-kit';
 import * as Keychain from 'react-native-keychain';
@@ -16,7 +17,7 @@ import {v4 as uuid} from 'uuid';
 import {colors, qrType} from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import {parse} from '../../utils/query-string';
-import {PERMISSIONS, check, request} from 'react-native-permissions';
+import {PERMISSIONS, RESULTS, check, request} from 'react-native-permissions';
 
 const connectionLink = 'https://mychips.org/ticket';
 const payLink = 'https://mychips.org/pay';
@@ -175,12 +176,12 @@ const Scanner = props => {
         : PERMISSIONS.ANDROID.CAMERA;
 
     return check(permission).then(status => {
-      if (status === 'granted' || status === 'limited') {
+      if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
         return setHasPermission(true);
       }
 
       request(permission).then(status => {
-        if (status === 'granted' || status === 'limited') {
+        if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
           return setHasPermission(true);
         }
       });

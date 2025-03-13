@@ -1,4 +1,6 @@
 #!/bin/bash
+#Get the current version and build from package.json, install in ios build files
+#Writes to ios/chark/Config.xcconfig, must configure xcode to read this file
 
 # Path to package.json file
 packageJson="$PWD/package.json"
@@ -15,12 +17,11 @@ fi
 echo "Version code: $appVersionCode"
 echo "Version name: $appVersionName"
 
-# Path to Info.plist file
-infoPlist="$PWD/ios/chark/Info.plist"
+# Path to  file
+xcconfigFile="$PWD/ios/chark/Config.xcconfig"
 
-# Update Info.plist with the new version information
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $appVersionCode" "$infoPlist"
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $appVersionName" "$infoPlist"
+# Write to the xcconfig file
+echo "CURRENT_PROJECT_VERSION = $appVersionCode" > "$xcconfigFile"
+echo "MARKETING_VERSION = $appVersionName" >> "$xcconfigFile"
 
-# Print the appVersionName
-echo "Updated Info.plist with version code: $appVersionCode and version name: $appVersionName"
+echo "Updated $xcconfigFile: $xcconfigFile"
