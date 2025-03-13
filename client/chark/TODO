@@ -1,6 +1,13 @@
 Chark mobile application development
 
 Immediate:
+X-  Can build for IOS
+X-  Put latest version in both stores
+- Build script supports release bundle modes for android, ios
+-  If key sig fails, why don't we get an error back to the app (general err handling)
+-  IOS build not launching connection deep link
+- Can we automate distribution with fastlane?
+- Find any language tags not yet implemented
 - Review how redux stores state
 - Try to add setting for explicit CHIP conversion
 - How is tally list maintained (in view or local cache of model)?

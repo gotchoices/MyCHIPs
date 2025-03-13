@@ -1,25 +1,12 @@
 TODO:
 
 - Payment testing:
-X- Examine lift packet between peers
-X- Include info necessary to preserve lift UUID
-X- What else to include?
-X- Do we call it "object"?
-X- Intermediate node can respond, build lift, promise chits
-X- Generalize paths_find to work on agent,cuid (pathx_find)
-X- Adapt lib/lift.js to use pathx_find()
-X- Cleaning/understanding pass on lib/lift.js
-X- Include tally_uuid on all promise-related lift update messages
-X- Terminus node can throw away any packets that don't include the tally ID
-X- Terminus node promises correctly
-X- Terminus records secret data
-X- All nodes commit lifts
-X- Implement abort callback
 X- Store record in lift transaction
 X- Update record if/when more signatures come in
 X- Save transaction record on all lift nodes
 - Set timer to avoid too many stores (debounce)?
 - Get test suite running again
+- Test more elaborate lift pathways (can run 2 in sequence)
 - Eliminate all routing schema
 - Eliminate unused fields in lift table
 - Markup unused lift/path schema as deprecatable
