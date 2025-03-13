@@ -4,6 +4,8 @@
 # Usage: 
 #   echo "mychips://some/path" | ./linklaunch [options]
 #   ./linklaunch [options] "mychips://some/path"
+#   ssh admin@server.chip mychips/bin/adminticket -i p1234 -q |
+#     ./linklaunch [options]
 #
 # Options:
 #   -h, --help     Show this help message
@@ -74,9 +76,16 @@ function launch_android {
 
 function launch_ios {
   local link="$1"
+  local device_to_use="$device"
   
-  echo "Launching on iOS simulator: $device"
-  if ! xcrun simctl openurl "$device" "$link"; then
+  # Fallback to "booted" if device is empty
+  if [ -z "$device_to_use" ]; then
+    device_to_use="booted"
+    echo "Device ID was empty, falling back to 'booted' identifier"
+  fi
+  
+  echo "Launching on iOS simulator: $device_to_use"
+  if ! xcrun simctl openurl "$device_to_use" "$link"; then
     echo "Error: Failed to launch link on iOS simulator."
     return 1
   fi
@@ -145,7 +154,16 @@ if [ "$platform" = "auto" ]; then
     elif command -v xcrun >/dev/null 2>&1; then
       platform="ios"
       if [ -z "$device" ]; then
-        device="booted"
+        # Get the first booted simulator ID, if any
+        booted_sim=$(xcrun simctl list devices | grep "(Booted)" | head -1 | awk -F"[()]" '{print $2}')
+        if [ -n "$booted_sim" ]; then
+          device="$booted_sim"  # Use the specific booted device ID
+          echo "Auto-detected booted iOS simulator: $device"
+        else
+          # No booted simulator found, use generic "booted" identifier
+          device="booted"
+          echo "No specific booted simulator found. Using generic 'booted' identifier."
+        fi
       fi
     else
       echo "Error: No Android or iOS devices found and no platform specified."
@@ -154,12 +172,28 @@ if [ "$platform" = "auto" ]; then
   elif command -v xcrun >/dev/null 2>&1; then
     platform="ios"
     if [ -z "$device" ]; then
-      device="booted"
+      # Get the first booted simulator ID, if any
+      booted_sim=$(xcrun simctl list devices | grep "(Booted)" | head -1 | awk -F"[()]" '{print $2}')
+      if [ -n "$booted_sim" ]; then
+        device="$booted_sim"  # Use the specific booted device ID
+        echo "Auto-detected booted iOS simulator: $device"
+      else
+        # No booted simulator found, use generic "booted" identifier
+        device="booted"
+        echo "No specific booted simulator found. Using generic 'booted' identifier."
+      fi
     fi
   else
     echo "Error: Could not auto-detect platform. Please specify with -p."
     exit 1
   fi
+fi
+
+# Fix: Get the device ID one more time right before launching
+# This ensures we have the latest booted device even if it was missed earlier
+if [ "$platform" = "ios" ] && [ -z "$device" ]; then
+  device=$(xcrun simctl list devices | grep "(Booted)" | head -1 | awk -F"[()]" '{print $2}')
+  echo "Auto-detected iOS simulator: $device"
 fi
 
 check_dependencies
