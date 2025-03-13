@@ -84,7 +84,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionName "0.1.7"
-        versionCode 39
+        versionCode 41
 
 /* need these anymore?
         testBuildType System.getProperty('testBuildType', 'debug')
