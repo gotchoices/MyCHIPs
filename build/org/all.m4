@@ -17,3 +17,15 @@ define(LINK_BLOCK, `
           </div>
         </div>
 ')
+
+define(NEWS_BLOCK, `
+        <div class="col-md-12 mb-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title"><i class="$1"></i> <span class="text-muted">$2</span> $3</h5>
+              <p class="card-text">$4</p>
+              ifelse(`$5',`',`',`$5')
+            </div>
+          </div>
+        </div>
+')

@@ -33,6 +33,7 @@ To build all default pages:
 - **SUBTITLE** - Defines the page subtitle (appears in h2)
 - **CONTENT** - Defines the main content section
 - **LINK_BLOCK** - Creates a grid box item with icon, title, link, and description
+- **NEWS_BLOCK** - Creates a news item card with icon, date, title, description, and optional buttons
 - **GETAPP** - Common component for app download instructions
 
 ## Macro Definition Format
@@ -42,6 +43,27 @@ define(MACRO_NAME,`
   HTML content here with $1, $2, etc. for parameters
 ')
 ```
+
+## Macros for Repetitive Formatting
+
+**ALWAYS** create and use macros for repetitive formatting patterns. This approach offers several benefits:
+
+1. **Consistency** - Ensures all instances of a pattern follow the same format
+2. **Maintainability** - Makes sitewide changes easier by modifying only the macro definition
+3. **Readability** - Makes source files cleaner and easier to understand
+4. **Efficiency** - Reduces code duplication
+
+### Example Macros
+
+- **LINK_BLOCK** - Used for the "Learn More" grid items
+- **NEWS_BLOCK** - Used for news and presentation items
+
+The NEWS_BLOCK macro supports:
+- Icon selection via parameter 1
+- Date string via parameter 2
+- Title text via parameter 3
+- Description via parameter 4
+- Optional buttons via parameter 5 (can include one, multiple, or no buttons)
 
 ## Spacing Adjustments
 
@@ -75,6 +97,7 @@ The `updateCPI` script handles fetching and updating the Consumer Price Index da
 - Displayed in chronological order (newest first)
 - Include date in title with consistent "Month Year" format
 - Ensure consistent button styling based on content type
+- **Use the NEWS_BLOCK macro for all news items**
 
 ## Potential Future Improvements
 
@@ -105,10 +128,18 @@ The `updateCPI` script handles fetching and updating the Consumer Price Index da
 To add a new presentation to the News section:
 
 1. Edit index.m4
-2. Add a new card using the same format as existing presentations
+2. Add a new card using the NEWS_BLOCK macro
 3. Place it in the appropriate chronological position (newest first)
 4. Follow the date format "Month Year"
 5. Run `./make index.html` to rebuild the page
+
+Example:
+```m4
+NEWS_BLOCK(ri-presentation-line, `Mar 2025', `Presentation Title',
+  `Description text goes here.',
+  `<a href="https://example.com" class="btn btn-primary">Watch</a>'
+)
+```
 
 ### Creating a New Page
 

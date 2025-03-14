@@ -58,46 +58,31 @@ define(CONTENT,`
       </div>
 
       <div class="row">
-        <div class="col-md-12 mb-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title"><i class="ri-spotify-line"></i> <span class="text-muted">Mar 2025</span> MyCHIPs founder a guest on <a href="https://www.podpage.com/the-crypto-podcast/">Roy Coughlin&apos;s Crypto Podcast</a></h5>
-              <p class="card-text">Discussion about how MyCHIPs provides an alternative to conventional money and cryptocurrency systems.</p>
-              <a href="https://www.youtube.com/watch?v=FDbeEVxlbWo" class="btn btn-primary">Watch</a>
-              <a href="https://open.spotify.com/episode/7DzNvJkMsYeUA4OmpAKTKF" class="btn btn-primary">Listen</a>
-            </div>
-          </div>
-        </div>
+        NEWS_BLOCK(ri-youtube-line, `Mar 2025', `<a href="https://gotchoices.org">GotChoices</a> founder appears on the <a href="https://www.thekajmasterclass.live/">KAJ Masterclass Live</a> podcast',
+          `Discussion about the MyCHIPs system and its potential impact on the future of money.',
+          `<a href="https://www.youtube.com/live/rkYgrf4Ohug" class="btn btn-primary">Watch</a>'
+        )
         
-        <div class="col-md-12 mb-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title"><i class="ri-presentation-line"></i> <span class="text-muted">Oct 2023</span> Presentation to the Utah Bitcoin Community</h5>
-              <p class="card-text">The GotChoices Foundation gives a presentation geared toward cryptocurrency enthusiasts about MyCHIPs and how it relates to cryptocurrency systems.</p>
-              <a href="https://rumble.com/v3ypf06-utah-bitcoin-community-presentation.html" class="btn btn-primary">Watch</a>
-            </div>
-          </div>
-        </div>
+        NEWS_BLOCK(ri-spotify-line, `Mar 2025', `MyCHIPs founder a guest on <a href="https://www.podpage.com/the-crypto-podcast/">Roy Coughlin&apos;s Crypto Podcast</a>',
+          `Discussion about how MyCHIPs provides an alternative to conventional money and cryptocurrency systems.',
+          `<a href="https://www.youtube.com/watch?v=FDbeEVxlbWo" class="btn btn-primary">Watch</a>
+           <a href="https://open.spotify.com/episode/7DzNvJkMsYeUA4OmpAKTKF" class="btn btn-primary">Listen</a>'
+        )
         
-        <div class="col-md-12 mb-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title"><i class="ri-presentation-line"></i> <span class="text-muted">Apr 2023</span> Presentation at the Collaborative Finance Conference</h5>
-              <p class="card-text">The GotChoices Foundation presents on the MyCHIPs lift algorithm at the Commons Hub in Austria.</p>
-              <a href="https://rumble.com/v3x4yx6-mychips-at-the-crypto-commons.html" class="btn btn-primary">Watch</a>
-            </div>
-          </div>
-        </div>
+        NEWS_BLOCK(ri-presentation-line, `Oct 2023', `Presentation to the Utah Bitcoin Community',
+          `The <a href="https://gotchoices.org">GotChoices Foundation</a> gives a presentation geared toward cryptocurrency enthusiasts about MyCHIPs and how it relates to cryptocurrency systems.',
+          `<a href="https://rumble.com/v3ypf06-utah-bitcoin-community-presentation.html" class="btn btn-primary">Watch</a>'
+        )
         
-        <div class="col-md-12 mb-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title"><i class="ri-presentation-line"></i> <span class="text-muted">Aug 2022</span> A Mathematical Proof for MyCHIPs Credit Lifts</h5>
-              <p class="card-text">Kyle Storey defends his Masters Thesis proving important properties of the credit lift algorithm.</p>
-              <a href="https://rumble.com/v3x4nia-mychips-kyle-storey-masters-thesis-defense.html" class="btn btn-primary">Watch</a>
-            </div>
-          </div>
-        </div>
+        NEWS_BLOCK(ri-presentation-line, `Apr 2023', `Presentation at the Collaborative Finance Conference',
+          `The <a href="https://gotchoices.org">GotChoices Foundation</a> presents on the MyCHIPs lift algorithm at the Commons Hub in Austria.',
+          `<a href="https://rumble.com/v3x4yx6-mychips-at-the-crypto-commons.html" class="btn btn-primary">Watch</a>'
+        )
+        
+        NEWS_BLOCK(ri-presentation-line, `Aug 2022', `A Mathematical Proof for MyCHIPs Credit Lifts',
+          `Kyle Storey defends his Masters Thesis proving important properties of the credit lift algorithm.',
+          `<a href="https://rumble.com/v3x4nia-mychips-kyle-storey-masters-thesis-defense.html" class="btn btn-primary">Watch</a>'
+        )
       </div>
 
       <div class="text-center pt-2 pb-0">
