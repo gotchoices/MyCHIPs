@@ -29,3 +29,11 @@ define(NEWS_BLOCK, `
           </div>
         </div>
 ')
+
+define(SOCIAL_LINK, `
+        <div class="col-md-$1">
+          <a href="$2" class="btn btn-outline-primary btn-lg" style="width: 80%;">
+            <i class="$3"></i> $4
+          </a>
+        </div>
+')

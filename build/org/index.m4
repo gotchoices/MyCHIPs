@@ -85,6 +85,17 @@ define(CONTENT,`
         )
       </div>
 
+      <div class="section-title pt-5">
+        <h2>Connect With Us</h2>
+      </div>
+
+      <div class="row text-center mb-4">
+        SOCIAL_LINK(3, https://www.youtube.com/@gotchoices, ri-youtube-line, YouTube)
+        SOCIAL_LINK(3, https://x.com/IGotChoices, ri-twitter-x-line, `X (Twitter)')
+        SOCIAL_LINK(3, https://rumble.com/user/kylebateman, ri-video-line, Rumble)
+        SOCIAL_LINK(3, https://www.linkedin.com/in/kyle-bateman-1247783/, ri-linkedin-box-line, LinkedIn)
+      </div>
+
       <div class="text-center pt-2 pb-0">
         <a href="privacy.html" class="text-muted"><i class="ri-fingerprint-line"></i> Privacy Policy</a>
       </div>
