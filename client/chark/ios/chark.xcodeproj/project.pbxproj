@@ -32,9 +32,7 @@
 		59616A4878DF718C44E56EDD /* libPods-chark-charkTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-chark-charkTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5DA7F5492B39F3B9002EBD01 /* charkDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = charkDebug.entitlements; path = chark/charkDebug.entitlements; sourceTree = "<group>"; };
 		5DA7F54A2B39F3C3002EBD01 /* charkRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = charkRelease.entitlements; path = chark/charkRelease.entitlements; sourceTree = "<group>"; };
-		5E2B1E358D0E9858C9DEB08A /* Pods-chark-charkTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-chark-charkTests.debug.xcconfig"; path = "Target Support Files/Pods-chark-charkTests/Pods-chark-charkTests.debug.xcconfig"; sourceTree = "<group>"; };
 		63562CACD8DF9BE62F0F5372 /* libPods-chark.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-chark.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		6AEE369D7B5CE7A3342160A0 /* Pods-chark-charkTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-chark-charkTests.release.xcconfig"; path = "Target Support Files/Pods-chark-charkTests/Pods-chark-charkTests.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = chark/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E45581D72AC1F55600AAFF2D /* inter.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = inter.ttf; path = ../assets/fonts/inter.ttf; sourceTree = "<group>"; };
 		E45581D92AC1F56E00AAFF2D /* borel.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = borel.ttf; path = ../assets/fonts/borel.ttf; sourceTree = "<group>"; };
@@ -128,8 +126,6 @@
 			children = (
 				32EBBD267083530B199B4AA2 /* Pods-chark.debug.xcconfig */,
 				F33080A6FE61E8594B580F63 /* Pods-chark.release.xcconfig */,
-				5E2B1E358D0E9858C9DEB08A /* Pods-chark-charkTests.debug.xcconfig */,
-				6AEE369D7B5CE7A3342160A0 /* Pods-chark-charkTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -432,7 +428,10 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				PRODUCT_NAME = chark;
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
@@ -506,7 +505,10 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				PRODUCT_NAME = chark;
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
