@@ -4,20 +4,43 @@
 # -----------------------------------------------------------------------------
 target=all
 path_a="android/app/build/outputs/apk/release/app-release.apk"
-path_i=""
+path_i="ios/build/chark.xcarchive"
+built_a=false
+built_i=false
 orgdir=$(pwd)
 mydir="$(dirname $BASH_SOURCE)"		#Where this script is
 
 build_ios() {
-  echo "IOS build not yet implemented"
+  cd $mydir/../ios
+  echo "Installing pods for iOS build..."
+  if pod install; then
+    echo "Building iOS app..."
+    if xcodebuild -workspace chark.xcworkspace -scheme chark -configuration Release -sdk iphoneos; then
+      built_i=true
+      # Archive the build
+      archive_path="./build/chark.xcarchive"
+      xcodebuild -workspace chark.xcworkspace -scheme chark -configuration Release -sdk iphoneos -archivePath "${archive_path}" archive
+    else
+      built_i=false
+    fi
+  else
+    built_i=false
+  fi
+  cd $orgdir
 }
 
 path_ios() {
-  echo "IOS path yet implemented"
+  if $built_i; then
+    echo "Path to iOS archive: ios/build/chark.xcarchive"
+  fi
 }
 
 deploy_ios() {
-  echo "IOS deploy yet implemented"
+  if $built_i && [ ! -z "$MYCHIPS_IOS_DEPLOY" ]; then
+    echo "Deploying iOS build to $MYCHIPS_IOS_DEPLOY"
+    # Add your deployment logic here - this could be copying the archive to a server
+    # or exporting an IPA file and copying it somewhere
+  fi
 }
 
 build_android() {
@@ -64,8 +87,9 @@ if [ -z "$APP_KEY_PASSWORD" ]; then
 fi
 
 if [ "$1" = "all" ]; then
-  build_android;	build_ios;	deploy_ios
-  path_android;		path_android;	deploy_android
+  build_android;	build_ios
+  path_android;		path_ios
+  deploy_android;	deploy_ios
 
 elif [ "$1" = "ios" ]; then
   build_ios;		path_ios;	deploy_ios

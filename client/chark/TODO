@@ -3,13 +3,15 @@ Chark mobile application development
 Immediate:
 X-  Can build for IOS
 X-  Put latest version in both stores
-- Build script supports release bundle modes for android, ios
--  If key sig fails, why don't we get an error back to the app (general err handling)
 X-  IOS build not launching connection deep link (see detailed plan in deep-linking-issue.md)
-- Can we automate distribution with fastlane?
+X- Review mapping of /invite, /pay to /ticket; why is this done?
+- Review bin/build; Can/should we automate distribution with fastlane?
 - Find any language tags not yet implemented
 - Review how redux stores state
-- Try to add setting for explicit CHIP conversion
+- Evaluate use of wyseman/message module; make our own handling of lang tags?
+- If key sig fails, why don't we get an error back to the app (general err handling)
+- Test all deep link modes
+- Try to add setting for explicit CHIP conversion ratio
 - How is tally list maintained (in view or local cache of model)?
 - Generalize wyseman to handle sync or async localstorage
 - Should wyseman be caching regular queries or only data dictionary stuff?
@@ -17,11 +19,9 @@ X-  IOS build not launching connection deep link (see detailed plan in deep-link
 - Should a request return a promise if no callback is given?
 - Lazy connection to backend
 - Why do we lose our connection key?
-- 
-
-Cleaning:
+- Should upgrade to RN 0.78 (or later)?
 - Do we still use the 'mychips://' deep link prefix for anything?
-- Review mapping of /invite, /pay to /ticket; why is this done?
+- 
 
 Maintenance:
 X- Can build/run on android emulator
