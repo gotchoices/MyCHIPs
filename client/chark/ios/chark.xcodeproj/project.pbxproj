@@ -11,6 +11,7 @@
 		2735DD4D2D81006700515B60 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2735DD5B2D814F1600515B60 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2735DD5A2D814F1600515B60 /* AppDelegate.swift */; };
 		2735DD5D2D82030F00515B60 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 2735DD5C2D82030F00515B60 /* main.jsbundle */; };
+		27EC1E482D8A6E230054E34F /* ReactNativeUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27EC1E472D8A6E230054E34F /* ReactNativeUtils.swift */; };
 		4CED535626FAF0ADF4C23D28 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 1AFE98940E7E4023FC9A59EC /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		BB65333BA27DE18F153B0EA5 /* libPods-chark.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E5B65242A0BBB2BE9ED12A94 /* libPods-chark.a */; };
@@ -27,6 +28,7 @@
 		2735DD5A2D814F1600515B60 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = chark/AppDelegate.swift; sourceTree = "<group>"; };
 		2735DD5C2D82030F00515B60 /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		2757F2352D77708800418918 /* chark-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "chark-Bridging-Header.h"; sourceTree = "<group>"; };
+		27EC1E472D8A6E230054E34F /* ReactNativeUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReactNativeUtils.swift; path = chark/ReactNativeUtils.swift; sourceTree = "<group>"; };
 		3A7BD77E29681F270002727C /* FontAwesome.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		3D90ACE69B38DAD0ED78528E /* Pods-chark.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-chark.debug.xcconfig"; path = "Target Support Files/Pods-chark/Pods-chark.debug.xcconfig"; sourceTree = "<group>"; };
 		5DA7F5492B39F3B9002EBD01 /* charkDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = charkDebug.entitlements; path = chark/charkDebug.entitlements; sourceTree = "<group>"; };
@@ -55,6 +57,7 @@
 		13B07FAE1A68108700A75B9A /* chark */ = {
 			isa = PBXGroup;
 			children = (
+				27EC1E472D8A6E230054E34F /* ReactNativeUtils.swift */,
 				2735DD5A2D814F1600515B60 /* AppDelegate.swift */,
 				5DA7F54A2B39F3C3002EBD01 /* charkRelease.entitlements */,
 				5DA7F5492B39F3B9002EBD01 /* charkDebug.entitlements */,
@@ -299,6 +302,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27EC1E482D8A6E230054E34F /* ReactNativeUtils.swift in Sources */,
 				2735DD5B2D814F1600515B60 /* AppDelegate.swift in Sources */,
 				2735DD4D2D81006700515B60 /* main.m in Sources */,
 			);

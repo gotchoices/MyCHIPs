@@ -14,6 +14,7 @@
     "incbuild:ios": "RNV=ios react-native-version -A",
     "incbuild:android": "RNV=android react-native-version -A",
     "build:ios": "react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --dev=false --platform='ios'",
+    "build:ios:prod": "xcodebuild -workspace ios/chark.xcworkspace -scheme chark -configuration Release -sdk iphonesimulator -derivedDataPath ios/build",
     "linklaunch": "bin/linklaunch"
   },
   "dependencies": {
@@ -52,6 +53,7 @@
     "react-native-permissions": "^5.2.5",
     "react-native-qrcode-svg": "^6.1.2",
     "react-native-quick-base64": "^2.0.5",
+    "react-native-quick-crypto": "^0.7.12",
     "react-native-reanimated": "^3.7.0",
     "react-native-safe-area-context": "^5.1.0",
     "react-native-screens": "^4.5.0",
@@ -65,7 +67,6 @@
     "react-native-view-shot": "^3.5.0",
     "react-native-walkthrough-tooltip": "^1.4.0",
     "react-native-webview": "^13.13.2",
-    "react-native-webview-crypto": "^0.0.26",
     "react-redux": "^8.1.2",
     "redux-persist": "^6.0.0",
     "uuid": "^9.0.1",

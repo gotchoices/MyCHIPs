@@ -34,6 +34,9 @@ const SocketProvider = ({ children }) => {
         if(!connectionUri.has(host)) {
           connectSocket()
         }
+      }).catch((err) => {
+        // Log errors getting initial URL
+        console.log('Error getting initial URL:', err);
       });
     }
   }, []);

@@ -27,4 +27,25 @@ class AppDelegate: RCTAppDelegate {
     Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
   }
+  
+  // Handle opening URLs (custom URL schemes like mychips://)
+  override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+    // Debug log for troubleshooting
+    print("Deep link received in AppDelegate: \(url.absoluteString)")
+    
+    // Using ObjC messaging to call RCTLinkingManager without import
+    return ReactNativeUtils.linkingManager(openURL: url, application: app, options: options)
+  }
+  
+  // Handle Universal Links (https://mychips.org/...)
+  override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+    if userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL {
+      // Debug log for troubleshooting
+      print("Universal link received in AppDelegate: \(url.absoluteString)")
+      
+      // Using ObjC messaging to call RCTLinkingManager without import
+      return ReactNativeUtils.linkingManager(continueUserActivity: userActivity, restorationHandler: restorationHandler)
+    }
+    return false
+  }
 }

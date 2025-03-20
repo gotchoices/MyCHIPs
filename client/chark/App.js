@@ -4,8 +4,13 @@
 import React, { useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native';
 import { NavigationContainer, getStateFromPath, DefaultTheme } from '@react-navigation/native';
-import PolyfillCrypto from 'react-native-webview-crypto'
+import QuickCrypto from 'react-native-quick-crypto';
+import { Buffer } from '@craftzdog/react-native-buffer';
 import notifee from '@notifee/react-native';
+
+// Initialize Buffer and QuickCrypto globals
+global.Buffer = Buffer;
+QuickCrypto.install();
 import qs from 'query-string';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react'
@@ -20,16 +25,7 @@ import store, { persistor } from './src/redux/store';
 const linking = {
   prefixes: ["mychips://", "https://mychips.org"],
   getStateFromPath: (path, options) => {
-    const parsed = qs.parseUrl(path);
-    //const newPath = parsed.url === '/invite' ? '/ticket' : path;
-    let newPath;
-    if(['/invite', '/pay'].includes(parsed.url)) {
-      newPath = '/ticket';
-    } else {
-      newPath = '/ticket';
-    }
-
-    return getStateFromPath(newPath, options);
+    return getStateFromPath(path, options);
   },
   config: {
     screens: {
@@ -57,6 +53,7 @@ const theme = {
 
 function App() {
   const navigationRef = useRef();
+  
 
   useEffect(() => {
     return notifee.onForegroundEvent(event => {
@@ -76,8 +73,6 @@ function App() {
           <SocketProvider>
             <MessageTextProvider>
               <ServIcon />
-
-              <PolyfillCrypto />
 
               <Navigator />
             </MessageTextProvider>
