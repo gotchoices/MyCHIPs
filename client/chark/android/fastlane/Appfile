@@ -1,0 +1,2 @@
+json_key_file(ENV["GOOGLE_PLAY_API_FILE"]) # Path to the JSON key file set via environment variable
+package_name("org.mychips.chark")

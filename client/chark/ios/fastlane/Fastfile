@@ -1,0 +1,307 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#     https://docs.fastlane.tools/plugins/available-plugins
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  # Helper method to set up the App Store Connect API key
+  private_lane :setup_app_store_api_key do
+    unless ENV["APP_STORE_API_FILE"]
+      UI.error("❌ APP_STORE_API_FILE environment variable is not set")
+      UI.error("   Run: export APP_STORE_API_FILE=/path/to/your/app_store_api_key.json")
+      raise "APP_STORE_API_FILE environment variable not set"
+    end
+    
+    # Show the API file path for debugging
+    api_file_path = ENV["APP_STORE_API_FILE"]
+    UI.message("Using API key file: #{api_file_path}")
+    
+    unless File.exist?(api_file_path)
+      UI.error("❌ API key file not found at: #{api_file_path}")
+      UI.error("   Check that the file exists and the path is correct")
+      raise "API key file not found"
+    end
+    
+    # Read the JSON file
+    require 'json'
+    begin
+      api_key_data = JSON.parse(File.read(api_file_path))
+      UI.message("Successfully parsed API key JSON file")
+    rescue JSON::ParserError => e
+      UI.error("❌ Failed to parse JSON file: #{e.message}")
+      UI.error("   Make sure your JSON file is properly formatted")
+      raise "API key JSON parse error"
+    end
+    
+    # Extract the key ID, issuer ID, and key path
+    key_id = api_key_data["key_id"]
+    issuer_id = api_key_data["issuer_id"]
+    key_filepath = api_key_data["key"]
+    duration = api_key_data["duration"]
+    in_house = api_key_data["in_house"]
+    
+    unless key_id && issuer_id && key_filepath
+      UI.error("❌ API key file is missing required fields (key_id, issuer_id, key)")
+      UI.error("   Your JSON file must include these three fields")
+      raise "API key file missing required fields"
+    end
+    
+    # Handle relative paths in the key file
+    if !key_filepath.start_with?("/") && !key_filepath.start_with?("~")
+      # Relative path - assume it's relative to the JSON file
+      json_dir = File.dirname(api_file_path)
+      key_filepath = File.expand_path(key_filepath, json_dir)
+      UI.message("Converted relative key path '#{key_filepath}' to absolute: '#{key_filepath}'")
+    end
+    
+    # Check if the key file exists
+    unless File.exist?(key_filepath)
+      UI.error("❌ Key file not found at: #{key_filepath}")
+      raise "Key file not found"
+    end
+    
+    # Set up the API key for the App Store Connect API
+    # This is the method that worked for uploading
+    begin
+      app_store_connect_api_key(
+        key_id: key_id,
+        issuer_id: issuer_id,
+        key_filepath: key_filepath,
+        duration: duration,
+        in_house: in_house
+      )
+      UI.success("✅ App Store Connect API key set up successfully")
+    rescue => e
+      UI.error("❌ Failed to set up App Store Connect API key: #{e.message}")
+      raise "Failed to set up App Store Connect API key"
+    end
+  end
+  desc "Test App Store Connect API key configuration"
+  lane :test_api_key do
+    UI.message("Testing App Store Connect API key...")
+    
+    begin
+      # Set up the API key
+      setup_app_store_api_key
+      
+      UI.success("✅ API key configuration is valid!")
+      
+      # Second test: Check TestFlight app access directly
+      UI.message("🔍 Testing access to app in TestFlight...")
+      begin
+        build_num = latest_testflight_build_number(
+          app_identifier: "org.mychips.mychips"
+          # No need to pass api_key here as it's already set up globally
+        )
+        UI.success("✅ Successfully accessed TestFlight builds for 'org.mychips.mychips'! Latest build: #{build_num}")
+      rescue => ex
+        if ex.message.include?("cannot find app with bundle identifier") || ex.message.include?("no matching app")
+          UI.important("ℹ️ App with bundle ID 'org.mychips.mychips' not found in your account")
+          UI.important("You need to create this app in App Store Connect before deploying")
+          UI.important("Go to https://appstoreconnect.apple.com/apps and click '+ New App'")
+        elsif ex.message.include?("no version live") || ex.message.include?("no build found")
+          UI.success("✅ App 'org.mychips.mychips' found, but no TestFlight builds exist yet")
+          UI.important("This is expected if you haven't uploaded any builds yet")
+        elsif ex.message.include?("no implicit conversion of nil into String")
+          UI.important("ℹ️ This error typically means the app exists but has no builds")
+          UI.important("Try creating your app in App Store Connect if you haven't already")
+        elsif ex.message.include?("forbidden")
+          UI.error("❌ Forbidden error - insufficient permissions")
+          UI.important("Make sure your API key has App Manager role in App Store Connect")
+        else
+          UI.error("❌ Error accessing TestFlight: #{ex.message}")
+          UI.important("This could be due to insufficient permissions or the app not existing")
+        end
+      end
+
+      UI.success("✓ API key testing completed")
+      UI.important("Next steps:")
+      UI.important("1. Create the app in App Store Connect if not already created")
+      UI.important("   - Go to https://appstoreconnect.apple.com/apps")
+      UI.important("   - Click '+ New App'")
+      UI.important("   - Use bundle ID: org.mychips.mychips")
+      UI.important("2. Make sure your API key has the 'App Manager' role")
+      UI.important("3. Run `npm run deploy:ios:testflight` to build and deploy to TestFlight")
+    rescue => ex
+      UI.error("❌ Error processing API key: #{ex.message}")
+    end
+  end
+
+  desc "Build the iOS app archive"
+  lane :build_archive do
+    ipa_path = File.expand_path("build/chark.ipa")
+    
+    build_app(
+      workspace: "chark.xcworkspace",
+      scheme: "chark", 
+      clean: true,
+      output_directory: "build",
+      output_name: "chark.ipa",
+      export_method: "app-store",  # App Store distribution profile
+      export_options: {
+        provisioningProfiles: {
+          "org.mychips.mychips" => "MyCHIPs"  # Using the available profile
+        }
+      }
+    )
+    
+    # Add clear output about where to find the file
+    UI.important("") # Empty line for clarity
+    UI.important("📱 iOS APP ARCHIVE CREATED SUCCESSFULLY 📱")
+    UI.important("------------------------------------------")
+    UI.important("IPA File: #{ipa_path}")
+    UI.important("")
+    UI.important("Manual Upload Instructions:")
+    UI.important("1. Use App Store Connect: https://appstoreconnect.apple.com")
+    UI.important("2. Go to 'Apps' > Your app > 'TestFlight' tab")
+    UI.important("3. Click the '+' button and select 'iOS' to upload this build")
+    UI.important("------------------------------------------")
+  end
+
+  desc "Build and deploy to TestFlight"
+  lane :beta do
+    
+    # Ensure code is signed with correct certificates
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "chark.xcodeproj",
+      code_sign_identity: "iPhone Distribution"
+    )
+
+    # Build the app for App Store deployment
+    build_app(
+      workspace: "chark.xcworkspace",
+      scheme: "chark",
+      clean: true,
+      output_directory: "build",
+      output_name: "chark-testflight.ipa",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "org.mychips.mychips" => "MyCHIPs"  # Using the profile name
+        }
+      }
+    )
+
+    # Set up the App Store Connect API key (this is the method that works)
+    setup_app_store_api_key
+    
+    # Upload to TestFlight
+    upload_to_testflight(
+      ipa: "build/chark-testflight.ipa",
+      skip_waiting_for_build_processing: true
+      # No need to pass api_key here as it's already set up globally
+    )
+  end
+
+  desc "Build and deploy to App Store"
+  lane :release do
+    
+    # Ensure code is signed with correct certificates
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "chark.xcodeproj",
+      code_sign_identity: "iPhone Distribution"
+    )
+
+    # Build the app for App Store deployment
+    build_app(
+      workspace: "chark.xcworkspace",
+      scheme: "chark",
+      clean: true,
+      output_directory: "build",
+      output_name: "chark-appstore.ipa",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "org.mychips.mychips" => "MyCHIPs"  # Using the profile name
+        }
+      }
+    )
+
+    # Set up the App Store Connect API key (this is the method that works)
+    setup_app_store_api_key
+    
+    # Upload to App Store
+    upload_to_app_store(
+      ipa: "build/chark-appstore.ipa",
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false
+      # No need to pass api_key here as it's already set up globally
+    )
+  end
+  
+  desc "Upload to TestFlight without rebuilding"
+  lane :upload_only do |options|
+    # Allow specifying an IPA path from parameters or use default
+    # The path is relative to the fastlane directory, so we need to use the correct path
+    default_ipa_path = File.join(File.expand_path('..', Dir.pwd), 'build', 'chark.ipa')
+    ipa_path = options[:ipa_path] || default_ipa_path
+    
+    # Display path debugging information
+    UI.message("Looking for IPA at: #{ipa_path}")
+    
+    # Check if IPA exists
+    unless File.exist?(ipa_path)
+      UI.error("❌ No IPA file found at #{ipa_path}")
+      UI.important("Run 'fastlane build_archive' first to build the IPA, or specify the path with ipa_path:'/path/to/your.ipa'")
+      
+      # Try to find the IPA file in common locations
+      possible_locations = [
+        "build/chark.ipa",
+        "../build/chark.ipa",
+        File.join(File.expand_path('..', Dir.pwd), 'build', 'chark.ipa')
+      ]
+      
+      possible_locations.each do |loc|
+        if File.exist?(loc)
+          UI.important("Found IPA at: #{loc}")
+          UI.important("Try running: fastlane upload_only ipa_path:\"#{loc}\"")
+        end
+      end
+      
+      next
+    end
+    
+    # Set up the App Store Connect API key (this is the method that works)
+    setup_app_store_api_key
+    
+    # Upload to TestFlight using the configured API key
+    UI.important("Uploading #{ipa_path} to TestFlight...")
+    begin
+      upload_to_testflight(
+        ipa: ipa_path,
+        skip_waiting_for_build_processing: true
+        # No need to pass api_key here as it's already set up globally
+      )
+      UI.success("✅ Successfully uploaded to TestFlight")
+    rescue => ex
+      UI.error("❌ TestFlight upload failed: #{ex.message}")
+      UI.error("Error class: #{ex.class}")
+      
+      UI.important("-------------------------------------------------------------------")
+      UI.important("TROUBLESHOOTING GUIDE:")
+      UI.important("1. Verify your API key configuration:")
+      UI.important("   - Check that your JSON file has the correct format")
+      UI.important("   - Ensure the .p8 key file exists and is readable")
+      UI.important("   - Make sure your Apple Developer account has sufficient permissions")
+      UI.important("")
+      UI.important("2. Consider using the Apple Transporter app as an alternative:")
+      UI.important("   - Download from: https://apps.apple.com/us/app/transporter/id1450874784")
+      UI.important("   - Use it to manually upload your IPA file")
+      UI.important("-------------------------------------------------------------------")
+      
+      raise "Failed to upload to TestFlight"
+    end
+  end
+end

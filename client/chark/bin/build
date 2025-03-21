@@ -2,6 +2,14 @@
 #Build android and/or IOS release images
 #Copyright MyCHIPs.org; See license in root of this package
 # -----------------------------------------------------------------------------
+# DEPRECATED: This script is being phased out in favor of Fastlane-based builds.
+# Please use the npm scripts defined in package.json instead:
+#   - npm run build:android:apk      # Build Android APK
+#   - npm run build:android:bundle   # Build Android App Bundle
+#   - npm run deploy:android:mychips # Deploy Android APK to mychips.org
+#   - npm run build:ios:archive      # Build iOS archive
+#   - npm run deploy:ios:testflight  # Deploy to TestFlight
+# -----------------------------------------------------------------------------
 target=all
 path_a="android/app/build/outputs/apk/release/app-release.apk"
 path_i="ios/build/chark.xcarchive"

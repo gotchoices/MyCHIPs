@@ -1,0 +1,137 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#     https://docs.fastlane.tools/plugins/available-plugins
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  desc "Build release APK"
+  lane :build_apk do
+    gradle(
+      task: "assembleRelease"
+    )
+  end
+
+  desc "Build app bundle for Play Store submission"
+  lane :build_app_bundle do
+    gradle(
+      task: "bundleRelease"
+    )
+    
+    # Get the AAB path
+    aab_path = lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH] || 
+               File.expand_path("../app/build/outputs/bundle/release/app-release.aab")
+    
+    # Check if AAB exists and display clear information
+    if File.exist?(aab_path)
+      UI.important("")
+      UI.important("📱 ANDROID APP BUNDLE CREATED SUCCESSFULLY 📱")
+      UI.important("------------------------------------------")
+      UI.important("AAB File: #{aab_path}")
+      UI.important("")
+      UI.important("Manual Upload Instructions:")
+      UI.important("1. Use Google Play Console: https://play.google.com/console/")
+      UI.important("2. Go to Your app > 'Production' (or desired track)")
+      UI.important("3. Create a new release and upload this bundle")
+      UI.important("------------------------------------------")
+    else
+      UI.error("Could not find AAB file at expected location: #{aab_path}")
+    end
+  end
+
+  desc "Deploy APK to mychips.org"
+  lane :deploy_to_mychips do
+    build_apk
+    
+    # Check if the environment variable exists
+    if ENV['MYCHIPS_ANDROID_APK_DEPLOY']
+      sh("scp ../app/build/outputs/apk/release/app-release.apk #{ENV['MYCHIPS_ANDROID_APK_DEPLOY']}")
+      UI.success("Successfully deployed APK to #{ENV['MYCHIPS_ANDROID_APK_DEPLOY']}")
+    else
+      UI.error("Environment variable MYCHIPS_ANDROID_APK_DEPLOY not set")
+      UI.error("Set this variable to the SCP destination for the APK")
+    end
+  end
+
+  desc "Deploy app bundle to Play Store open testing track"
+  lane :deploy_to_playstore_testing do
+    # Check if the API file is set
+    unless ENV["GOOGLE_PLAY_API_FILE"]
+      UI.error("GOOGLE_PLAY_API_FILE environment variable is not set")
+      UI.error("Please set it to the path of your Google Play API JSON key file")
+      next
+    end
+
+    # Check if the API file exists
+    unless File.exist?(ENV["GOOGLE_PLAY_API_FILE"])
+      UI.error("Google Play API key file not found at: #{ENV["GOOGLE_PLAY_API_FILE"]}")
+      UI.error("Please check the file path and ensure the file exists")
+      next
+    end
+    
+    # Build the app bundle
+    build_app_bundle
+    
+    # Upload to Play Store beta track
+    begin
+      upload_to_play_store(
+        track: 'beta',  # 'beta' is a standard track that often corresponds to Open Testing
+        release_status: 'completed',  # Automatically publishes the release without manual approval
+        aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+        skip_upload_apk: true,    # Explicitly skip APK upload since we're using AAB
+        skip_upload_metadata: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true
+      )
+      UI.success("Successfully uploaded to Play Store Open Testing track as draft release")
+    rescue => ex
+      UI.error("Failed to upload to Play Store: #{ex.message}")
+      UI.error("Please check your credentials and try again")
+    end
+  end
+
+  desc "Deploy app bundle to Play Store production"
+  lane :deploy_to_playstore do
+    # Check if the API file is set
+    unless ENV["GOOGLE_PLAY_API_FILE"]
+      UI.error("GOOGLE_PLAY_API_FILE environment variable is not set")
+      UI.error("Please set it to the path of your Google Play API JSON key file")
+      next
+    end
+
+    # Check if the API file exists
+    unless File.exist?(ENV["GOOGLE_PLAY_API_FILE"])
+      UI.error("Google Play API key file not found at: #{ENV["GOOGLE_PLAY_API_FILE"]}")
+      UI.error("Please check the file path and ensure the file exists")
+      next
+    end
+    
+    # Build the app bundle
+    build_app_bundle
+    
+    # Upload to Play Store production track
+    begin
+      upload_to_play_store(
+        track: 'production',
+        release_status: 'completed',  # Automatically publishes the release without manual approval
+        aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+        skip_upload_apk: true,    # Explicitly skip APK upload since we're using AAB
+        skip_upload_metadata: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true
+      )
+      UI.success("Successfully uploaded to Play Store Production track as draft release")
+    rescue => ex
+      UI.error("Failed to upload to Play Store: #{ex.message}")
+      UI.error("Please check your credentials and try again")
+    end
+  end
+end

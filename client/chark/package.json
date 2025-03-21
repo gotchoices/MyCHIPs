@@ -1,6 +1,6 @@
 {
   "name": "chark",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -11,11 +11,22 @@
     "develop": "bin/develop",
     "build": "bin/build",
     "test:android": "bin/test-e2e",
+    "linklaunch": "bin/linklaunch",
+
     "incbuild:ios": "RNV=ios react-native-version -A",
     "incbuild:android": "RNV=android react-native-version -A",
     "build:ios": "react-native bundle --entry-file='index.js' --bundle-output='./ios/main.jsbundle' --dev=false --platform='ios'",
     "build:ios:prod": "xcodebuild -workspace ios/chark.xcworkspace -scheme chark -configuration Release -sdk iphonesimulator -derivedDataPath ios/build",
-    "linklaunch": "bin/linklaunch"
+    
+    "build:android:apk": "cd android && fastlane build_apk",
+    "build:android:bundle": "cd android && fastlane build_app_bundle",
+    "deploy:android:mychips": "npm run incbuild:android && cd android && fastlane deploy_to_mychips",
+    "deploy:android:testing": "npm run incbuild:android && cd android && fastlane deploy_to_playstore_testing",
+    "deploy:android:release": "npm run incbuild:android && cd android && fastlane deploy_to_playstore",
+    
+    "build:ios:archive": "cd ios && fastlane build_archive",
+    "deploy:ios:testflight": "npm run incbuild:ios && cd ios && fastlane beta",
+    "deploy:ios:appstore": "npm run incbuild:ios && cd ios && fastlane release"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
