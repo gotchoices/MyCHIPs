@@ -238,14 +238,21 @@ const Navigator = () => {
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
 
+  // Separate useEffect specifically for user-related data fetching
   useEffect(() => {
-    dispatch(fetchAvatar({ wm, user_ent }));
-    dispatch(fetchPersonalAndCurrency({ wm, user_ent }));
+    if (user_ent && wm) {
+      dispatch(fetchAvatar({ wm, user_ent }));
+      dispatch(fetchPersonalAndCurrency({ wm, user_ent }));
+    }
+  }, [user, wm, dispatch]); // Using the full user object ensures proper dependency tracking
+  
+  // Keep the original useEffect for other initialization tasks
+  useEffect(() => {
     dispatch(getPreferredLanguage(wm));
     dispatch(getFilter());
-    dispatch(getTallyListFilter())
-    dispatch(hasNotification({ wm }))
-  }, [wm, dispatch, user_ent, fetchAvatar]);
+    dispatch(getTallyListFilter());
+    dispatch(hasNotification({ wm }));
+  }, [wm, dispatch]);
 
   const onDismissSignatureModal = () => {
     dispatch(setShowCreateSignatureModal(false))

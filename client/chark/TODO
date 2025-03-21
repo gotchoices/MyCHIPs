@@ -5,11 +5,13 @@ X-  Can build for IOS
 X-  Put latest version in both stores
 X-  IOS build not launching connection deep link (see detailed plan in deep-linking-issue.md)
 X- Review mapping of /invite, /pay to /ticket; why is this done?
-- Review bin/build; Can/should we automate distribution with fastlane?
+X- Review bin/build; Can/should we automate distribution with fastlane?
+X- Owner name not showing up for p1004
 - Find any language tags not yet implemented
 - Review how redux stores state
 - Evaluate use of wyseman/message module; make our own handling of lang tags?
-- If key sig fails, why don't we get an error back to the app (general err handling)
+- If key signature fails, why don't we get an error back to the app (general err handling)
+- Can we re-sign existing tallies (for debugging only)?
 - Test all deep link modes
 - Try to add setting for explicit CHIP conversion ratio
 - How is tally list maintained (in view or local cache of model)?

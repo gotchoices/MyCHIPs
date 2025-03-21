@@ -104,6 +104,8 @@ const SocketProvider = ({ children }) => {
         // Query user and set it on the global context
         query_user(wm).then((data) => {
           dispatch(setUser(data?.[0]));
+        }).catch(err => {
+          console.log('Error fetching user data:', err);
         })
 
         if(cb) {

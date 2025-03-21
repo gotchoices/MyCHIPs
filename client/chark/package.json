@@ -20,7 +20,7 @@
     
     "build:android:apk": "cd android && fastlane build_apk",
     "build:android:bundle": "cd android && fastlane build_app_bundle",
-    "deploy:android:mychips": "npm run incbuild:android && cd android && fastlane deploy_to_mychips",
+    "deploy:android:mychips": "cd android && fastlane deploy_to_mychips",
     "deploy:android:testing": "npm run incbuild:android && cd android && fastlane deploy_to_playstore_testing",
     "deploy:android:release": "npm run incbuild:android && cd android && fastlane deploy_to_playstore",
     
@@ -82,7 +82,7 @@
     "redux-persist": "^6.0.0",
     "uuid": "^9.0.1",
     "web-encoding": "^1.1.5",
-    "wyseman": "^1.1.10"
+    "wyseman": "^1.1.13"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
