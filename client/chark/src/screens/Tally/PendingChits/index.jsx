@@ -41,8 +41,10 @@ const PendingChits = (props) => {
   }
 
   useEffect(() => {
-    fetchChits();
-  }, [dispatch, getChits, wm, tally_uuid, chitTrigger])
+    if (wm && tally_uuid) {
+      fetchChits();
+    }
+  }, [dispatch, wm, tally_uuid, chitTrigger])
 
   const onBack = () => {
     props.navigation.navigate('Home')

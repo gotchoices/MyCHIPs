@@ -27,16 +27,18 @@ const Language = (props) => {
   const { preferredLanguage } = useSelector(state => state.profile);
 
   useEffect(() => {
-    wm.request(`language_ref_${random()}`, 'select', {
-      view: 'base.language_v',
-      fields: ['code', 'eng_name', 'tables'],
-      where: {
-        oper: 'notnull',
-        left: 'tables',
-      },
-    }, data => {
-      setLanguages(data ?? [])
-    })
+    if (wm) {
+      wm.request(`language_ref_${random()}`, 'select', {
+        view: 'base.language_v',
+        fields: ['code', 'eng_name', 'tables'],
+        where: {
+          oper: 'notnull',
+          left: 'tables',
+        },
+      }, data => {
+        setLanguages(data ?? [])
+      })
+    }
   }, [])
 
   useEffect(() => {
