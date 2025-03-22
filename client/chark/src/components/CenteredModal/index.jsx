@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: "92%",
-    height: "85%",
+    maxHeight: "85%", // Changed from fixed height to maxHeight
     paddingVertical: 20,
     backgroundColor: colors.white,
     borderRadius: 20,

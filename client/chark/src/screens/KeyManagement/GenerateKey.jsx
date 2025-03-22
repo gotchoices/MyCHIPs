@@ -114,11 +114,8 @@ const GenerateKey = (props) => {
           loading={false}
           onAccept={() => {
             setShowGenerateWarning(false);
-            if (privateKey) {
-              setPassphraseModal(true);
-            } else {
-              onAccept();
-            }
+            // Proceed directly to key generation without forcing export
+            onAccept();
           }}
           onCancel={onGenerateCancel}
           title={props?.text?.keywarn?.title ?? 'chark:keywarn:title'}

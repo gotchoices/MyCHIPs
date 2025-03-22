@@ -168,8 +168,8 @@ const ImportKey = props => {
 
   const onAccept = () => {
     setShowImportWarning(false);
-    // props.navigation.navigate('ImportKey')
-    setPassphraseModal(true);
+    // Proceed directly to import without forcing export
+    onImportKey();
   };
 
   return (

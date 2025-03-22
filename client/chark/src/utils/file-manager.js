@@ -18,13 +18,15 @@ const getDateTime = () => {
 // Android Support Only
 export const downloadJSONFile = (jsonString) => {
   return new Promise((resolve, reject) => {
-    const cachedPath = `${ReactNativeFS.CachesDirectoryPath}/key-${getDateTime()}.json`;
-    const downloadPath = `${ReactNativeFS.DownloadDirectoryPath}/key-${getDateTime()}.json`;
+    const timestamp = getDateTime();
+    const filename = `key-${timestamp}.json`;
+    const cachedPath = `${ReactNativeFS.CachesDirectoryPath}/${filename}`;
+    const downloadPath = `${ReactNativeFS.DownloadDirectoryPath}/${filename}`;
 
     ReactNativeFS.writeFile(cachedPath, jsonString, 'utf8')
       .then(() => ReactNativeFS.moveFile(cachedPath, downloadPath))
       .then(() => ReactNativeFS.scanFile(downloadPath))
-      .then((result) => resolve(result))
+      .then((result) => resolve({ ...result, filename })) // Include the filename in the result
       .catch(err => reject(err));
   });
 }
@@ -48,11 +50,13 @@ export const shareJSONFile = (jsonString) => {
 // Android Support Only
 export const downloadQRCode = (uri) => {
   return new Promise((resolve, reject) => {
+    const timestamp = getDateTime();
+    const filename = `key-${timestamp}.png`;
     const baseDownloadPath = ReactNativeFS.DownloadDirectoryPath;
-    const downloadPath = baseDownloadPath + `/key-${getDateTime()}.png`;
+    const downloadPath = baseDownloadPath + `/${filename}`;
     ReactNativeFS.moveFile(uri, downloadPath)
       .then(() => ReactNativeFS.scanFile(downloadPath))
-      .then((result) => resolve(result))
+      .then((result) => resolve({ ...result, filename }))
       .catch(err => {
         reject(err)
       });

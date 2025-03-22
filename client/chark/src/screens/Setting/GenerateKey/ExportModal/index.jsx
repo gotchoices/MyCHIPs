@@ -90,7 +90,7 @@ const ExportModal = (props) => {
       if (granted) {
         downloadJSONFile(encryptedData).then(result => {
           console.log("Saved File to: ", result);
-          Alert.alert('Success', 'Saved to downloads', [{ text: "Ok" }]);
+          Alert.alert('Success', `Saved ${result.filename} to downloads`, [{ text: "Ok" }]);
         }).catch(ex => {
           console.log("Exception Failed to Save; ", ex);
         })
@@ -106,7 +106,7 @@ const ExportModal = (props) => {
         viewShotRef.current.capture().then(uri => {
           downloadQRCode(uri).then(result => {
             console.log("Saved QR to: ", result);
-            Alert.alert('Success', 'QR-Code Saved to downloads', [{ text: "Ok" }]);
+            Alert.alert('Success', `QR-Code Saved as ${result.filename} to downloads`, [{ text: "Ok" }]);
           }).catch(ex => {
             console.log("Exception Failed to Save; ", ex);
           })
