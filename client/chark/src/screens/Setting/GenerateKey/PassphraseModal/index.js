@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Alert,
   StyleSheet,
@@ -23,15 +23,48 @@ const PassphraseModal = (props) => {
     undefined
   );
   const [errors, setErrors] = useState(new Set());
+  // Track if the button should be enabled
+  const [isButtonEnabled, setIsButtonEnabled] = useState(false);
 
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
+  
+  // Effect to check if the button should be enabled
+  useEffect(() => {
+    // For import_without action, only need one passphrase
+    if (props.action === 'import_without') {
+      setIsButtonEnabled(!!passphrase);
+    } 
+    // For export and other actions that need both fields
+    else {
+      // Both fields must be filled and match
+      setIsButtonEnabled(
+        !!passphrase && 
+        !!confirmPassphrase && 
+        passphrase === confirmPassphrase
+      );
+    }
+  }, [passphrase, confirmPassphrase, props.action]);
 
   const onExport = () => {
     try {
       Keyboard.dismiss();
       
-      // Check if both passphrase fields are filled
+      // For import_without action, only need one passphrase field and no confirmation
+      if (props.action === 'import_without') {
+        if (!passphrase) {
+          setErrors(prev => new Set(prev).add('passphrase'));
+          return;
+        }
+        
+        // For decryption, just pass the single passphrase
+        if (props.onPassphraseConfirmed) {
+          props.onPassphraseConfirmed(passphrase);
+          return;
+        }
+      }
+      
+      // Check if both passphrase fields are filled for regular cases
       if (passphrase && confirmPassphrase) {
         // Check if passphrases match
         if (passphrase !== confirmPassphrase) {
@@ -89,30 +122,38 @@ const PassphraseModal = (props) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        {props.title || (props.action === 'export' ? getLanguageText(charkText, 'export') : '')}
+        {props.title || 
+          (props.action === 'export' ? getLanguageText(charkText, 'export') :
+           props.action === 'import_without' ? getLanguageText(charkText, 'import', 'title') : '')}
       </Text>
 
       <Text style={styles.text}>
-        {props.subTitle || getLanguageText(charkText, 'keypass', 'help')}
+        {props.subTitle || 
+          (props.action === 'import_without' ? 
+            getLanguageText(charkText, 'import', 'help') : 
+            getLanguageText(charkText, 'keypass', 'help'))}
       </Text>
 
       <TextInput
         style={[styles.textInput, errors.has('passphrase') ? styles.errorInput : {}]}
-        placeholder="Enter Passphrase"
+        placeholder={props.action === 'import_without' ? "Enter Decryption Passphrase" : "Enter Passphrase"}
         value={passphrase}
         onChangeText={setPassphrase}
         onFocus={removeErrors}
         secureTextEntry={true}
       />
 
-      <TextInput
-        value={confirmPassphrase}
-        secureTextEntry={true}
-        style={[styles.textInput, errors.has('confirmPassphrase') ? styles.errorInput : {}]}
-        onChangeText={setConfirmPassphrase}
-        placeholder="Confirm Passphrase"
-        onFocus={removeErrors}
-      />
+      {/* Only show confirm passphrase field for non-import_without actions */}
+      {props.action !== 'import_without' && (
+        <TextInput
+          value={confirmPassphrase}
+          secureTextEntry={true}
+          style={[styles.textInput, errors.has('confirmPassphrase') ? styles.errorInput : {}]}
+          onChangeText={setConfirmPassphrase}
+          placeholder="Confirm Passphrase"
+          onFocus={removeErrors}
+        />
+      )}
 
       <View style={styles.row}>
         <Button
@@ -123,9 +164,15 @@ const PassphraseModal = (props) => {
         />
 
         <Button
-          style={{ width: "45%" }}
+          style={{ 
+            width: "45%", 
+            opacity: isButtonEnabled ? 1 : 0.5 
+          }}
+          disabled={!isButtonEnabled}
           onPress={onExport}
-          title={props?.buttonTitle || (props.action === 'export' ? getLanguageText(charkText, 'export') : 'Submit')}
+          title={props?.buttonTitle || 
+            (props.action === 'export' ? getLanguageText(charkText, 'export') : 
+             props.action === 'import_without' ? getLanguageText(charkText, 'import') : 'Submit')}
         />
       </View>
 

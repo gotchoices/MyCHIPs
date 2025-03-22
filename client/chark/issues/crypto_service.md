@@ -122,15 +122,23 @@ We've implemented a centralized crypto service approach to solve this problem:
    - [x] 2.3 Make key objects compatible with encrypt/decrypt operations
 
 3. **Phase 3: Testing**
-   - [ ] 3.1 Test key generation functionality
-   - [ ] 3.2 Test key import/export functionality
-   - [ ] 3.3 Test file sharing and QR code generation
-   - [ ] 3.4 Verify signing and verification work correctly
+   - [x] 3.1 Test key generation functionality
+   - [x] 3.2 Test key import/export functionality
+   - [x] 3.3 Test file sharing and QR code generation
+   - [x] 3.4 Verify signing and verification work correctly
 
-4. **Future Improvements (After Merge)**
-   - [x] 4.1 Update to standard 'buffer' package
-   - [ ] 4.2 Add more comprehensive error handling and logging
-   - [ ] 4.3 Consider TypeScript type definitions for crypto functions
+4. **UI Improvements (Extended Scope)**
+   - [x] 4.1 Simplify key generation flow by removing forced export step
+   - [x] 4.2 Simplify key import flow by removing forced export step
+   - [x] 4.3 Improve file export by showing filename in success message
+   - [x] 4.4 Make PassphraseModal more compact and adapt to its content
+   - [x] 4.5 Customize PassphraseModal based on context (single field for import, validation for export)
+   - [x] 4.6 Disable Export button until passphrases match
+
+5. **Future Improvements (After Merge)**
+   - [x] 5.1 Update to standard 'buffer' package
+   - [ ] 5.2 Add more comprehensive error handling and logging
+   - [ ] 5.3 Consider TypeScript type definitions for crypto functions
 
 ## Technical Implementation Details
 

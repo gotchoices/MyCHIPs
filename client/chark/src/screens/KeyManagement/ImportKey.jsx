@@ -10,6 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import CenteredModal from '../../components/CenteredModal';
 import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
 import ExportModal from '../Setting/GenerateKey/ExportModal';
+import {setPrivateKey, setPublicKey} from '../../redux/profileSlice';
 
 import DocumentPicker from 'react-native-document-picker';
 import {decryptJSON} from '../../utils/file-manager';
@@ -21,10 +22,13 @@ import {
 
 import {updatePublicKey} from '../../services/profile';
 import useSocket from '../../hooks/useSocket';
+import useMessageText from '../../hooks/useMessageText';
+import {getLanguageText} from '../../utils/language';
 
 import {promptBiometrics} from '../../services/biometrics';
 
 const ImportKey = props => {
+  const dispatch = useDispatch();
   const [showImportWarning, setShowImportWarning] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [passphraseModal, setPassphraseModal] = useState(false);
@@ -38,6 +42,8 @@ const ImportKey = props => {
 
   const {user} = useSelector(state => state.currentUser);
   const {wm} = useSocket();
+  const { messageText } = useMessageText();
+  const charkText = messageText?.chark?.msg;
 
   const user_ent = user?.curr_eid;
 
@@ -92,13 +98,21 @@ const ImportKey = props => {
 
   const readContent = async fileUri => {
     try {
-      const response = await fetch(fileUri);
-      const jsonData = await response.json();
+      // Import ReactNativeFS to read local files
+      const ReactNativeFS = require('react-native-fs');
+      
+      // Read the file content
+      const fileContent = await ReactNativeFS.readFile(fileUri, 'utf8');
+      
+      // Parse the content as JSON
+      const jsonData = JSON.parse(fileContent);
+      
       setShowKeyModal(false);
       setContent(JSON.stringify(jsonData));
       setPrevPassphraseModal(true);
     } catch (err) {
-      Alert.alert('Error', `Failed to select file ${err}`);
+      console.error('Error reading file:', err);
+      Alert.alert('Error', getLanguageText(charkText, 'fail', 'title'));
     }
   };
 
@@ -120,15 +134,9 @@ const ImportKey = props => {
   };
 
   const onUseKey = async () => {
-    const {keyStored, message} = await isKeyStored();
-    if (keyStored) {
-      Alert.alert('Generate Keys', message, [
-        {text: 'Cancel'},
-        {text: 'Proceed', onPress: storeKeys},
-      ]);
-    } else {
-      storeKeys();
-    }
+    // Skip the redundant warning and proceed directly to storing keys
+    // We've already shown a warning at the beginning of the import process
+    storeKeys();
   };
 
   const storeKeys = () => {
@@ -146,11 +154,15 @@ const ImportKey = props => {
         ]);
       })
       .then(() => {
-        Alert.alert('Success', 'Keys  saved successfully');
+        // Update Redux store with the new keys
+        dispatch(setPublicKey(newPublicKey));
+        dispatch(setPrivateKey(newPrivateKey));
+        
+        Alert.alert('Success', getLanguageText(charkText, 'success'));
       })
       .catch(ex => {
-        Alert.alert('Error', ex.message);
         console.log('EXCEPTION ==> ', ex);
+        Alert.alert('Error', getLanguageText(charkText, 'fail'));
       });
   };
 
@@ -168,8 +180,8 @@ const ImportKey = props => {
 
   const onAccept = () => {
     setShowImportWarning(false);
-    // Proceed directly to import without forcing export
-    onImportKey();
+    // Proceed directly to import without showing any passphrase modal for export
+    importKeys();
   };
 
   return (
@@ -245,7 +257,7 @@ const ImportKey = props => {
           cancel={() => {
             setPrevPassphraseModal(false);
           }}
-          buttonTitle={props?.text?.import?.button ?? 'chark:import:button'}
+          buttonTitle={getLanguageText(charkText, 'import')}
         />
       </CenteredModal>
     </>
