@@ -29,9 +29,15 @@ const ActiveKey = (props) => {
         </Text>
 
         <View style={styles.keySection}>
-          <Text style={styles.key}>
-            {publicKey}
-          </Text>
+          {publicKey ? (
+            <Text style={styles.key}>
+              {publicKey}
+            </Text>
+          ) : (
+            <Text style={styles.keyMissing}>
+              {props?.text?.nokey?.title ?? 'chark:nokey:title'}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -41,9 +47,15 @@ const ActiveKey = (props) => {
         </Text>
 
         <View style={styles.keySection}>
-          <Text style={styles.key}>
-            {privateKey}
-          </Text>
+          {privateKey ? (
+            <Text style={styles.key}>
+              {privateKey}
+            </Text>
+          ) : (
+            <Text style={styles.keyMissing}>
+              {props?.text?.nokey?.title ?? 'chark:nokey:title'}
+            </Text>
+          )}
         </View>
       </View>
     </>
@@ -69,6 +81,12 @@ const styles = StyleSheet.create({
     color: colors.black,
     fontSize: 12,
     lineHeight: 14,
+  },
+  keyMissing: {
+    color: colors.gray300,
+    fontSize: 12,
+    lineHeight: 14,
+    fontStyle: 'italic',
   }
 });
 

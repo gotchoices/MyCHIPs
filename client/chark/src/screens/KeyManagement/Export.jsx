@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Alert} from 'react-native';
 
 import Button from '../../components/Button';
 import CenteredModal from '../../components/CenteredModal';
@@ -36,32 +36,39 @@ const Export = props => {
     try {
       let key = privateKey;
       if (!key) {
-        priKey = await retrieveKey(keyServices.privateKey);
-        key = priKey.password;
-        dispatch(setPrivateKey(key));
+        try {
+          const priKey = await retrieveKey(keyServices.privateKey);
+          if (priKey && priKey.password) {
+            key = priKey.password;
+            dispatch(setPrivateKey(key));
+          }
+        } catch (err) {
+          console.log('Error retrieving private key:', err);
+        }
       }
+      
       if (!key) {
         Alert.alert('Export Key', 'Seems like you have no saved keys.');
+        return; // Don't continue if there are no keys
       }
 
       setPassphraseModal(true);
     } catch (err) {
-      alert(err);
+      Alert.alert('Error', err.toString());
     }
   };
 
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.exportText}>{props.exportText}</Text>
+        <Text style={styles.exportText}>{props?.text?.export?.title ?? 'chark:export:title'}</Text>
         <Text style={styles.exportDescription}>
-          Generating a new key can be a destructive action. Remember to save
-          your current active key by exporting it to a safe place.
+          {props?.text?.export?.help ?? 'chark:export:help'}
         </Text>
 
         <Button
           style={styles.exportBtn}
-          title={props.exportText}
+          title={props?.text?.export?.title ?? 'chark:export:title'}
           onPress={getKey}
         />
       </View>
@@ -86,6 +93,8 @@ const Export = props => {
         }}>
         <PassphraseModal
           action="export"
+          title={props?.text?.keypass?.title ?? 'chark:keypass:title'}
+          subTitle={props?.text?.keypass?.help ?? 'chark:keypass:help'}
           onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);

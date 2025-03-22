@@ -23,6 +23,8 @@ const KeyManagement = (props) => {
     biofail: charkText?.biofail,
     keybio: charkText?.keybio,
     keypass: charkText?.keypass,
+    keygen: charkText?.keygen,
+    success: charkText?.success,
   };
 
   useEffect(() => {

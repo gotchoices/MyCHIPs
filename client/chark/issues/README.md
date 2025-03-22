@@ -14,4 +14,5 @@ This directory contains documentation for various issues, enhancements, and impl
 - [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API
 
 ### Future (Priority Order)
+- [Language Text Tags](lang_text.md) - Standardize language text implementation and fill missing tags
 - [TypeScript Migration](ts_migrate.md) - Migrate codebase to TypeScript

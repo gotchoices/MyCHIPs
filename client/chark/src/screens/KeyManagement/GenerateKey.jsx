@@ -18,7 +18,7 @@ import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
 
 import {promptBiometrics} from '../../services/biometrics';
 
-const GenerateKey = () => {
+const GenerateKey = (props) => {
   const subtle = window.crypto.subtle;
   const dispatch = useDispatch();
 
@@ -38,7 +38,11 @@ const GenerateKey = () => {
   const user_ent = user?.curr_eid;
 
   const onGenerateClick = () => {
-    setShowGenerateWarning(true);
+    if (privateKey) {
+      setShowGenerateWarning(true);
+    } else {
+      onAccept();
+    }
   };
 
   const onGenerateCancel = () => {
@@ -93,15 +97,14 @@ const GenerateKey = () => {
   return (
     <>
       <View style={{marginTop: 30}}>
-        <Text style={styles.generate}>generate_text</Text>
+        <Text style={styles.generate}>{props?.text?.keygen?.title ?? 'chark:keygen:title'}</Text>
         <Text style={styles.description}>
-          Generating a new key can be a destructive action. Remember to save
-          your current active key by exporting it to a safe place.
+          {props?.text?.keygen?.help ?? 'chark:keygen:help'}
         </Text>
 
         <Button
           style={{marginTop: 16, width: '50%', height: 30}}
-          title="generate_text"
+          title={props?.text?.keygen?.title ?? 'chark:keygen:title'}
           onPress={onGenerateClick}
         />
       </View>
@@ -120,8 +123,8 @@ const GenerateKey = () => {
             }
           }}
           onCancel={onGenerateCancel}
-          title="Generating a new key is a destructive action"
-          description={`When you open a tally it is signed with a key and needs that key to operate.\n\nIt’s recommended to export and save your keys before you generate new ones.`}
+          title={props?.text?.keywarn?.title ?? 'chark:keywarn:title'}
+          description={props?.text?.keywarn?.help ?? 'chark:keywarn:help'}
         />
       </BottomSheetModal>
 
@@ -150,8 +153,8 @@ const GenerateKey = () => {
         }}>
         <PassphraseModal
           action="generate"
-          title="Please export your current key before generating a new one."
-          subTitle="Your key will be encrypted with a passphrase. Store your passphrase in a safe place. You will need it in order to use the exported key."
+          title={props?.text?.keypass?.title ?? 'chark:keypass:title'}
+          subTitle={props?.text?.keypass?.help ?? 'chark:keypass:help'}
           onPassphraseConfirmed={passphrase => {
             setPassphrase(passphrase);
             setPassphraseModal(false);
@@ -171,7 +174,7 @@ const GenerateKey = () => {
         isVisible={showSuccess}
         onClose={() => setShowSuccess(false)}>
         <SuccessContent
-          message="New key has been generated"
+          message={props?.text?.success?.title ?? "chark:success:title"}
           onDone={() => setShowSuccess(false)}
           onDismiss={() => setShowSuccess(false)}
         />

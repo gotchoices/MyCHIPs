@@ -27,17 +27,17 @@ const SigningKeyWarning = (props) => {
       
       <View style={styles.action}>
         <Button
-          title={charkText?.proceed?.title ?? ''}
-          textColor={colors.blue}
-          style={styles.acceptBtn}
-          onPress={props.onAccept}
+          title={charkText?.cancel?.title ?? ''}
+          disabled={props.loading}
+          style={styles.primaryBtn}
+          onPress={props.onCancel}
         />
 
         <Button
-          title={charkText?.cancel?.title ?? ''}
-          disabled={props.loading}
-          style={styles.cancelBtn}
-          onPress={props.onCancel}
+          title={charkText?.proceed?.title ?? ''}
+          style={styles.secondaryBtn}
+          textColor={colors.blue}
+          onPress={props.onAccept}
         />
       </View>
     </View>
@@ -81,15 +81,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center'
   },
-  acceptBtn: {
+  primaryBtn: {
     marginRight: 20,
     minWidth: 132,
-    backgroundColor: colors.white,
+    backgroundColor: colors.blue,
   },
-  cancelBtn: {
+  secondaryBtn: {
     marginLeft: 20,
     paddingHorizontal: 25,
     minWidth: 132,
+    backgroundColor: colors.white,
   },
 });
 
