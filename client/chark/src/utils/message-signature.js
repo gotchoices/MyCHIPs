@@ -1,11 +1,13 @@
 import { TextEncoder } from 'web-encoding';
-import { Buffer } from "buffer";
+import { Buffer } from "@craftzdog/react-native-buffer";
 
 import { retrieveKey } from "./keychain-store";
 import { keyServices, KeyConfig } from "../config/constants";
 import { KeyNotFoundError } from '../utils/Errors';
+import { getSubtle, importKey, sign } from '../services/crypto';
 
-const subtle = window.crypto.subtle;
+// Use the crypto service to get the subtle interface
+const subtle = getSubtle();
 
 function base64ToBase64url(base64) {
   return base64
@@ -14,22 +16,24 @@ function base64ToBase64url(base64) {
 }
 
 
-export const createSignature = async (message, ) => {
+export const createSignature = async (message) => {
   try {
     const encoder = new TextEncoder();
     const data = encoder.encode(message);
-    const creds = await retrieveKey(keyServices.privateKey)
+    const creds = await retrieveKey(keyServices.privateKey);
 
     if (creds) {
-      const pvtKey = await subtle.importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
-      const signature = await subtle.sign(KeyConfig, pvtKey, data)
-      const base64 = Buffer.from(signature).toString('base64')
-      return base64ToBase64url(base64)
+      // Use the crypto service for key import and signing
+      const pvtKey = await importKey('jwk', JSON.parse(creds.password), KeyConfig, true, ['sign']);
+      const signature = await sign(KeyConfig, pvtKey, data);
+      const base64 = Buffer.from(signature).toString('base64');
+      return base64ToBase64url(base64);
     } else {
-      throw new KeyNotFoundError('Create not found')
+      throw new KeyNotFoundError('Private key not found');
     }
   } catch (err) {
-    throw err
+    console.error('Error creating signature:', err);
+    throw err;
   }
 }
 
@@ -38,11 +42,17 @@ export const verifySignature = (signature, message, publicKey) => {
     try {
       const rawSignature = Buffer.from(signature, 'base64');
       const rawData = Buffer.from(message);
-      subtle.importKey('jwk', JSON.parse(publicKey), KeyConfig, true, ['verify'])
-        .then(key => subtle.verify(KeyConfig, key, rawSignature, rawData))
+      
+      // Use the crypto service for key import and verification
+      importKey('jwk', JSON.parse(publicKey), KeyConfig, true, ['verify'])
+        .then(key => getSubtle().verify(KeyConfig, key, rawSignature, rawData))
         .then(verified => resolve(verified))
-        .catch(ex => reject(ex));
+        .catch(ex => {
+          console.error('Error verifying signature:', ex);
+          reject(ex);
+        });
     } catch (ex) {
+      console.error('Exception in verifySignature:', ex);
       reject(ex);
     }
   });

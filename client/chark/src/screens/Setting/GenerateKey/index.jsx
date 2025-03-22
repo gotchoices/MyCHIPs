@@ -6,9 +6,9 @@ import PostGenerate from './PostGenerate';
 import Spinner from '../../../components/Spinner';
 
 import { KeyConfig } from '../../../config/constants';
+import { generateKeyPair, exportKey } from '../../../services/crypto';
 
 const GenerateKey = (props) => {
-  const subtle = window.crypto.subtle;
 
   const [generating, setGenerating] = useState(false);
   const [publicKey, setPublicKey] = useState(undefined);
@@ -18,13 +18,14 @@ const GenerateKey = (props) => {
   const generateECDSAKeys = async () => {
     try {
       setGenerating(true);
-      const keyPair = await subtle.generateKey(KeyConfig, true, ['sign', 'verify'])
+      // Use the crypto service to generate and export keys
+      const keyPair = await generateKeyPair(KeyConfig, ['sign', 'verify']);
 
       const currentKeyPair = { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
-      const pubKey = await subtle.exportKey('jwk', keyPair.publicKey);
+      const pubKey = await exportKey('jwk', keyPair.publicKey);
       setPublicKey(pubKey);
 
-      const priKey = await subtle.exportKey('jwk', currentKeyPair.privateKey);
+      const priKey = await exportKey('jwk', currentKeyPair.privateKey);
       setPrivateKey(priKey)
       setShowPostGenerateModal(true);
     } catch (err) {

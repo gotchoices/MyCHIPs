@@ -22,6 +22,7 @@ import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
 import { colors } from "../../../../config/constants";
 import useMessageText from '../../../../hooks/useMessageText';
+import { getLanguageText } from "../../../../utils/language";
 
 const CustomButton = (props) => {
   const onPress =() => {
@@ -48,17 +49,29 @@ const ExportModal = (props) => {
   const charkText = messageText?.chark?.msg;
 
   useEffect(() => {
-    encryptJSON(props.privateKey, passphrase).then(result => {
+    // Add defensive checks for the private key
+    if (!props.privateKey) {
+      Alert.alert("Error", "No private key available to export");
+      props.cancel?.();
+      return;
+    }
+    
+    // Make sure passphrase is a string
+    const safePassphrase = passphrase || "";
+    
+    encryptJSON(props.privateKey, safePassphrase).then(result => {
       if (result.success) {
-        console.log("Final Data ==> ", result.data);
         setEncryptedData(result.data);
       } else {
-        Alert.alert("Error", result.error);
+        Alert.alert("Error", result.error || "Failed to encrypt key");
+        props.cancel?.();
       }
     }).catch(ex => {
-      Alert.alert("Error", ex);
+      console.error("Encryption error:", ex);
+      Alert.alert("Error", ex.toString());
+      props.cancel?.();
     })
-  }, [props.privateKey])
+  }, [props.privateKey, passphrase])
 
   const permissionResult = async () => {
     let granted = false;
@@ -129,12 +142,15 @@ const ExportModal = (props) => {
     }
   }
 
-  const shareQRText = (charkText?.share?.title ?? '') + ' ' +(charkText?.qr?.title ?? '');
+  // Use the standardized function to get text with fallback
+  const shareTitle = getLanguageText(charkText, 'share');
+  const qrTitle = getLanguageText(charkText, 'qr');
+  const shareQRText = shareTitle + ' ' + qrTitle;
 
   if (!encryptedData) {
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <ActivityIndicator style={{ marginBottom: 24 }} />
-      <Button onPress={props.cancel} title={charkText?.cancel?.title ?? ''} />
+      <Button onPress={props.cancel} title={getLanguageText(charkText, 'cancel')} />
     </View>
   }
 
@@ -186,8 +202,8 @@ const ExportModal = (props) => {
         <TouchableWithoutFeedback onPress={onKeyAction}>
           <View style={styles.secondaryButton}>
             <Text style={styles.title}>
-              {props.action === 'import' && (charkText?.import?.title ?? '')}
-              {props.action === 'generate' && 'Generate_Key'}
+              {props.action === 'import' && getLanguageText(charkText, 'import')}
+              {props.action === 'generate' && getLanguageText(charkText, 'keygen')}
             </Text>
             <Text style={[styles.title, { fontSize: 10 }]}>
               Your active keys will be lost
@@ -199,7 +215,7 @@ const ExportModal = (props) => {
       <View style={[styles.row, { marginTop: 15 }]}>
         <CustomButton
           onPress={props.cancel}
-          title={charkText?.cancel?.title ?? ''}
+          title={getLanguageText(charkText, 'cancel')}
         />
       </View>
 

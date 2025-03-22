@@ -17,9 +17,9 @@ import SuccessContent from '../../components/SuccessContent';
 import PassphraseModal from '../Setting/GenerateKey/PassphraseModal';
 
 import {promptBiometrics} from '../../services/biometrics';
+import {generateKeyPair, exportKey} from '../../services/crypto';
 
 const GenerateKey = (props) => {
-  const subtle = window.crypto.subtle;
   const dispatch = useDispatch();
 
   const {wm} = useSocket();
@@ -62,13 +62,11 @@ const GenerateKey = (props) => {
   const generateKey = async () => {
     try {
       setGenerating(true);
-      const keyPair = await subtle.generateKey(KeyConfig, true, [
-        'sign',
-        'verify',
-      ]);
-
-      const publicKey = await subtle.exportKey('jwk', keyPair.publicKey);
-      const privateKey = await subtle.exportKey('jwk', keyPair.privateKey);
+      
+      // Use the crypto service to generate and export keys
+      const keyPair = await generateKeyPair(KeyConfig, ['sign', 'verify']);
+      const publicKey = await exportKey('jwk', keyPair.publicKey);
+      const privateKey = await exportKey('jwk', keyPair.privateKey);
 
       await updatePublicKey(wm, {
         public_key: publicKey,

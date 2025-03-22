@@ -8,9 +8,9 @@ import QuickCrypto from 'react-native-quick-crypto';
 import { Buffer } from '@craftzdog/react-native-buffer';
 import notifee from '@notifee/react-native';
 
-// Initialize Buffer and QuickCrypto globals
-global.Buffer = Buffer;
-QuickCrypto.install();
+// Initialize crypto service (which handles Buffer and QuickCrypto initialization)
+import { initCryptoService } from './src/services/crypto';
+initCryptoService();
 import qs from 'query-string';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react'

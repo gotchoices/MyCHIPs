@@ -16,6 +16,7 @@ import {
 } from "../../../../utils/keychain-store";
 import { updatePublicKey } from "../../../../services/profile";
 import { KeyConfig } from "../../../../config/constants";
+import { generateKeyPair, exportKey } from '../../../../services/crypto';
 
 export const GenerateKeysDialog = ({
   visible,
@@ -23,7 +24,6 @@ export const GenerateKeysDialog = ({
   onKeySaved,
   onError,
 }) => {
-  const subtle = window.crypto.subtle;
   const { wm } = useSocket();
   const { user } = useSelector((state) => state.currentUser);
   const user_ent = user?.curr_eid;
@@ -58,19 +58,17 @@ export const GenerateKeysDialog = ({
   useEffect(() => {
     async function generateKeys() {
       try {
-        const keyPair = await subtle.generateKey(KeyConfig, true, [
-          "sign",
-          "verify",
-        ]);
+        // Use the crypto service to generate and export keys
+        const keyPair = await generateKeyPair(KeyConfig, ["sign", "verify"]);
         const currentKeyPair = {
           publicKey: keyPair.publicKey,
           privateKey: keyPair.privateKey,
         };
-        const pubKey = await subtle.exportKey(
+        const pubKey = await exportKey(
           "jwk",
           keyPair.publicKey
         );
-        const priKey = await subtle.exportKey(
+        const priKey = await exportKey(
           "jwk",
           currentKeyPair.privateKey
         );

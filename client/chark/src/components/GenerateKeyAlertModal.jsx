@@ -17,6 +17,7 @@ import Button from "./Button";
 import { colors, KeyConfig } from "../config/constants";
 import { WarningIcon } from "./SvgAssets/SvgAssets";
 import useMessageText from '../hooks/useMessageText';
+import { generateKeyPair, exportKey } from '../services/crypto';
 
 export const GenerateKeysAlertModal = ({
   visible,
@@ -24,7 +25,6 @@ export const GenerateKeysAlertModal = ({
   onKeySaved,
   onError,
 }) => {
-  const subtle = window.crypto.subtle;
   const { wm } = useSocket();
   const { user } = useSelector((state) => state.currentUser);
   const user_ent = user?.curr_eid;
@@ -65,16 +65,14 @@ export const GenerateKeysAlertModal = ({
     setIsRequesting(true);
     
     try {
-      const keyPair = await subtle.generateKey(KeyConfig, true, [
-        "sign",
-        "verify",
-      ]);
+      // Use the crypto service to generate and export keys
+      const keyPair = await generateKeyPair(KeyConfig, ["sign", "verify"]);
       const currentKeyPair = {
         publicKey: keyPair.publicKey,
         privateKey: keyPair.privateKey,
       };
-      const pubKey = await subtle.exportKey("jwk", keyPair.publicKey);
-      const priKey = await subtle.exportKey(
+      const pubKey = await exportKey("jwk", keyPair.publicKey);
+      const priKey = await exportKey(
         "jwk",
         currentKeyPair.privateKey
       );
