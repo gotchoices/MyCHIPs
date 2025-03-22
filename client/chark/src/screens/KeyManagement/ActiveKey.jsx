@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 
+import EyeIcon from '../../../assets/svg/eye_icon.svg';
 import { colors, keyServices } from '../../config/constants';
 import { retrieveKey } from '../../utils/keychain-store';
 import { setPrivateKey, setPublicKey } from '../../redux/profileSlice';
@@ -10,6 +11,7 @@ import { setPrivateKey, setPublicKey } from '../../redux/profileSlice';
 const ActiveKey = (props) => {
   const dispatch = useDispatch();
   const { publicKey, privateKey } = useSelector(state => state.profile);
+  const [showPrivateKey, setShowPrivateKey] = useState(false);
 
   useEffect(() => {
     retrieveKey(keyServices.publicKey).then((key) => {
@@ -20,6 +22,10 @@ const ActiveKey = (props) => {
       dispatch(setPrivateKey(key.password))
     })
   }, [setPrivateKey, setPublicKey])
+  
+  const togglePrivateKeyVisibility = () => {
+    setShowPrivateKey(!showPrivateKey);
+  }
 
   return (
     <>
@@ -42,33 +48,49 @@ const ActiveKey = (props) => {
       </View>
 
       <View style={{ marginTop: 30 }}>
-        <Text style={styles.headerText}>
-          {props?.text?.private?.title ?? ''}
-        </Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerText}>
+            {props?.text?.private?.title ?? ''}
+          </Text>
+          {privateKey && (
+            <TouchableOpacity onPress={togglePrivateKeyVisibility}>
+              <EyeIcon width={18} height={18} />
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <View style={styles.keySection}>
-          {privateKey ? (
+        {showPrivateKey && privateKey ? (
+          <View style={styles.keySection}>
             <Text style={styles.key}>
               {privateKey}
             </Text>
-          ) : (
-            <Text style={styles.keyMissing}>
-              {props?.text?.nokey?.title ?? 'chark:nokey:title'}
-            </Text>
-          )}
-        </View>
+          </View>
+        ) : (
+          privateKey ? null : (
+            <View style={styles.keySection}>
+              <Text style={styles.keyMissing}>
+                {props?.text?.nokey?.title ?? 'chark:nokey:title'}
+              </Text>
+            </View>
+          )
+        )}
       </View>
     </>
   )
 }
 
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   headerText: {
     fontFamily: 'inter',
     fontWeight: '500',
     fontSize: 12,
     color: colors.gray300,
-    marginBottom: 8,
+    marginRight: 8,
   },
   keySection: {
     borderColor: colors.gray,
