@@ -7,20 +7,28 @@ X-  IOS build not launching connection deep link (see detailed plan in deep-link
 X- Review mapping of /invite, /pay to /ticket; why is this done?
 X- Review bin/build; Can/should we automate distribution with fastlane?
 X- Owner name not showing up for p1004
-- Find any language tags not yet implemented
-- Review how redux stores state
-- Evaluate use of wyseman/message module; make our own handling of lang tags?
-- If key signature fails, why don't we get an error back to the app (general err handling)
-- Can we re-sign existing tallies (for debugging only)?
-- Test all deep link modes
-- Try to add setting for explicit CHIP conversion ratio
+X- Find language tags for key management screens
+- Language tags
+  - Review/refine issues/lang_text.md
+  - Normalize language tag use across app
+  - Do we need the list of languages in utils/language.js?
+  - Review how redux stores state
+  - Evaluate use of wyseman/message module; make our own handling of lang tags?
+  - Should wyseman be caching regular queries or only data dictionary stuff?
+- Context help buttons not showing correctly
+- Profile, personal data screen not working.  Why?
+- Signatures
+  - Can I sign tallies/chits using the new crypto library?
+  - If key signature fails, why don't we get an error back to the app (general err handling)
+  - Can we re-sign existing tallies (for debugging only)?
+- Test all deep link modes (connect, pay, key import)
+- Try to add setting for custom, explicit CHIP conversion ratio
 - How is tally list maintained (in view or local cache of model)?
 - Generalize wyseman to handle sync or async localstorage
-- Should wyseman be caching regular queries or only data dictionary stuff?
 - Can a request() invoke the callback more than once
 - Should a request return a promise if no callback is given?
 - Lazy connection to backend
-- Why do we lose our connection key?
+- Why do we lose our connection key sometimes?
 - Should upgrade to RN 0.78 (or later)?
 - Do we still use the 'mychips://' deep link prefix for anything?
 - 
