@@ -3,6 +3,7 @@ import * as Keychain from 'react-native-keychain';
 import notifee, { AndroidImportance } from '@notifee/react-native'
 import { Linking } from 'react-native'
 import { useDispatch } from 'react-redux';
+import { getSubtle } from '../services/crypto';
 
 const wm = require('../wyseman')
 import Connect, { headers } from '../connect';
@@ -44,9 +45,9 @@ const SocketProvider = ({ children }) => {
   const credConnect = (creds, cb = null) => {
     const user = `mu_${creds.user}`;
     let address = `${creds.host}:${creds.port}`
-
+    
     const connect = new Connect({
-      webcrypto: global.crypto || window?.crypto,
+      webcrypto: { subtle: getSubtle() },
       listen: [user],
       wm,
     })

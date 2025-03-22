@@ -110,16 +110,16 @@ We've implemented a centralized crypto service approach to solve this problem:
 ### 🔲 Pending Items (Prioritized Checklist)
 
 1. **Phase 1: Complete Direct References Cleanup**
-   - [ ] 1.1 Add `getRandomValues` function to crypto.js service
-   - [ ] 1.2 Update file-manager.js to use crypto.getRandomValues instead of direct calls
-   - [ ] 1.3 Update crypto.js to use its own getRandomValues function
-   - [ ] 1.4 Update SocketProvider.jsx to use crypto service
-   - [ ] 1.5 Clean up message-signature.js to fully use the service pattern
+   - [x] 1.1 Add `getRandomValues` function to crypto.js service
+   - [x] 1.2 Update file-manager.js to use crypto.getRandomValues instead of direct calls
+   - [x] 1.3 Update crypto.js to use its own getRandomValues function
+   - [x] 1.4 Update SocketProvider.jsx to use crypto service
+   - [x] 1.5 Clean up message-signature.js to fully use the service pattern
 
 2. **Phase 2: Implement Custom deriveKey Function**
-   - [ ] 2.1 Create a custom implementation of deriveKey using QuickCrypto's pbkdf2
-   - [ ] 2.2 Ensure the interface matches the current usage (returns [key, salt])
-   - [ ] 2.3 Make key objects compatible with encrypt/decrypt operations
+   - [x] 2.1 Create a custom implementation of deriveKey using QuickCrypto's pbkdf2
+   - [x] 2.2 Ensure the interface matches the current usage (returns [key, salt])
+   - [x] 2.3 Make key objects compatible with encrypt/decrypt operations
 
 3. **Phase 3: Testing**
    - [ ] 3.1 Test key generation functionality
@@ -128,7 +128,7 @@ We've implemented a centralized crypto service approach to solve this problem:
    - [ ] 3.4 Verify signing and verification work correctly
 
 4. **Future Improvements (After Merge)**
-   - [ ] 4.1 Update to standard 'buffer' package
+   - [x] 4.1 Update to standard 'buffer' package
    - [ ] 4.2 Add more comprehensive error handling and logging
    - [ ] 4.3 Consider TypeScript type definitions for crypto functions
 

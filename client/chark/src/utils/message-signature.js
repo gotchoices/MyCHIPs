@@ -1,13 +1,10 @@
 import { TextEncoder } from 'web-encoding';
-import { Buffer } from "@craftzdog/react-native-buffer";
+import { Buffer } from "buffer";
 
 import { retrieveKey } from "./keychain-store";
 import { keyServices, KeyConfig } from "../config/constants";
 import { KeyNotFoundError } from '../utils/Errors';
-import { getSubtle, importKey, sign } from '../services/crypto';
-
-// Use the crypto service to get the subtle interface
-const subtle = getSubtle();
+import { importKey, sign, getSubtle } from '../services/crypto';
 
 function base64ToBase64url(base64) {
   return base64
@@ -45,7 +42,11 @@ export const verifySignature = (signature, message, publicKey) => {
       
       // Use the crypto service for key import and verification
       importKey('jwk', JSON.parse(publicKey), KeyConfig, true, ['verify'])
-        .then(key => getSubtle().verify(KeyConfig, key, rawSignature, rawData))
+        .then(key => {
+          // Get subtle from the service and use it to verify
+          const subtle = getSubtle();
+          return subtle.verify(KeyConfig, key, rawSignature, rawData);
+        })
         .then(verified => resolve(verified))
         .catch(ex => {
           console.error('Error verifying signature:', ex);

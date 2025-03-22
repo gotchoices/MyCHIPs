@@ -3,7 +3,7 @@
  * Provides access to cryptographic functionality using QuickCrypto
  */
 import QuickCrypto from 'react-native-quick-crypto';
-import { Buffer } from '@craftzdog/react-native-buffer';
+import { Buffer } from 'buffer';
 import 'react-native-get-random-values';
 
 // Ensure the crypto service is initialized
@@ -50,6 +50,21 @@ export const getSubtle = () => {
 };
 
 /**
+ * Generate random values (replacement for crypto.getRandomValues)
+ * @param {TypedArray} array - The array to fill with random values
+ * @returns {TypedArray} - The array filled with random values
+ */
+export const getRandomValues = (array) => {
+  // Make sure the service is initialized
+  if (!isInitialized) {
+    initCryptoService();
+  }
+  
+  // Use QuickCrypto's getRandomValues function
+  return QuickCrypto.getRandomValues(array);
+};
+
+/**
  * Generate a random key pair for signing
  * @param {Object} config - Key configuration
  * @param {Array} usage - Key usage array (e.g., ['sign', 'verify'])
@@ -93,28 +108,33 @@ export const importKey = async (format, key, algorithm, extractable, usage) => {
  */
 export const deriveKey = async (password, salt) => {
   try {
-    const subtle = getSubtle();
-    
     // Generate a random salt if not provided
-    const useSalt = salt || crypto.getRandomValues(new Uint8Array(8));
+    const useSalt = salt || getRandomValues(new Uint8Array(8));
     
-    // Import the password as a key
-    const importedKey = await subtle.importKey(
-      "raw", 
-      Buffer.from(password), 
-      { name: "PBKDF2" }, 
-      false, 
-      ["deriveKey"]
+    // Use QuickCrypto's pbkdf2Sync to derive key material
+    const keyMaterial = QuickCrypto.pbkdf2Sync(
+      Buffer.from(password),
+      useSalt,
+      10000,
+      32, // 256 bits
+      'sha256'
     );
     
-    // Derive the key
-    const key = await subtle.deriveKey(
-      { name: "PBKDF2", salt: useSalt, iterations: 10000, hash: "SHA-256" },
-      importedKey,
-      { name: 'AES-GCM', length: 256 },
-      true,
-      ["encrypt", "decrypt"],
-    );
+    // Create a CryptoKey-compatible object that works with encrypt/decrypt
+    const key = {
+      type: 'secret',
+      algorithm: { name: 'AES-GCM', length: 256 },
+      extractable: true,
+      usages: ['encrypt', 'decrypt'],
+      
+      // Store key material for use in encrypt/decrypt
+      _keyMaterial: keyMaterial,
+      
+      // Custom toString to help with debugging
+      toString: function() {
+        return '[object CryptoKey]';
+      }
+    };
     
     return [key, useSalt];
   } catch (error) {
@@ -132,22 +152,47 @@ export const deriveKey = async (password, salt) => {
  */
 export const encrypt = async (data, key, iv) => {
   try {
-    const subtle = getSubtle();
-    
-    // Generate a random IV if not provided
-    const useIv = iv || crypto.getRandomValues(new Uint8Array(12));
-    
-    // Convert string data to buffer if needed
-    const dataBuffer = typeof data === 'string' ? Buffer.from(data) : data;
-    
-    // Encrypt the data
-    const ciphertext = await subtle.encrypt(
-      { name: "AES-GCM", iv: useIv },
-      key,
-      dataBuffer
-    );
-    
-    return { ciphertext, iv: useIv };
+    // Check if this is our custom key or a WebCrypto key
+    if (key._keyMaterial) {
+      // This is our custom key, use QuickCrypto directly
+      
+      // Generate a random IV if not provided
+      const useIv = iv || getRandomValues(new Uint8Array(12));
+      
+      // Convert string data to buffer if needed
+      const dataBuffer = typeof data === 'string' ? Buffer.from(data) : data;
+      
+      // Use QuickCrypto's createCipheriv for encryption
+      const cipher = QuickCrypto.createCipheriv('aes-256-gcm', key._keyMaterial, useIv);
+      let encrypted = cipher.update(dataBuffer);
+      encrypted = Buffer.concat([encrypted, cipher.final()]);
+      
+      // Get the authentication tag
+      const authTag = cipher.getAuthTag();
+      
+      // Combine the encrypted data and authentication tag
+      const ciphertext = Buffer.concat([encrypted, authTag]);
+      
+      return { ciphertext, iv: useIv };
+    } else {
+      // This is a WebCrypto key, use the subtle interface
+      const subtle = getSubtle();
+      
+      // Generate a random IV if not provided
+      const useIv = iv || getRandomValues(new Uint8Array(12));
+      
+      // Convert string data to buffer if needed
+      const dataBuffer = typeof data === 'string' ? Buffer.from(data) : data;
+      
+      // Encrypt the data
+      const ciphertext = await subtle.encrypt(
+        { name: "AES-GCM", iv: useIv },
+        key,
+        dataBuffer
+      );
+      
+      return { ciphertext, iv: useIv };
+    }
   } catch (error) {
     console.error('Error encrypting data:', error);
     throw error;
@@ -163,14 +208,37 @@ export const encrypt = async (data, key, iv) => {
  */
 export const decrypt = async (ciphertext, key, iv) => {
   try {
-    const subtle = getSubtle();
-    
-    // Decrypt the data
-    return subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext
-    );
+    // Check if this is our custom key or a WebCrypto key
+    if (key._keyMaterial) {
+      // This is our custom key, use QuickCrypto directly
+      
+      // Convert ciphertext to Buffer if needed
+      const ciphertextBuffer = Buffer.isBuffer(ciphertext) ? ciphertext : Buffer.from(ciphertext);
+      
+      // AES-GCM uses the last 16 bytes as the authentication tag
+      const authTagLength = 16;
+      const encrypted = ciphertextBuffer.slice(0, ciphertextBuffer.length - authTagLength);
+      const authTag = ciphertextBuffer.slice(ciphertextBuffer.length - authTagLength);
+      
+      // Use QuickCrypto's createDecipheriv for decryption
+      const decipher = QuickCrypto.createDecipheriv('aes-256-gcm', key._keyMaterial, iv);
+      decipher.setAuthTag(authTag);
+      
+      let decrypted = decipher.update(encrypted);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      
+      return decrypted;
+    } else {
+      // This is a WebCrypto key, use the subtle interface
+      const subtle = getSubtle();
+      
+      // Decrypt the data
+      return subtle.decrypt(
+        { name: "AES-GCM", iv },
+        key,
+        ciphertext
+      );
+    }
   } catch (error) {
     console.error('Error decrypting data:', error);
     throw error;
