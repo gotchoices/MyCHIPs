@@ -393,7 +393,8 @@ The associated data formats are as follows:
 ```
 
 - *Connection Key(s):* For backup/restore and sharing to another device  
-  JSON (unencrypted, not recommended):
+  Unencrypted (not recommended):  
+  JSON
 ```
   {conkey: {
     kty: "EC",				//Example data
@@ -402,7 +403,10 @@ The associated data formats are as follows:
     y: "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"
   }}
 ```
-  JSON (encrypted):
+  Encrypted (standard):
+  LINK: 'https://mychips.org/signkey?s=...,i=...,d=...'
+  LINK: 'https://mychips.org/signkey?base64EncodedJSON'  
+  JSON:
 ```
   {conkey: {
     s: SALT,
@@ -412,16 +416,20 @@ The associated data formats are as follows:
 ```
 
 - *Signing Key(s):* For backup/restore and sharing to another device  
-  JSON (unencrypted, not recommended):
+  Unencrypted (not recommended):  
+  JSON
 ```
   {signkey: {
-    // jwk key data properties as above //
+    // jwk key data properties same as shown for conkey //
   }}
 ```
+  Encrypted (standard):
+  LINK: 'https://mychips.org/signkey?s=...,i=...,d=...'
+  LINK: 'https://mychips.org/signkey?base64EncodedJSON'  
   JSON (encrypted):
 ```
   {signkey: {
-    // Encrypted key properties as above //
+    // Encrypted key data properties same as shown for conkey //
   }}
 ```
 
