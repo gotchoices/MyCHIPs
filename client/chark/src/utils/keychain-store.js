@@ -5,23 +5,25 @@ import DeviceInfo from 'react-native-device-info';
 
 const rnBiometrics = new ReactNativeBiometrics()
 const isBiometricsAvailable = () => {
+  // Always bypass biometrics on emulators/simulators for both Android and iOS
+  if (DeviceInfo.isEmulator()) {
+    console.log('Running on emulator/simulator - bypassing biometrics check');
+    return Promise.resolve({ success: true });
+  }
+  
   return rnBiometrics.isSensorAvailable()
     .then((result) => {
       const { available, biometryType, error } = result;
+      
       if (available) {
+        // Sensor is available and can be used
         return { success: true };
-        // return rnBiometrics.simplePrompt({
-        //   promptMessage: 'Confirm biometrics to store keys'
-        // });
       } else if (error === 'BIOMETRIC_ERROR_NONE_ENROLLED') {
-
-        if(DeviceInfo.isEmulator()) { 
-        return { success: true }
-        }
-
-        throw new Error('Biometrics not enrolled')
+        // User hasn't enrolled biometrics on their device
+        throw new Error('Biometrics not enrolled');
       } else {
-        throw new Error('Biometrics not supported')
+        // Hardware doesn't support biometrics or other error
+        throw new Error('Biometrics not supported');
       }
     })
 }
@@ -40,7 +42,8 @@ export const storePrivateKey = (key) => {
           service: keyServices.privateKey,
         }
 
-        if(!DeviceInfo.isEmulator()) {
+        if (!DeviceInfo.isEmulator()) {
+          // Only apply biometric security options on real devices
           const _options = {
             accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE, // all 
             accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, // ios
@@ -53,10 +56,18 @@ export const storePrivateKey = (key) => {
             ...options,
             ..._options,
           }
+        } else {
+          console.log('Using simplified keychain options for emulator/simulator');
         }
+        
         return Keychain.setGenericPassword('private_key', key, options);
+      } else if (error) {
+        console.log('Biometrics error:', error);
+        // Return a rejected promise with the error
+        return Promise.reject(error);
       } else {
-        console.log('err', error)
+        console.log('Unexpected biometrics result:', result);
+        return Promise.reject(new Error('Biometrics check failed'));
       }
     })
 };
