@@ -5,7 +5,7 @@ define(GETAPP,`<div class="content_section_text">
         or
         <a href="https://testflight.apple.com/join/5IP35ipV">iPhone.</a>
       <p>
-        And then try again using the same link that got you here.
+        And then try using the same link again.
       </div>')
 
 define(LINK_BLOCK, `

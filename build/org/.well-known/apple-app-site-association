@@ -7,12 +7,10 @@
           "85C4SM5Q7S.org.mychips.mychips"
         ],
         "components": [
-          {
-            "/": "/ticket/*"
-          },
-          {
-            "/": "/invite/*"
-          }
+          {"/": "/ticket/*"},
+          {"/": "/invite/*"},
+          {"/": "/pay/*"},
+          {"/": "/signkey/*"}
         ]
       }
     ]

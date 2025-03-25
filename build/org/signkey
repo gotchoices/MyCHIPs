@@ -37,14 +37,13 @@
     <div class="container position-relative">
       <div class="row justify-content-center">
         <div class="mb-20 col-xl-7 col-lg-9 text-center" style='margin-bottom:20px'>
-          <h1>Almost There!</h1>
+          <h1>Not Quite Ready!</h1>
           <h2></h2>
         </div>
       </div>
       <div class="content_section_text">
-        Did you click a link hoping to get connected to your CHIP service provider?
+        Looks like you are trying to install your signing key in MyCHIPs but it seems the app is not installed.
       <p>
-        You will need to install the app on your mobile device first!
       </div>
       <div class="content_section_text">
         Download the app for your mobile device here:
@@ -55,7 +54,10 @@
         And then try using the same link again.
       </div>
       <div class="content_section_text">
-        With the app correctly installed and configured on your device, that link should launch the app and connect you to your provider server.
+      <p>
+        If you are having trouble, it might help to un-install and re-install the app.
+        Also, make sure your app is properly connected to your service provider (green dot in the upper right).
+        With the app correctly installed and configured on your device, the link should launch the app and attempt to install your signing key.
       </div>
     </div>
   </section>
