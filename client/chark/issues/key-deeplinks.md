@@ -253,6 +253,93 @@ The UI design uses minimal text and leverages existing icons for actions:
 - `/src/screens/Scanner/index.jsx` - QR code handling
 - `/src/screens/Home/index.jsx` - Deep link handling
 
+### Current Code Implementation
+
+1. **ImportKey Component**:
+   ```javascript
+   // Main changes to ImportKey component:
+   const ImportKey = props => {
+     // Using refs to track deep link processing state
+     const isProcessingDeepLink = useRef(false);
+     const processedUrls = useRef(new Set());
+     
+     // UI state and key data state separated
+     const [uiState, setUiState] = useState({...});
+     const [keyData, setKeyData] = useState({...});
+     
+     // Process URLs on component mount
+     useEffect(() => {
+       // Process signkey URL if available and not already processed
+       const signkeyUrl = props.signkeyUrl || props.route?.params?.signkeyUrl;
+       if (signkeyUrl && !processedUrls.current.has(signkeyUrl)) {
+         processedUrls.current.add(signkeyUrl);
+         isProcessingDeepLink.current = true;
+         // Handle URL...
+       }
+       
+       // Clean up refs on unmount
+       return () => {
+         isProcessingDeepLink.current = false;
+         processedUrls.current.clear();
+       };
+     }, []);
+     
+     // Extract data from URL
+     const extractKeyDataFromUrl = (url) => {
+       // Parse URL parameters (s, i, d)
+       // Return formatted JSON
+     };
+     
+     // Store keys securely
+     const storeKeys = async () => {
+       // Update backend
+       // Store in secure storage
+       // Update Redux state
+       // Reset component state
+     };
+   };
+   ```
+
+2. **Scanner Component**:
+   ```javascript
+   // Deep link handling in Scanner:
+   else if (qrCode.startsWith(signkeyLink)) {
+     // Currently missing UUID that other link types use
+     props.navigation.navigate('Settings', {
+       screen: 'KeyManagement',
+       params: {
+         signkeyUrl: qrCode,
+         autoImport: true
+       }
+     });
+   }
+   ```
+
+3. **Home Component**:
+   ```javascript
+   // Deep link handling in Home:
+   else if(signkeyUri.has(host)) {
+     // Also missing UUID for unique navigation
+     props.navigation.navigate('Settings', {
+       screen: 'KeyManagement',
+       params: {
+         signkeyUrl: url,
+         autoImport: true
+       }
+     });
+   }
+   ```
+
+### Implementation Insights
+
+1. **Component Lifecycle**: The ImportKey component is not consistently remounting between deep link navigation events, causing the processing logic to run only once.
+
+2. **State Persistence**: React refs (`processedUrls.current`) persist across renders and remain populated even when navigation changes, preventing reprocessing of URLs.
+
+3. **Working Pattern**: The Scanner component has a working pattern for other deep link types (payment, tally) that adds a UUID to make each navigation unique.
+
+4. **Manual Import**: The manual Import button works repeatedly because it directly triggers functions without relying on component mounting or URL tracking.
+
 ### Remaining Tasks
 1. **Fix Subsequent Deep Link Imports**:
    - Need to ensure `processedUrls` ref is properly cleared after import
@@ -281,21 +368,74 @@ The UI design uses minimal text and leverages existing icons for actions:
    - Update documentation with the implemented deep link format
    - Add usage examples for developers
 
-### Next Immediate Steps
-1. Fix the issue with subsequent deep link imports:
-   - The current implementation uses React refs to track processed URLs, but this state persists between navigation events
-   - We need to either:
-     - Reset the refs when the component unmounts AND when navigation changes
-     - Move to a different approach that doesn't rely on persistent refs
-     - Consider using React Navigation's focus/blur events to reset state
-   
-2. Test changes thoroughly with different scenarios:
-   - Test importing the same key multiple times
-   - Test importing different keys in sequence
-   - Verify proper error handling with malformed links
-   - Test interrupted imports (cancellation during import process)
+### Strategy for Fixing Subsequent Deep Link Imports
 
-3. Complete URL scheme registration in App.js and server configuration
+After analyzing the code and seeing the existing pattern in the app for handling recurring deep links, we have a clear solution:
+
+1. **Use UUID Approach from Payment and Tally Links**:
+   - We discovered that the Scanner component already has a reliable mechanism for handling repeated QR code scans
+   - For payment links: `const payUrl = ${qrCode}&randomString=${uuid()};`
+   - For tally invites: `const tallyInviteUrl = ${qrCode}&randomString=${uuid()};`
+   - These add a random UUID to ensure each navigation is seen as unique
+
+2. **Implementation Plan for Signkey Links**:
+   ```javascript
+   // In Scanner component
+   else if (qrCode.startsWith(signkeyLink)) {
+     // Add random UUID to ensure each scan is processed uniquely
+     const uniqueSignkeyUrl = `${qrCode}&randomString=${uuid()}`;
+     props.navigation.navigate('Settings', {
+       screen: 'KeyManagement',
+       params: {
+         signkeyUrl: uniqueSignkeyUrl,
+         autoImport: true
+       }
+     });
+   }
+   
+   // Also update Home component similarly for clicked links
+   else if (signkeyUri.has(host)) {
+     const uniqueSignkeyUrl = `${url}&randomString=${uuid()}`;
+     props.navigation.navigate('Settings', {
+       screen: 'KeyManagement',
+       params: {
+         signkeyUrl: uniqueSignkeyUrl,
+         autoImport: true
+       }
+     });
+   }
+   ```
+
+3. **Simplify ImportKey Component**:
+   - Remove all URL tracking via processedUrls - it's no longer needed
+   - Keep a simple isProcessing flag to prevent concurrent operations
+   - Process each incoming URL directly without checking if it's been seen before
+   - Keep the effect dependency on the URL to ensure it runs when the URL changes
+
+4. **Why This Works**:
+   - The UUID ensures each navigation has a different URL parameter
+   - React Navigation will see this as a new route, triggering effects with URL dependencies
+   - Even if the component isn't unmounting, the effect will re-run with the new unique URL
+   - This matches the existing pattern in the app that's working for other link types
+
+5. **Advantages of This Approach**:
+   - Follows established patterns in the existing codebase
+   - Works regardless of navigation stack behavior
+   - Simple to implement and maintain
+   - Doesn't require complex state management
+
+### Next Testing Steps
+1. Implement the UUID approach for signkey links in both Scanner and Home components
+2. Remove URL tracking in ImportKey, rely only on the URL dependency in useEffect
+3. Test multiple deep link scenarios:
+   - Same URL multiple times
+   - Different URLs in sequence
+   - Interrupted imports (cancellation)
+   - Manual import between deep links
+
+### Follow-up Tasks
+1. Complete URL scheme registration in App.js and server configuration
+2. Implement Phase 3 refactoring to improve code organization
 
 ### Future Code Refactoring (Phase 3)
 After we've completed and validated the basic deep link functionality, we'll implement a consolidation phase:

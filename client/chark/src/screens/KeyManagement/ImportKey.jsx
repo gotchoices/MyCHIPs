@@ -65,8 +65,10 @@ const ImportKey = props => {
     }
   }, [keyData.newPublicKey, keyData.newPrivateKey]);
   
-  // Handle deep link processing from props, but only once on mount
+  // Handle deep link processing from props
   useEffect(() => {
+    console.log("ImportKey useEffect triggered, checking for deep links");
+    
     const processDeepLink = () => {
       // Don't process if we're already handling a deep link
       if (isProcessingDeepLink.current) {
@@ -79,12 +81,13 @@ const ImportKey = props => {
       const autoImport = props.autoImport || props.route?.params?.autoImport;
       const jsonData = props.jsonData || props.route?.params?.jsonData;
       
+      console.log("Current props signkeyUrl:", signkeyUrl);
+      
       // Handle signkey URL
-      if (signkeyUrl && !processedUrls.current.has(signkeyUrl)) {
+      if (signkeyUrl) {
         console.log("Processing new signkey URL:", signkeyUrl);
         
-        // Mark as processed
-        processedUrls.current.add(signkeyUrl);
+        // Set processing flag
         isProcessingDeepLink.current = true;
         
         try {
@@ -112,11 +115,10 @@ const ImportKey = props => {
       }
       
       // Handle direct JSON data
-      else if (jsonData && autoImport && !processedUrls.current.has('json-data')) {
+      else if (jsonData && autoImport) {
         console.log("Processing direct JSON data");
         
-        // Mark as processed
-        processedUrls.current.add('json-data');
+        // Set processing flag
         isProcessingDeepLink.current = true;
         
         // Store content
@@ -134,15 +136,15 @@ const ImportKey = props => {
       }
     };
     
-    // Process any deep links on mount
+    // Process deep links when props change
     processDeepLink();
     
-    // Cleanup on unmount
+    // Cleanup when dependencies change
     return () => {
+      console.log("ImportKey useEffect cleanup - resetting processing flag");
       isProcessingDeepLink.current = false;
-      processedUrls.current.clear();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, [props.signkeyUrl, props.route?.params?.signkeyUrl, props.jsonData, props.route?.params?.jsonData]); // Run when deep link URLs change
 
   // Extract key data from URL
   const extractKeyDataFromUrl = (url) => {

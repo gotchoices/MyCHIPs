@@ -81,11 +81,18 @@ const Scanner = props => {
         const tallyInviteUrl = `${qrCode}&randomString=${uuid()}`;
         requestTally(tallyInviteUrl);
       } else if (qrCode.startsWith(signkeyLink)) {
-        // Handle signkey deep link URL
+        /**
+         * Using randomString to re-execute the signkey import function
+         * such that if scanned same url can be processed again
+         */
+        console.log("Scanner processing signkey QR code");
+        const signkeyUrl = `${qrCode}${qrCode.includes('?') ? '&' : '?'}randomString=${uuid()}`;
+        console.log("Created unique URL:", signkeyUrl);
+        
         props.navigation.navigate('Settings', {
           screen: 'KeyManagement',
           params: {
-            signkeyUrl: qrCode,
+            signkeyUrl: signkeyUrl,
             autoImport: true
           }
         });
