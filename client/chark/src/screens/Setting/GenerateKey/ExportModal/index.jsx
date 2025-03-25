@@ -20,9 +20,13 @@ import {
 } from "../../../../utils/file-manager";
 import ViewShot from 'react-native-view-shot';
 import QRCode from 'react-native-qrcode-svg';
+import Icon from 'react-native-vector-icons/Ionicons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { colors } from "../../../../config/constants";
 import useMessageText from '../../../../hooks/useMessageText';
 import { getLanguageText } from "../../../../utils/language";
+import { ShareIcon } from '../../../../components/SvgAssets/SvgAssets';
+import EyeIcon from '../../../../../assets/svg/eye_icon.svg';
 
 const CustomButton = (props) => {
   const onPress =() => {
@@ -45,8 +49,26 @@ const ExportModal = (props) => {
 
   const passphrase = props.passphrase;
   const [encryptedData, setEncryptedData] = useState(undefined);
+  const [signkeyUrl, setSignkeyUrl] = useState(null);
+  const [showJsonSection, setShowJsonSection] = useState(false);
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
+
+  // Generate the signkey deep link URL from encrypted data
+  const generateSignKeyURL = (encryptedData) => {
+    if (!encryptedData || !encryptedData.signkey) return null;
+    
+    const { s, i, d } = encryptedData.signkey;
+    
+    // Use URLSearchParams-like approach for parameter encoding
+    const params = [
+      `s=${encodeURIComponent(s)}`,
+      `i=${encodeURIComponent(i)}`,
+      `d=${encodeURIComponent(d)}`
+    ].join('&');
+    
+    return `https://mychips.org/signkey?${params}`;
+  };
 
   useEffect(() => {
     // Add defensive checks for the private key
@@ -61,7 +83,12 @@ const ExportModal = (props) => {
     
     encryptJSON(props.privateKey, safePassphrase).then(result => {
       if (result.success) {
-        setEncryptedData(result.data);
+        const jsonData = JSON.parse(result.data);
+        setEncryptedData(jsonData);
+        
+        // Generate URL for the deep link
+        const url = generateSignKeyURL(jsonData);
+        setSignkeyUrl(url);
       } else {
         Alert.alert("Error", result.error || "Failed to encrypt key");
         props.cancel?.();
@@ -88,7 +115,7 @@ const ExportModal = (props) => {
   const downloadAsJson = async () => {
     permissionResult().then((granted) => {
       if (granted) {
-        downloadJSONFile(encryptedData).then(result => {
+        downloadJSONFile(JSON.stringify(encryptedData)).then(result => {
           console.log("Saved File to: ", result);
           Alert.alert('Success', `Saved ${result.filename} to downloads`, [{ text: "Ok" }]);
         }).catch(ex => {
@@ -118,7 +145,7 @@ const ExportModal = (props) => {
   }
 
   const onShareFile = () => {
-    shareJSONFile(encryptedData).then((result) => {
+    shareJSONFile(JSON.stringify(encryptedData)).then((result) => {
       Alert.alert('Success', 'Shared file successfully!');
     }).catch(e => {
       console.log("Share Exception ", e);
@@ -127,25 +154,44 @@ const ExportModal = (props) => {
 
   const onShareQR = () => {
     viewShotRef.current.capture().then(uri => {
-      shareQRCode(uri).then(result => {
+      // Pass both the QR image and the link text
+      shareQRCode(uri, signkeyUrl).then(result => {
         console.log("Shared ", result);
         Alert.alert('Success', 'Shared QR successfully!');
       }).catch(ex => {
-        console.log("Exception Failed to Save; ", ex);
+        console.log("Exception Failed to Share: ", ex);
       })
     });
   }
+
+  const copyToClipboard = () => {
+    if (!signkeyUrl) return;
+    
+    try {
+      // For React Native 0.63+
+      if (typeof Clipboard !== 'undefined' && Clipboard.setString) {
+        Clipboard.setString(signkeyUrl);
+      } else {
+        // Fallback for older versions
+        const Clipboard = require('react-native').Clipboard;
+        Clipboard.setString(signkeyUrl);
+      }
+      Alert.alert('Success', 'Link copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      Alert.alert('Error', 'Failed to copy to clipboard');
+    }
+  };
+
+  const toggleJsonSection = () => {
+    setShowJsonSection(!showJsonSection);
+  };
 
   const onKeyAction = () => {
     if(props.onKeyAction) {
       props.onKeyAction();
     }
   }
-
-  // Use the standardized function to get text with fallback
-  const shareTitle = getLanguageText(charkText, 'share');
-  const qrTitle = getLanguageText(charkText, 'qr');
-  const shareQRText = shareTitle + ' ' + qrTitle;
 
   if (!encryptedData) {
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -154,96 +200,201 @@ const ExportModal = (props) => {
     </View>
   }
 
-  return <ScrollView style={styles.container}>
-    <View>
-      <Text style={styles.jsonText}>{encryptedData}</Text>
-      <View style={styles.row}>
-        <CustomButton
-          onPress={onShareFile}
-          title={charkText?.share?.title ?? ''}
-        />
-      </View>
-
-      {Platform.OS === 'android' && (
-        <View style={[styles.row, { marginTop: 15 }]}>
-          <CustomButton
-            onPress={downloadAsJson}
-            title={'Download File'}
-          />
+  return (
+    <ScrollView style={styles.container}>
+      <View>
+        {/* QR Code Section */}
+        <View style={styles.qrContainer}>
+          <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1.0 }}>
+            <View style={styles.qrView}>
+              <QRCode
+                value={signkeyUrl || JSON.stringify(encryptedData)}
+                size={200}
+              />
+            </View>
+          </ViewShot>
+          <TouchableWithoutFeedback onPress={onShareQR}>
+            <View style={styles.shareButton}>
+              <ShareIcon size={24} color={colors.white} useNativeIcon={true} />
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      )}
 
-      <ViewShot ref={viewShotRef} options={{ format: "png", quality: 1.0 }}>
-        <View style={styles.qrView}>
-          <QRCode
-            value={encryptedData}
-            size={200}
-          />
+        {/* URL Section */}
+        <View style={styles.urlContainer}>
+          <Text style={styles.urlText} numberOfLines={1} ellipsizeMode="tail">
+            {signkeyUrl ? (signkeyUrl.length > 35 ? signkeyUrl.substring(0, 35) + '...' : signkeyUrl) : 'https://mychips.org/signkey?...'}
+          </Text>
+          <TouchableWithoutFeedback onPress={copyToClipboard}>
+            <View style={styles.copyButton}>
+              <FontAwesome name="copy" size={18} color={colors.white} />
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </ViewShot>
 
-      <View style={[styles.row, { marginBottom: 15 }]}>
-        <CustomButton
-          onPress={onShareQR}
-          title={shareQRText ?? ''}
-        />
-      </View>
-
-      {Platform.OS === 'android' && (
-        <View style={styles.row}>
-          <CustomButton
-            onPress={downloadQrCode}
-            title={'Download QR'}
-          />
-        </View>
-      )}
-
-      {['import', 'generate'].includes(props.action) && (
-        <TouchableWithoutFeedback onPress={onKeyAction}>
-          <View style={styles.secondaryButton}>
-            <Text style={styles.title}>
-              {props.action === 'import' && getLanguageText(charkText, 'import')}
-              {props.action === 'generate' && getLanguageText(charkText, 'keygen')}
+        {/* Toggle JSON File Section */}
+        <TouchableWithoutFeedback onPress={toggleJsonSection}>
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleText}>
+              {getLanguageText(charkText, 'file') || 'File'}:
             </Text>
-            <Text style={[styles.title, { fontSize: 10 }]}>
-              Your active keys will be lost
-            </Text>
+            <EyeIcon width={22} height={22} color={colors.blue} />
           </View>
         </TouchableWithoutFeedback>
-      )}
 
-      <View style={[styles.row, { marginTop: 15 }]}>
-        <CustomButton
-          onPress={props.cancel}
-          title={getLanguageText(charkText, 'cancel')}
-        />
+        {/* JSON File Section - conditionally rendered */}
+        {showJsonSection && (
+          <View style={styles.jsonSection}>
+            <View style={styles.jsonContainer}>
+              <ScrollView style={styles.jsonScrollView}>
+                <Text 
+                  style={styles.jsonText} 
+                  selectable={true}
+                >
+                  {JSON.stringify(encryptedData, null, 2)}
+                </Text>
+              </ScrollView>
+            </View>
+            <View style={styles.jsonActions}>
+              {Platform.OS === 'ios' && (
+                <TouchableWithoutFeedback onPress={onShareFile}>
+                  <View style={styles.actionButton}>
+                    <ShareIcon size={18} color={colors.white} useNativeIcon={true} />
+                  </View>
+                </TouchableWithoutFeedback>
+              )}
+              
+              {Platform.OS === 'android' && (
+                <TouchableWithoutFeedback onPress={downloadAsJson}>
+                  <View style={styles.actionButton}>
+                    <FontAwesome name="download" size={18} color={colors.white} />
+                  </View>
+                </TouchableWithoutFeedback>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Support for Key Action when applicable */}
+        {['import', 'generate'].includes(props.action) && (
+          <TouchableWithoutFeedback onPress={onKeyAction}>
+            <View style={styles.secondaryButton}>
+              <Text style={styles.title}>
+                {props.action === 'import' && getLanguageText(charkText, 'import')}
+                {props.action === 'generate' && getLanguageText(charkText, 'keygen')}
+              </Text>
+              <Text style={[styles.title, { fontSize: 10 }]}>
+                Your active keys will be lost
+              </Text>
+            </View>
+          </TouchableWithoutFeedback>
+        )}
+
+        {/* Cancel Button */}
+        <View style={[styles.row, { marginTop: 15 }]}>
+          <CustomButton
+            onPress={props.cancel}
+            title={getLanguageText(charkText, 'cancel')}
+          />
+        </View>
       </View>
-
-    </View>
-  </ScrollView>
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 12,
   },
-  jsonText: {
-    padding: 8,
-    fontSize: 11,
-    backgroundColor: 'black',
-    color: 'white',
-    marginBottom: 12,
-  },
-  qrView: {
-    alignItems: 'center',
-    paddingVertical: 15,
-    backgroundColor: 'white',
-    marginVertical: 10,
-  },
-  row: {
+  qrContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-evenly',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  qrView: {
+    padding: 16,
+    backgroundColor: 'white',
+    borderRadius: 8,
+  },
+  shareButton: {
+    marginLeft: 12,
+    padding: 10,
+    backgroundColor: colors.blue,
+    borderRadius: 25,
+    width: 45,
+    height: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  urlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.gray100 || '#f5f5f5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  urlText: {
+    flex: 1,
+    color: colors.black,
+    fontSize: 14,
+  },
+  copyButton: {
+    padding: 8,
+    backgroundColor: colors.blue,
+    borderRadius: 20,
+    width: 35,
+    height: 35,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  toggleText: {
+    color: colors.black,
+    fontSize: 14,
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  jsonSection: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  jsonContainer: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.white,
+    height: 150,
+  },
+  jsonScrollView: {
+    padding: 12,
+  },
+  jsonText: {
+    color: colors.black,
+    fontFamily: 'monospace',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  jsonActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  actionButton: {
+    marginLeft: 16,
+    padding: 8,
+    backgroundColor: colors.blue,
+    borderRadius: 20,
+    width: 35,
+    height: 35,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   secondaryButton: {
     alignItems: "center",
@@ -259,6 +410,16 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.white,
   },
-})
+  buttonText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: colors.white,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  },
+});
 
 export default ExportModal;

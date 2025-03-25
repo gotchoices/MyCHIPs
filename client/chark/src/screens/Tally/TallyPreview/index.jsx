@@ -29,7 +29,7 @@ import CenteredModal from "../../../components/CenteredModal";
 import IconButton from "../../../components/IconButton";
 import TickIcon from "../../../../assets/svg/tick.svg";
 import CrossIcon from "../../../../assets/svg/cross.svg";
-import ShareIcon from "../../../../assets/svg/ic_share.svg";
+import { ShareIcon } from "../../../components/SvgAssets/SvgAssets";
 import AcceptButton from '../AcceptButton';
 import OfferButton from '../OfferButton';
 import { fetchOpenTallies } from "../../../redux/openTalliesSlice";
@@ -333,7 +333,7 @@ const TallyPreview = (props) => {
           </IconButton>
 
           <IconButton style={styles.actionButton(colors.blue)} onPress={onShare}>
-            <ShareIcon width={30} height={30}  />
+            <ShareIcon size={30} color={colors.white} useNativeIcon={true} />
           </IconButton>
         </View>
       );

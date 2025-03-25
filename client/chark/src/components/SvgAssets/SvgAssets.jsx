@@ -1,4 +1,5 @@
 import React from "react";
+import { Platform } from 'react-native';
 
 import ICAdd from "../../../assets/svg/ic_add.svg";
 import ICHome from "../../../assets/svg/ic_home.svg";
@@ -30,6 +31,7 @@ import ICDownArrow from "../../../assets/svg/ic_down_arrow.svg";
 import ICLeftArrow from "../../../assets/svg/ic_left_arrow.svg";
 import ICRightArrow from "../../../assets/svg/ic_right_arrow.svg";
 import ICNotification from '../../../assets/svg/ic_notification.svg';
+import ICEye from '../../../assets/svg/eye_icon.svg';
 
 import { colors } from "../../config/constants";
 
@@ -107,13 +109,29 @@ export const SettingIcon = (props) => {
 };
 
 export const ShareIcon = (props) => {
-  return (
-    <ICShare
-      height={props.size ?? 24}
-      width={props.size ?? 24}
-      color={props.color ?? colors.white}
-    />
-  );
+  // Use platform-specific logic to determine which icon to use
+  const useNativeIcon = props.useNativeIcon ?? false;
+  
+  if (Platform.OS === 'android' && useNativeIcon) {
+    // Import FontAwesome here to avoid circular dependencies
+    const FontAwesome = require('react-native-vector-icons/FontAwesome').default;
+    return (
+      <FontAwesome 
+        name="share-alt" 
+        size={props.size ?? 24} 
+        color={props.color ?? colors.white} 
+      />
+    );
+  } else {
+    // Default to SVG icon
+    return (
+      <ICShare
+        height={props.size ?? 24}
+        width={props.size ?? 24}
+        color={props.color ?? colors.white}
+      />
+    );
+  }
 };
 
 export const InviteIcon = (props) => {

@@ -63,11 +63,14 @@ export const downloadQRCode = (uri) => {
   });
 }
 
-export const shareQRCode = (uri) => {
+export const shareQRCode = (uri, linkText) => {
   return new Promise((resolve, reject) => {
+    // Basic share options with minimal text
     const options = {
       title: 'Private Keys',
       url: uri,
+      // Just include the raw link with no additional text
+      message: linkText || undefined
     };
 
     Share.open(options)
