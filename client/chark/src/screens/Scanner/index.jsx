@@ -22,6 +22,7 @@ import {PERMISSIONS, RESULTS, check, request} from 'react-native-permissions';
 const connectionLink = 'https://mychips.org/ticket';
 const payLink = 'https://mychips.org/pay';
 const inviteLink = 'https://mychips.org/invite';
+const signkeyLink = 'https://mychips.org/signkey';
 
 const Scanner = props => {
   const {connectSocket, disconnectSocket, wm, ws, status} = useSocket();
@@ -79,6 +80,15 @@ const Scanner = props => {
          */
         const tallyInviteUrl = `${qrCode}&randomString=${uuid()}`;
         requestTally(tallyInviteUrl);
+      } else if (qrCode.startsWith(signkeyLink)) {
+        // Handle signkey deep link URL
+        props.navigation.navigate('Settings', {
+          screen: 'KeyManagement',
+          params: {
+            signkeyUrl: qrCode,
+            autoImport: true
+          }
+        });
       } else {
         try {
           setIsActive(false);
@@ -86,9 +96,13 @@ const Scanner = props => {
 
           console.log('PARSED_CODE ==> ', parsedCode);
           if (parsedCode?.signkey) {
+            // Handle JSON signkey format
             props.navigation.navigate('Settings', {
-              screen: 'ImportKey',
-              params: parsedCode,
+              screen: 'KeyManagement',
+              params: {
+                jsonData: parsedCode,
+                autoImport: true
+              }
             });
           } else {
             processConnect(parsedCode);

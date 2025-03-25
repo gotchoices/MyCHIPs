@@ -19,10 +19,11 @@ import { useCharkText } from "../../hooks/useLanguage";
 const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
 const tallyUri = new Set(['invite', 'mychips.org/invite'])
 const payUri = new Set(['mychips.org/pay'])
+const signkeyUri = new Set(['mychips.org/signkey'])
 
 const HomeScreen = (props) => {
   const { connectSocket, wm } = useSocket();
-  const { invite, tallyInviteUrl, payUrl } = props.route?.params ?? {};
+  const { invite, tallyInviteUrl, payUrl, signkeyUrl } = props.route?.params ?? {};
   const { user } = useSelector(state => state.currentUser);
   const { personal } = useSelector(state => state.profile);
   const dispatch  = useDispatch();
@@ -59,12 +60,25 @@ const HomeScreen = (props) => {
       props.navigation.navigate('PaymentDetail', {
         distributedPayment: parsed.query,
       })
+    } else if(signkeyUrl) {
+      // Handle signkey URL
+      props.navigation.navigate('Settings', {
+        screen: 'KeyManagement',
+        params: {
+          signkeyUrl: signkeyUrl,
+          autoImport: true
+        }
+      });
     }
-  }, [tallyInviteUrl, payUrl])
+  }, [tallyInviteUrl, payUrl, signkeyUrl])
 
   useEffect(() => {
     const handleLink = (url) => {
-      const host = getLinkHost(url ?? '');
+      if (!url) return;
+      
+      const host = getLinkHost(url);
+      console.log("Handling deep link URL:", url);
+      console.log("Host detected:", host);
 
       if (connectionUri.has(host)) {
         const obj = parse(url);
@@ -77,6 +91,15 @@ const HomeScreen = (props) => {
         props.navigation.navigate('PaymentDetail', {
           distributedPayment: parsed.query,
         })
+      } else if(signkeyUri.has(host)) {
+        // Handle signkey URL - navigate to KeyManagement with the signkey URL
+        props.navigation.navigate('Settings', {
+          screen: 'KeyManagement',
+          params: {
+            signkeyUrl: url,
+            autoImport: true
+          }
+        });
       }
       return;
     }

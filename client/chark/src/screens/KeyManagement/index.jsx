@@ -32,6 +32,16 @@ const KeyManagement = (props) => {
       props.navigation.setOptions({ title: charkText?.keys?.title })
     }
   }, [charkText?.keys?.title])
+  
+  // Extract params from navigation props to pass to ImportKey
+  const signkeyUrl = props.route?.params?.signkeyUrl;
+  
+  // Setting autoImport to true when signkeyUrl is provided, unless explicitly set to false
+  const autoImport = props.route?.params?.autoImport !== false 
+    ? (props.route?.params?.autoImport || Boolean(signkeyUrl)) 
+    : false;
+    
+  const jsonData = props.route?.params?.jsonData;
 
   return (
     <ScrollView
@@ -50,7 +60,11 @@ const KeyManagement = (props) => {
 
       <ImportKey 
         navigation={props.navigation} 
+        route={props.route}
         text={commonText}
+        signkeyUrl={signkeyUrl}
+        autoImport={autoImport || Boolean(signkeyUrl)}
+        jsonData={jsonData}
       />
 
       <Export text={commonText} />

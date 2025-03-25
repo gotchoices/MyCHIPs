@@ -111,18 +111,19 @@ The UI design uses minimal text and leverages existing icons for actions:
    - [ ] Remove obsolete "mychips://" prefix from App.js
    - [ ] Add default landing page on mychips.org
    - [ ] Further details needed in .well-known/* files on mychips.org?
-   - [ ] Implement handler for signkey deep links to direct to Import Key screen
-   - [ ] Add robust URL parameter parsing with proper error handling
+   - [x] Implement handler for signkey deep links to direct to Import Key screen
+   - [x] Add robust URL parameter parsing with proper error handling
 
 4. **Testing** 🧪
    - [x] Test copying link to clipboard
    - [x] Test sharing via email
    - [x] Test sharing via text messaging
-   - [ ] Test QR code scanning between devices
-   - [ ] Test deep link functionality when clicked
-   - [ ] Verify file download/sharing works correctly
+   - [x] Test QR code scanning between devices (first link works)
+   - [x] Test deep link functionality when clicked (first link works)
+   - [x] Verify file download/sharing works correctly
    - [ ] Test error handling for malformed data
    - [ ] Test on both Android and iOS platforms
+   - [ ] Test subsequent deep link handling (currently not working)
 
 ## Implementation Notes
 
@@ -205,3 +206,119 @@ The UI design uses minimal text and leverages existing icons for actions:
 4. **Platform-Specific Optimizations**
    - Ensure optimal performance on both iOS and Android
    - Test with various Android versions and iOS devices
+
+## Implementation Progress
+
+### Phase 1: Export Implementation ✅
+- Implemented key export functionality with URL format
+- Added QR code generation for the exported signing key
+- Implemented clipboard functionality for deep links
+- Enhanced sharing capabilities for both QR code and link text
+- Added support for platform-specific actions
+
+### Phase 2: Import Implementation ⏳
+- Implemented deep link handling in Scanner and Home components
+- Added support for routing signing key deep links to ImportKey component
+- Rewrote ImportKey component to improve state management and handle deep links
+- Fixed issues with concurrent processing and duplicate toasts
+- Preserved the original file import functionality
+
+### Current Status
+- Export functionality is fully working
+- Import from deep links works for the first attempt
+- Currently addressing issue with subsequent deep link imports
+
+### Technical Challenges Addressed
+1. **Race Conditions in Redux Updates**: 
+   - Fixed by rewriting ImportKey component to use refs for tracking state
+   - Added proper state management to avoid duplicate Redux updates
+
+2. **Duplicate Toasts**:
+   - Resolved by improving the component lifecycle and state management
+   - Used refs to prevent re-processing the same URLs
+
+3. **Multiple Import Methods**:
+   - Ensured the Import button always triggers file import flow
+   - Deep links properly navigate to ImportKey component and show appropriate UI
+
+4. **State Handling**:
+   - Separated UI state from key data state
+   - Introduced refs for tracking processed URLs to avoid render cycles
+   - Improved error handling and cancellation
+
+### Modified Files
+- `/src/screens/Setting/GenerateKey/ExportModal/index.jsx` - Export UI
+- `/src/screens/KeyManagement/ImportKey.jsx` - Import handling
+- `/src/screens/KeyManagement/index.jsx` - Navigation processing
+- `/src/screens/Scanner/index.jsx` - QR code handling
+- `/src/screens/Home/index.jsx` - Deep link handling
+
+### Remaining Tasks
+1. **Fix Subsequent Deep Link Imports**:
+   - Need to ensure `processedUrls` ref is properly cleared after import
+   - Update deep link handling to work with multiple invocations
+   - Potential solutions:
+     - Move deep link processing from `useEffect` to component props or navigation events
+     - Clear `processedUrls` after import and add a timeout to prevent immediate reprocessing
+     - Implement a global deep link handler that passes clean props to ImportKey on each navigation
+
+2. **Testing with Real Devices**:
+   - Test on both iOS and Android physical devices
+   - Verify handling of edge cases and malformed inputs
+   - Ensure proper performance across different platforms
+
+3. **URL Scheme Registration**:
+   - Update App.js to properly register the "signkey" URL scheme
+   - Update apple-app-site-association file for iOS Universal Links
+   - Update assetlinks.json for Android App Links
+
+4. **Advanced Features** (Future):
+   - Implement base64-encoded JSON format for very large keys
+   - Add automatic format selection based on key size
+   - Enhance error handling for malformed deep links
+
+5. **Documentation**:
+   - Update documentation with the implemented deep link format
+   - Add usage examples for developers
+
+### Next Immediate Steps
+1. Fix the issue with subsequent deep link imports:
+   - The current implementation uses React refs to track processed URLs, but this state persists between navigation events
+   - We need to either:
+     - Reset the refs when the component unmounts AND when navigation changes
+     - Move to a different approach that doesn't rely on persistent refs
+     - Consider using React Navigation's focus/blur events to reset state
+   
+2. Test changes thoroughly with different scenarios:
+   - Test importing the same key multiple times
+   - Test importing different keys in sequence
+   - Verify proper error handling with malformed links
+   - Test interrupted imports (cancellation during import process)
+
+3. Complete URL scheme registration in App.js and server configuration
+
+### Future Code Refactoring (Phase 3)
+After we've completed and validated the basic deep link functionality, we'll implement a consolidation phase:
+
+1. **Create a `utils/deep-links.js` Utility File**:
+   - Centralize deep link parsing logic in one utility file
+   - Include common constants and patterns for all deep link types
+   - Provide helper functions for parsing and validating URLs
+
+2. **Preserve Existing Handler Implementations**:
+   - Keep the existing handler logic in both Scanner and Home components 
+   - Only move common parsing logic to the utility file
+   - Preserve the unique handling code in each component
+
+3. **Step-by-Step Refactoring**:
+   - Implement changes one at a time with careful testing
+   - Avoid rewriting handlers in a way that would break existing functionality
+   - Use the utility file for new additions rather than rewriting existing code
+
+4. **Benefits**:
+   - Improved code organization and reusability
+   - Easier maintenance and future extensions
+   - Consistent URL parsing across the application
+   - Cleaner component code with business logic separated from parsing logic
+
+Note: This refactoring will be approached incrementally, with thorough testing at each step to ensure we don't reintroduce any of the issues we've already fixed.

@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {View, Text, StyleSheet, Alert} from 'react-native';
+import qs from 'query-string';
 
 import Button from '../../components/Button';
 import SigningKeyWarning from '../../components/SigningKeyWarning';
@@ -29,159 +30,358 @@ import {promptBiometrics} from '../../services/biometrics';
 
 const ImportKey = props => {
   const dispatch = useDispatch();
-  const [showImportWarning, setShowImportWarning] = useState(false);
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [passphraseModal, setPassphraseModal] = useState(false);
-  const [passphrase, setPassphrase] = useState(undefined);
+  
+  // Use refs to track deep link processing state to avoid React rendering issues
+  const isProcessingDeepLink = useRef(false);
+  const processedUrls = useRef(new Set());
+  
+  // Main UI state
+  const [uiState, setUiState] = useState({
+    showWarning: false,
+    showPassphraseModal: false,
+    isProcessing: false,
+    content: null
+  });
+  
+  // Keep key data separate
+  const [keyData, setKeyData] = useState({
+    newPrivateKey: null,
+    newPublicKey: null
+  });
+  
+  // Redux selectors
   const {privateKey} = useSelector(state => state.profile);
-  const [prevPassphraseModal, setPrevPassphraseModal] = useState(false);
-  const [content, setContent] = useState(undefined);
-
-  const [newPrivateKey, setNewPrivateKey] = useState(undefined);
-  const [newPublicKey, setNewPublicKey] = useState(undefined);
-
   const {user} = useSelector(state => state.currentUser);
   const {wm} = useSocket();
-  const { messageText } = useMessageText();
+  const {messageText} = useMessageText();
   const charkText = messageText?.chark?.msg;
-
   const user_ent = user?.curr_eid;
-
+  
+  // Process key data once available
   useEffect(() => {
-    if (newPublicKey) {
-      onUseKey();
+    if (keyData.newPublicKey && keyData.newPrivateKey) {
+      console.log("Both keys available, storing keys");
+      storeKeys();
     }
-  }, [newPublicKey]);
+  }, [keyData.newPublicKey, keyData.newPrivateKey]);
+  
+  // Handle deep link processing from props, but only once on mount
+  useEffect(() => {
+    const processDeepLink = () => {
+      // Don't process if we're already handling a deep link
+      if (isProcessingDeepLink.current) {
+        console.log("Already processing a deep link, skipping");
+        return;
+      }
+      
+      // Check for signkey URL in props or route params
+      const signkeyUrl = props.signkeyUrl || props.route?.params?.signkeyUrl;
+      const autoImport = props.autoImport || props.route?.params?.autoImport;
+      const jsonData = props.jsonData || props.route?.params?.jsonData;
+      
+      // Handle signkey URL
+      if (signkeyUrl && !processedUrls.current.has(signkeyUrl)) {
+        console.log("Processing new signkey URL:", signkeyUrl);
+        
+        // Mark as processed
+        processedUrls.current.add(signkeyUrl);
+        isProcessingDeepLink.current = true;
+        
+        try {
+          const jsonFormat = extractKeyDataFromUrl(signkeyUrl);
+          
+          if (jsonFormat && autoImport) {
+            // Store content for decryption
+            setUiState(prev => ({
+              ...prev,
+              content: jsonFormat
+            }));
+            
+            // Show appropriate UI based on existing key
+            if (privateKey) {
+              setUiState(prev => ({...prev, showWarning: true}));
+            } else {
+              setUiState(prev => ({...prev, showPassphraseModal: true}));
+            }
+          }
+        } catch (error) {
+          console.error("Error processing URL:", error);
+          Alert.alert('Error', 'Invalid signing key format');
+          isProcessingDeepLink.current = false;
+        }
+      }
+      
+      // Handle direct JSON data
+      else if (jsonData && autoImport && !processedUrls.current.has('json-data')) {
+        console.log("Processing direct JSON data");
+        
+        // Mark as processed
+        processedUrls.current.add('json-data');
+        isProcessingDeepLink.current = true;
+        
+        // Store content
+        setUiState(prev => ({
+          ...prev,
+          content: JSON.stringify(jsonData)
+        }));
+        
+        // Show appropriate UI
+        if (privateKey) {
+          setUiState(prev => ({...prev, showWarning: true}));
+        } else {
+          setUiState(prev => ({...prev, showPassphraseModal: true}));
+        }
+      }
+    };
+    
+    // Process any deep links on mount
+    processDeepLink();
+    
+    // Cleanup on unmount
+    return () => {
+      isProcessingDeepLink.current = false;
+      processedUrls.current.clear();
+    };
+  }, []); // Empty dependency array - only run once on mount
 
-  const onImportError = () => {
-    setPassphraseModal(false);
-
-    Alert.alert('Error', 'Failed to select file');
+  // Extract key data from URL
+  const extractKeyDataFromUrl = (url) => {
+    try {
+      // Parse the URL to extract parameters
+      const parsed = qs.parseUrl(url);
+      const params = parsed.query;
+      
+      console.log("Parsed parameters:", JSON.stringify(params));
+      
+      // Validate required parameters
+      if (!params.s || !params.i || !params.d) {
+        console.error("Missing required parameters in signkey URL");
+        Alert.alert('Error', 'Invalid signing key link format');
+        return null;
+      }
+      
+      // Create the signkey JSON format expected by decryptJSON
+      const signkeyData = JSON.stringify({
+        signkey: {
+          s: params.s,
+          i: params.i,
+          d: params.d
+        }
+      });
+      
+      console.log("Created signkey data for import");
+      return signkeyData;
+    } catch (error) {
+      console.error('Error processing URL:', error);
+      throw error;
+    }
   };
 
-  const onImportKey = async () => {
+  // Handle file import
+  const importFromFile = async () => {
     try {
-      await promptBiometrics('Confirm biometrics to generate key');
-      importKeys();
-    } catch (err) {
-      alert(err);
-    }
-  };
-
-  const importKeys = async () => {
-    try {
-      DocumentPicker.pick({
+      // Reset state to ensure we're starting fresh
+      setUiState(prev => ({
+        ...prev,
+        content: null,
+        isProcessing: true,
+        showWarning: false,
+        showPassphraseModal: false
+      }));
+      
+      // Get biometric confirmation
+      await promptBiometrics('Confirm biometrics to import key');
+      
+      // Open file picker
+      const results = await DocumentPicker.pick({
         type: [DocumentPicker.types.allFiles],
         mode: 'open',
         requestLongTermAccess: false,
-      })
-        .then(results => {
-          const result = results[0];
-          if (result.uri) {
-            setPassphraseModal(false);
-            readContent(result.uri);
-          } else {
-            onImportError();
-          }
-        })
-        .catch(err => {
-          if (DocumentPicker.isCancel(err)) {
-            onImportError();
-          }
-        });
-    } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        onImportError();
+      });
+      
+      const result = results[0];
+      if (result?.uri) {
+        await readFileContent(result.uri);
+      } else {
+        throw new Error('No file selected');
       }
+    } catch (err) {
+      // Handle cancellation
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled file picker');
+      } else {
+        console.error('Error during file import:', err);
+        Alert.alert('Error', err.toString());
+      }
+      
+      // Reset processing state
+      setUiState(prev => ({...prev, isProcessing: false}));
     }
   };
 
-  const readContent = async fileUri => {
+  // Read file content
+  const readFileContent = async (fileUri) => {
     try {
-      // Import ReactNativeFS to read local files
+      // Import ReactNativeFS
       const ReactNativeFS = require('react-native-fs');
       
-      // Read the file content
+      // Read and parse file
       const fileContent = await ReactNativeFS.readFile(fileUri, 'utf8');
-      
-      // Parse the content as JSON
       const jsonData = JSON.parse(fileContent);
       
-      setShowKeyModal(false);
-      setContent(JSON.stringify(jsonData));
-      setPrevPassphraseModal(true);
+      // Update state with file content and show passphrase modal
+      setUiState(prev => ({
+        ...prev,
+        content: JSON.stringify(jsonData),
+        showPassphraseModal: true,
+        isProcessing: false
+      }));
     } catch (err) {
       console.error('Error reading file:', err);
       Alert.alert('Error', getLanguageText(charkText, 'fail', 'title'));
+      setUiState(prev => ({...prev, isProcessing: false}));
     }
   };
 
-  const decryptKey = passphrase => {
-    setPrevPassphraseModal(false);
-    decryptJSON(content, passphrase)
+  // Decrypt key using passphrase
+  const decryptKey = (passphrase) => {
+    // Update UI state
+    setUiState(prev => ({
+      ...prev,
+      showPassphraseModal: false,
+      isProcessing: true
+    }));
+    
+    // Decrypt the content
+    decryptJSON(uiState.content, passphrase)
       .then(data => {
-        setNewPrivateKey(data);
+        // Extract private key
+        const privateKey = data;
+        
+        // Derive public key by removing private component
         const publicKey = JSON.parse(data);
         delete publicKey.d;
         publicKey.key_ops = ['verify'];
-        setNewPublicKey(JSON.stringify(publicKey));
-        console.log('EXPORTED_PUBLIC_KEY ==> ', publicKey);
+        
+        // Set both keys to trigger storage
+        setKeyData({
+          newPrivateKey: privateKey,
+          newPublicKey: JSON.stringify(publicKey)
+        });
       })
       .catch(e => {
-        console.log('Decrept Ex ', e);
+        console.error('Decrypt Error:', e);
         Alert.alert('Error', e.toString());
-      });
-  };
-
-  const onUseKey = async () => {
-    // Skip the redundant warning and proceed directly to storing keys
-    // We've already shown a warning at the beginning of the import process
-    storeKeys();
-  };
-
-  const storeKeys = () => {
-    updatePublicKey(wm, {
-      public_key: JSON.parse(newPublicKey),
-      where: {
-        user_ent,
-      },
-    })
-      .then(a => {
-        console.log(a);
-        return Promise.all([
-          storePublicKey(newPublicKey),
-          storePrivateKey(newPrivateKey),
-        ]);
-      })
-      .then(() => {
-        // Update Redux store with the new keys
-        dispatch(setPublicKey(newPublicKey));
-        dispatch(setPrivateKey(newPrivateKey));
         
-        Alert.alert('Success', getLanguageText(charkText, 'success'));
-      })
-      .catch(ex => {
-        console.log('EXCEPTION ==> ', ex);
-        Alert.alert('Error', getLanguageText(charkText, 'fail'));
+        // Reset UI state on error
+        setUiState(prev => ({
+          ...prev, 
+          isProcessing: false
+        }));
+        
+        // Allow future deep link processing
+        isProcessingDeepLink.current = false;
       });
   };
 
-  const onImportClick = () => {
-    if (privateKey) {
-      setShowImportWarning(true);
-    } else {
-      onAccept();
+  // Store keys in backend and secure storage
+  const storeKeys = async () => {
+    try {
+      console.log("Storing keys started");
+      
+      // 1. Update backend with public key
+      await updatePublicKey(wm, {
+        public_key: JSON.parse(keyData.newPublicKey),
+        where: {
+          user_ent,
+        },
+      });
+      
+      // 2. Store locally in secure storage
+      await Promise.all([
+        storePublicKey(keyData.newPublicKey),
+        storePrivateKey(keyData.newPrivateKey),
+      ]);
+      
+      // 3. Update Redux store
+      dispatch(setPublicKey(keyData.newPublicKey));
+      dispatch(setPrivateKey(keyData.newPrivateKey));
+      
+      // 4. Show success
+      Alert.alert('Success', getLanguageText(charkText, 'success'));
+      
+      // 5. Reset all state
+      setUiState({
+        showWarning: false,
+        showPassphraseModal: false,
+        isProcessing: false,
+        content: null
+      });
+      
+      setKeyData({
+        newPrivateKey: null,
+        newPublicKey: null
+      });
+      
+      // Allow new deep link processing
+      isProcessingDeepLink.current = false;
+      
+      console.log("Storing keys completed");
+    } catch (ex) {
+      console.error('Error storing keys:', ex);
+      Alert.alert('Error', getLanguageText(charkText, 'fail'));
+      
+      setUiState(prev => ({
+        ...prev, 
+        isProcessing: false
+      }));
+      
+      // Allow new deep link processing
+      isProcessingDeepLink.current = false;
     }
   };
 
-  const onImportCancel = () => {
-    setShowImportWarning(false);
+  // Import button click handler
+  const onImportClick = () => {
+    // Cancel any ongoing deep link processing to allow file import
+    isProcessingDeepLink.current = false;
+    
+    // Reset content to ensure fresh file import
+    setUiState(prev => ({
+      ...prev,
+      content: null
+    }));
+    
+    // Show warning if key exists, otherwise proceed directly
+    if (privateKey) {
+      setUiState(prev => ({...prev, showWarning: true}));
+    } else {
+      importFromFile();
+    }
   };
 
-  const onAccept = () => {
-    setShowImportWarning(false);
-    // Proceed directly to import without showing any passphrase modal for export
-    importKeys();
+  // Warning dialog cancel
+  const onWarningCancel = () => {
+    setUiState(prev => ({...prev, showWarning: false}));
+    isProcessingDeepLink.current = false;
+  };
+
+  // Warning dialog accept
+  const onWarningAccept = () => {
+    setUiState(prev => ({...prev, showWarning: false}));
+    
+    // If we have content, decrypt it, otherwise do file import
+    if (uiState.content) {
+      setUiState(prev => ({...prev, showPassphraseModal: true}));
+    } else {
+      importFromFile();
+    }
+  };
+
+  // Cancel passphrase modal
+  const onPassphraseCancel = () => {
+    setUiState(prev => ({...prev, showPassphraseModal: false}));
+    isProcessingDeepLink.current = false;
   };
 
   return (
@@ -196,67 +396,34 @@ const ImportKey = props => {
           style={styles.importBtn}
           title={props?.text?.import?.title ?? 'chark:import:title'}
           onPress={onImportClick}
+          disabled={uiState.isProcessing}
         />
+        {uiState.isProcessing && (
+          <Text style={styles.processingText}>Processing...</Text>
+        )}
       </View>
 
-      <BottomSheetModal isVisible={showImportWarning} onClose={onImportCancel}>
+      <BottomSheetModal 
+        isVisible={uiState.showWarning} 
+        onClose={onWarningCancel}
+      >
         <SigningKeyWarning
           loading={false}
           title={props?.text?.keywarn?.title ?? 'chark:keywarn:title'}
           description={props?.text?.keywarn?.help ?? 'chark:keywarn:help'}
-          onAccept={onAccept}
-          onCancel={onImportCancel}
+          onAccept={onWarningAccept}
+          onCancel={onWarningCancel}
         />
       </BottomSheetModal>
 
       <CenteredModal
-        isVisible={passphraseModal}
-        onClose={() => {
-          setPassphraseModal(false);
-        }}>
-        <PassphraseModal
-          action="import"
-          title={props?.text?.keypass?.title ?? 'chark:keypass:title'}
-          subTitle={props?.text?.keypass?.help ?? 'chark:keypass:help'}
-          onPassphraseConfirmed={passphrase => {
-            setPassphrase(passphrase);
-            setPassphraseModal(false);
-            setShowKeyModal(true);
-          }}
-          cancel={() => {
-            setPassphraseModal(false);
-          }}
-          onWithoutExport={() => {
-            onImportKey();
-          }}
-        />
-      </CenteredModal>
-
-      <CenteredModal
-        isVisible={showKeyModal}
-        onClose={() => setShowKeyModal(false)}>
-        <ExportModal
-          action="import"
-          privateKey={privateKey}
-          cancel={() => {
-            setPassphrase(undefined);
-            setPassphraseModal(false);
-            setShowKeyModal(false);
-          }}
-          onKeyAction={() => onImportKey()}
-          passphrase={passphrase}
-        />
-      </CenteredModal>
-
-      <CenteredModal
-        isVisible={prevPassphraseModal}
-        onClose={() => setPrevPassphraseModal(false)}>
+        isVisible={uiState.showPassphraseModal}
+        onClose={onPassphraseCancel}
+      >
         <PassphraseModal
           action="import_without"
           onPassphraseConfirmed={decryptKey}
-          cancel={() => {
-            setPrevPassphraseModal(false);
-          }}
+          cancel={onPassphraseCancel}
           buttonTitle={getLanguageText(charkText, 'import')}
         />
       </CenteredModal>
@@ -282,6 +449,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     width: '50%',
     height: 30,
+  },
+  processingText: {
+    marginTop: 8,
+    color: colors.primary,
+    fontSize: 12,
+    fontFamily: 'inter',
   },
 });
 
