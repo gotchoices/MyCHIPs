@@ -61,11 +61,9 @@ const HomeScreen = (props) => {
         distributedPayment: parsed.query,
       })
     } else if(signkeyUrl) {
-      console.log("Processing signkey URL from route params");
       // Handle signkey URL with UUID to ensure uniqueness
       const { v4: uuidv4 } = require('uuid');
       const uniqueSignkeyUrl = `${signkeyUrl}${signkeyUrl.includes('?') ? '&' : '?'}randomString=${uuidv4()}`;
-      console.log("Created unique URL:", uniqueSignkeyUrl);
       
       props.navigation.navigate('Settings', {
         screen: 'KeyManagement',
@@ -81,14 +79,10 @@ const HomeScreen = (props) => {
     const handleLink = (url) => {
       if (!url) return;
       
-      console.log("Handling deep link URL:", url);
-      
       // Extract path from URL using the same method as other functions in the app
       const pathWithoutParams = url?.split('?')?.[0] || '';
       const pathSegments = pathWithoutParams.split('/');
       const pathType = pathSegments[pathSegments.length - 1]; // Get the last segment
-      
-      console.log("Path type detected:", pathType);
       
       // Check the path to determine link type
       if (pathType === 'ticket') {
@@ -103,11 +97,9 @@ const HomeScreen = (props) => {
           distributedPayment: parsed.query,
         });
       } else if (pathType === 'signkey') {
-        console.log("Processing signkey deep link");
         // Add random UUID for uniqueness
         const { v4: uuidv4 } = require('uuid');
         const uniqueSignkeyUrl = `${url}${url.includes('?') ? '&' : '?'}randomString=${uuidv4()}`;
-        console.log("Created unique URL:", uniqueSignkeyUrl);
         
         props.navigation.navigate('Settings', {
           screen: 'KeyManagement',

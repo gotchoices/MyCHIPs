@@ -85,9 +85,7 @@ const Scanner = props => {
          * Using randomString to re-execute the signkey import function
          * such that if scanned same url can be processed again
          */
-        console.log("Scanner processing signkey QR code");
         const signkeyUrl = `${qrCode}${qrCode.includes('?') ? '&' : '?'}randomString=${uuid()}`;
-        console.log("Created unique URL:", signkeyUrl);
         
         props.navigation.navigate('Settings', {
           screen: 'KeyManagement',

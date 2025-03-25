@@ -8,7 +8,10 @@ X- Review mapping of /invite, /pay to /ticket; why is this done?
 X- Review bin/build; Can/should we automate distribution with fastlane?
 X- Owner name not showing up for p1004
 X- Find language tags for key management screens
-- Make igning key export produce deep link URL, not JSON
+X- Make signing key export produce deep link URL, not JSON
+X- Context help buttons not showing correctly
+- Can process signing key deep link
+- Can read signing key QR
 - Language tags
   - Review/refine issues/lang_text.md
   - Normalize language tag use across app
@@ -16,7 +19,8 @@ X- Find language tags for key management screens
   - Review how redux stores state
   - Evaluate use of wyseman/message module; make our own handling of lang tags?
   - Should wyseman be caching regular queries or only data dictionary stuff?
-- Context help buttons not showing correctly
+- Hangs on IOS when creating draft tally
+- No default language showing for Jackie (ios) 
 - Profile, personal data screen not working for Philip Yip.  (Because no data returned?)
   - In address editing pane, identify unique addresses by PK (P1005 has two physical addresses)
 - Signatures

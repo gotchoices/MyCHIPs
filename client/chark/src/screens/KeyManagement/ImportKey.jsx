@@ -31,9 +31,8 @@ import {promptBiometrics} from '../../services/biometrics';
 const ImportKey = props => {
   const dispatch = useDispatch();
   
-  // Use refs to track deep link processing state to avoid React rendering issues
+  // Use ref to track deep link processing state
   const isProcessingDeepLink = useRef(false);
-  const processedUrls = useRef(new Set());
   
   // Main UI state
   const [uiState, setUiState] = useState({
@@ -67,8 +66,6 @@ const ImportKey = props => {
   
   // Handle deep link processing from props
   useEffect(() => {
-    console.log("ImportKey useEffect triggered, checking for deep links");
-    
     const processDeepLink = () => {
       // Don't process if we're already handling a deep link
       if (isProcessingDeepLink.current) {
@@ -81,11 +78,8 @@ const ImportKey = props => {
       const autoImport = props.autoImport || props.route?.params?.autoImport;
       const jsonData = props.jsonData || props.route?.params?.jsonData;
       
-      console.log("Current props signkeyUrl:", signkeyUrl);
-      
       // Handle signkey URL
       if (signkeyUrl) {
-        console.log("Processing new signkey URL:", signkeyUrl);
         
         // Set processing flag
         isProcessingDeepLink.current = true;
@@ -116,8 +110,6 @@ const ImportKey = props => {
       
       // Handle direct JSON data
       else if (jsonData && autoImport) {
-        console.log("Processing direct JSON data");
-        
         // Set processing flag
         isProcessingDeepLink.current = true;
         
@@ -141,7 +133,6 @@ const ImportKey = props => {
     
     // Cleanup when dependencies change
     return () => {
-      console.log("ImportKey useEffect cleanup - resetting processing flag");
       isProcessingDeepLink.current = false;
     };
   }, [props.signkeyUrl, props.route?.params?.signkeyUrl, props.jsonData, props.route?.params?.jsonData]); // Run when deep link URLs change
@@ -289,8 +280,6 @@ const ImportKey = props => {
   // Store keys in backend and secure storage
   const storeKeys = async () => {
     try {
-      console.log("Storing keys started");
-      
       // 1. Update backend with public key
       await updatePublicKey(wm, {
         public_key: JSON.parse(keyData.newPublicKey),
@@ -327,8 +316,6 @@ const ImportKey = props => {
       
       // Allow new deep link processing
       isProcessingDeepLink.current = false;
-      
-      console.log("Storing keys completed");
     } catch (ex) {
       console.error('Error storing keys:', ex);
       Alert.alert('Error', getLanguageText(charkText, 'fail'));
