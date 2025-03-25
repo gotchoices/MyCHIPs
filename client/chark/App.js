@@ -23,7 +23,7 @@ import { handleNotification } from './src/utils/notification';
 import store, { persistor } from './src/redux/store';
 
 const linking = {
-  prefixes: ["mychips://", "https://mychips.org"],
+  prefixes: ["https://mychips.org"],
   getStateFromPath: (path, options) => {
     return getStateFromPath(path, options);
   },
@@ -38,6 +38,22 @@ const linking = {
             path: 'tally-preview/:tally_seq',
           },
         }
+      },
+      Settings: {
+        screens: {
+          KeyManagement: {
+            path: 'signkey',
+          },
+        }
+      },
+      Home: {
+        // Tally invitation links are first routed to Home screen,
+        // which then navigates to the appropriate TallyRequest screen
+        path: 'invite',
+      },
+      PaymentDetail: {
+        // Payment links go directly to the PaymentDetail screen
+        path: 'pay',
       },
     },
   },

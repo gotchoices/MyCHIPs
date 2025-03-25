@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {View, Text, StyleSheet, Alert} from 'react-native';
-import qs from 'query-string';
+import {parseSignkeyUrl} from '../../utils/deep-links';
 
 import Button from '../../components/Button';
 import SigningKeyWarning from '../../components/SigningKeyWarning';
@@ -137,37 +137,14 @@ const ImportKey = props => {
     };
   }, [props.signkeyUrl, props.route?.params?.signkeyUrl, props.jsonData, props.route?.params?.jsonData]); // Run when deep link URLs change
 
-  // Extract key data from URL
+  // Extract key data from URL - using utility function from deep-links.js
   const extractKeyDataFromUrl = (url) => {
-    try {
-      // Parse the URL to extract parameters
-      const parsed = qs.parseUrl(url);
-      const params = parsed.query;
-      
-      console.log("Parsed parameters:", JSON.stringify(params));
-      
-      // Validate required parameters
-      if (!params.s || !params.i || !params.d) {
-        console.error("Missing required parameters in signkey URL");
-        Alert.alert('Error', 'Invalid signing key link format');
-        return null;
-      }
-      
-      // Create the signkey JSON format expected by decryptJSON
-      const signkeyData = JSON.stringify({
-        signkey: {
-          s: params.s,
-          i: params.i,
-          d: params.d
-        }
-      });
-      
-      console.log("Created signkey data for import");
-      return signkeyData;
-    } catch (error) {
-      console.error('Error processing URL:', error);
-      throw error;
+    const jsonData = parseSignkeyUrl(url);
+    if (!jsonData) {
+      Alert.alert('Error', 'Invalid signing key link format');
+      return null;
     }
+    return jsonData;
   };
 
   // Handle file import

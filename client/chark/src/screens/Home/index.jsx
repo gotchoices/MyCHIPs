@@ -7,19 +7,14 @@ import { useDispatch } from 'react-redux';
 import Tally from '../Tally';
 
 import { parse } from '../../utils/query-string';
-import { getLinkHost } from '../../utils/common';
 import useSocket from '../../hooks/useSocket';
 import { setPersonal } from '../../redux/profileSlice';
 import useTitle from '../../hooks/useTitle'
+import { LINK_TYPES, extractPathType, addUuidToUrl, parseSignkeyUrl } from '../../utils/deep-links';
 
 import CenteredModal from '../../components/CenteredModal';
 import UpdateCUID from '../UpdateCUID';
 import { useCharkText } from "../../hooks/useLanguage";
-
-const connectionUri = new Set(['ticket', 'mychips.org/ticket'])
-const tallyUri = new Set(['invite', 'mychips.org/invite'])
-const payUri = new Set(['mychips.org/pay'])
-const signkeyUri = new Set(['mychips.org/signkey'])
 
 const HomeScreen = (props) => {
   const { connectSocket, wm } = useSocket();
@@ -62,8 +57,7 @@ const HomeScreen = (props) => {
       })
     } else if(signkeyUrl) {
       // Handle signkey URL with UUID to ensure uniqueness
-      const { v4: uuidv4 } = require('uuid');
-      const uniqueSignkeyUrl = `${signkeyUrl}${signkeyUrl.includes('?') ? '&' : '?'}randomString=${uuidv4()}`;
+      const uniqueSignkeyUrl = addUuidToUrl(signkeyUrl);
       
       props.navigation.navigate('Settings', {
         screen: 'KeyManagement',
@@ -79,27 +73,24 @@ const HomeScreen = (props) => {
     const handleLink = (url) => {
       if (!url) return;
       
-      // Extract path from URL using the same method as other functions in the app
-      const pathWithoutParams = url?.split('?')?.[0] || '';
-      const pathSegments = pathWithoutParams.split('/');
-      const pathType = pathSegments[pathSegments.length - 1]; // Get the last segment
+      // Extract path type to determine link type
+      const pathType = extractPathType(url);
       
       // Check the path to determine link type
-      if (pathType === 'ticket') {
+      if (pathType === LINK_TYPES.TICKET) {
         const obj = parse(url);
         connect({ ticket: obj });
-      } else if (pathType === 'invite') {
+      } else if (pathType === LINK_TYPES.INVITE) {
         const parsed = parseTallyInvitation(url);
         requestProposedTally(parsed);
-      } else if (pathType === 'pay') {
+      } else if (pathType === LINK_TYPES.PAY) {
         const parsed = qs.parseUrl(url);
         props.navigation.navigate('PaymentDetail', {
           distributedPayment: parsed.query,
         });
-      } else if (pathType === 'signkey') {
+      } else if (pathType === LINK_TYPES.SIGNKEY) {
         // Add random UUID for uniqueness
-        const { v4: uuidv4 } = require('uuid');
-        const uniqueSignkeyUrl = `${url}${url.includes('?') ? '&' : '?'}randomString=${uuidv4()}`;
+        const uniqueSignkeyUrl = addUuidToUrl(url);
         
         props.navigation.navigate('Settings', {
           screen: 'KeyManagement',

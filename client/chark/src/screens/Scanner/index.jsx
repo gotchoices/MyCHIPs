@@ -12,17 +12,11 @@ import {
 } from 'react-native';
 import {Camera, CameraType} from 'react-native-camera-kit';
 import * as Keychain from 'react-native-keychain';
-import {v4 as uuid} from 'uuid';
-
 import {colors, qrType} from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import {parse} from '../../utils/query-string';
 import {PERMISSIONS, RESULTS, check, request} from 'react-native-permissions';
-
-const connectionLink = 'https://mychips.org/ticket';
-const payLink = 'https://mychips.org/pay';
-const inviteLink = 'https://mychips.org/invite';
-const signkeyLink = 'https://mychips.org/signkey';
+import {LINK_PREFIXES, addUuidToUrl} from '../../utils/deep-links';
 
 const Scanner = props => {
   const {connectSocket, disconnectSocket, wm, ws, status} = useSocket();
@@ -58,7 +52,7 @@ const Scanner = props => {
     const qrCode = event.nativeEvent.codeStringValue;
     if (qrCode) {
       setIsActive(false);
-      if (qrCode.startsWith(connectionLink)) {
+      if (qrCode.startsWith(LINK_PREFIXES.TICKET)) {
         const obj = parse(qrCode);
 
         if (status !== connectionStatus.disconnect) {
@@ -66,26 +60,26 @@ const Scanner = props => {
         } else {
           connect({connect: obj});
         }
-      } else if (qrCode.startsWith(payLink)) {
+      } else if (qrCode.startsWith(LINK_PREFIXES.PAY)) {
         /**
          * Using randomString to re-excute the requestPay function
          * such that if scanned same url can make the payment again
          */
-        const payUrl = `${qrCode}&randomString=${uuid()}`;
+        const payUrl = addUuidToUrl(qrCode);
         requestPay(payUrl);
-      } else if (qrCode.startsWith(inviteLink)) {
+      } else if (qrCode.startsWith(LINK_PREFIXES.INVITE)) {
         /**
          * Using randomString to re-excute the tally share function
          * such that if scanned same url can scan the tally request
          */
-        const tallyInviteUrl = `${qrCode}&randomString=${uuid()}`;
+        const tallyInviteUrl = addUuidToUrl(qrCode);
         requestTally(tallyInviteUrl);
-      } else if (qrCode.startsWith(signkeyLink)) {
+      } else if (qrCode.startsWith(LINK_PREFIXES.SIGNKEY)) {
         /**
          * Using randomString to re-execute the signkey import function
          * such that if scanned same url can be processed again
          */
-        const signkeyUrl = `${qrCode}${qrCode.includes('?') ? '&' : '?'}randomString=${uuid()}`;
+        const signkeyUrl = addUuidToUrl(qrCode);
         
         props.navigation.navigate('Settings', {
           screen: 'KeyManagement',
