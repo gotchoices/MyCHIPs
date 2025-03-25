@@ -6,12 +6,14 @@ import {
   View,
   Keyboard,
   Text,
+  TouchableOpacity,
 } from "react-native";
 import Toast from 'react-native-toast-message';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 
 import Button from '../../../../components/Button';
 import CustomToast from '../../../../components/Toast';
+import EyeIcon from '../../../../../assets/svg/eye_icon.svg';
 
 import { colors, toastVisibilityTime } from "../../../../config/constants";
 import useMessageText from "../../../../hooks/useMessageText";
@@ -25,6 +27,9 @@ const PassphraseModal = (props) => {
   const [errors, setErrors] = useState(new Set());
   // Track if the button should be enabled
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
+  // Track password visibility
+  const [isPassphraseVisible, setIsPassphraseVisible] = useState(false);
+  const [isConfirmPassphraseVisible, setIsConfirmPassphraseVisible] = useState(false);
 
   const { messageText } = useMessageText();
   const charkText = messageText?.chark?.msg;
@@ -134,25 +139,53 @@ const PassphraseModal = (props) => {
             getLanguageText(charkText, 'keypass', 'help'))}
       </Text>
 
-      <TextInput
-        style={[styles.textInput, errors.has('passphrase') ? styles.errorInput : {}]}
-        placeholder={props.action === 'import_without' ? "Enter Decryption Passphrase" : "Enter Passphrase"}
-        value={passphrase}
-        onChangeText={setPassphrase}
-        onFocus={removeErrors}
-        secureTextEntry={true}
-      />
+      <View style={[
+        styles.inputContainer,
+        errors.has('passphrase') ? styles.errorContainer : {}
+      ]}>
+        <TextInput
+          style={[
+            styles.textInput, 
+            { flex: 1 }
+          ]}
+          placeholder={props.action === 'import_without' ? "Enter Decryption Passphrase" : "Enter Passphrase"}
+          value={passphrase}
+          onChangeText={setPassphrase}
+          onFocus={removeErrors}
+          secureTextEntry={!isPassphraseVisible}
+        />
+        <TouchableOpacity 
+          style={styles.eyeIconContainer} 
+          onPress={() => setIsPassphraseVisible(!isPassphraseVisible)}
+        >
+          <EyeIcon width={20} height={20} color={colors.blue} />
+        </TouchableOpacity>
+      </View>
 
       {/* Only show confirm passphrase field for non-import_without actions */}
       {props.action !== 'import_without' && (
-        <TextInput
-          value={confirmPassphrase}
-          secureTextEntry={true}
-          style={[styles.textInput, errors.has('confirmPassphrase') ? styles.errorInput : {}]}
-          onChangeText={setConfirmPassphrase}
-          placeholder="Confirm Passphrase"
-          onFocus={removeErrors}
-        />
+        <View style={[
+          styles.inputContainer,
+          errors.has('confirmPassphrase') ? styles.errorContainer : {}
+        ]}>
+          <TextInput
+            value={confirmPassphrase}
+            secureTextEntry={!isConfirmPassphraseVisible}
+            style={[
+              styles.textInput, 
+              { flex: 1 }
+            ]}
+            onChangeText={setConfirmPassphrase}
+            placeholder="Confirm Passphrase"
+            onFocus={removeErrors}
+          />
+          <TouchableOpacity 
+            style={styles.eyeIconContainer}
+            onPress={() => setIsConfirmPassphraseVisible(!isConfirmPassphraseVisible)}
+          >
+            <EyeIcon width={20} height={20} color={colors.blue} />
+          </TouchableOpacity>
+        </View>
       )}
 
       <View style={styles.row}>
@@ -191,17 +224,28 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
-  textInput: {
-    height: 40,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
     borderWidth: 1,
     borderRadius: 6,
-    marginVertical: 10,
+    borderColor: "#BBBBBB",
+    height: 40,
+  },
+  textInput: {
+    height: 40,
     paddingVertical: 0,
     paddingHorizontal: 12,
-    borderColor: "#BBBBBB",
+    borderWidth: 0,
   },
-  errorInput: {
+  errorContainer: {
     borderColor: colors.red,
+  },
+  eyeIconContainer: {
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   row: {
     paddingVertical: 20,
