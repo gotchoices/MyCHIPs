@@ -347,26 +347,50 @@ The UI design uses minimal text and leverages existing icons for actions:
 4. **ImportKey Improvements**: Modified the ImportKey component to respond to URL dependency changes instead of relying on component mounting, making it more robust for handling repeated deep links.
 
 ### Remaining Tasks
-1. **Enhance server-side support**:
-   - Add default landing page on mychips.org for signkey links
+1. **Update Android App Links Configuration**: ✅
+   - Added the `/signkey` path to the intent filter in Android's `AndroidManifest.xml`
+   - Fixed issue where deep links weren't working on real Android devices
+   - The full intent filter now properly includes all path patterns:
 
-2. **Testing with Real Devices**:
+```xml
+<!-- Updated in AndroidManifest.xml -->
+<intent-filter android:autoVerify="true">
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="https" />
+  <data android:host="mychips.org" />
+  <data android:pathPattern="/ticket" />
+  <data android:pathPattern="/invite" />
+  <data android:pathPattern="/pay" />
+  <data android:pathPattern="/signkey" /> <!-- Added this line -->
+</intent-filter>
+```
+
+2. **Testing on Real Devices**:
+   - After updating AndroidManifest.xml, rebuild and reinstall the app
+   - Verify App Links in Android Settings > Apps > [Your App] > Open by default
+   - Test deep links via camera app and direct browser URLs
+   - Check logcat output for any verification errors
    - Test on both iOS and Android physical devices
    - Verify handling of edge cases and malformed inputs
    - Ensure proper performance across different platforms
 
-3. **Documentation**:
+3. **Additional Information About assetlinks.json**:
+   - The server's assetlinks.json file is correctly configured with:
+     - Package name: "org.mychips.chark"
+     - Proper SHA-256 certificate fingerprint
+   - No changes needed to assetlinks.json since we're just adding a new path
+   - The file establishes the relationship between domain and app, not individual paths
+
+4. **Documentation**:
    - Add usage examples for developers
    - Document the implementation details in the project wiki
 
-4. **Advanced Features** (Future):
+5. **Advanced Features** (Future):
    - Implement base64-encoded JSON format for very large keys
    - Add automatic format selection based on key size
    - Enhance error handling for malformed deep links
-
-5. **Documentation**:
-   - Update documentation with the implemented deep link format
-   - Add usage examples for developers
 
 ### Strategy for Fixing Subsequent Deep Link Imports
 

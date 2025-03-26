@@ -54,6 +54,7 @@
         <data android:pathPattern="/ticket" />
         <data android:pathPattern="/invite" />
         <data android:pathPattern="/pay" />
+        <data android:pathPattern="/signkey" />
       </intent-filter>
 
     </activity>

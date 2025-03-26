@@ -10,9 +10,12 @@ X- Owner name not showing up for p1004
 X- Find language tags for key management screens
 X- Make signing key export produce deep link URL, not JSON
 X- Context help buttons not showing correctly
-- Can process signing key deep link
+X- Can process signing key deep link
 - Can read signing key QR
+- Test tally sequence
+- Test all deep link modes (connect, pay, key import)
 - Language tags
+  - Missing tag in key export, file
   - Review/refine issues/lang_text.md
   - Normalize language tag use across app
   - Do we need the list of languages in utils/language.js?
@@ -27,7 +30,6 @@ X- Context help buttons not showing correctly
   - Can I sign tallies/chits using the new crypto library?
   - If key signature fails, why don't we get an error back to the app (general err handling)
   - Can we re-sign existing tallies (for debugging only)?
-- Test all deep link modes (connect, pay, key import)
 - Try to add setting for custom, explicit CHIP conversion ratio
 - How is tally list maintained (in view or local cache of model)?
 - Generalize wyseman to handle sync or async localstorage
