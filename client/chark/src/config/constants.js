@@ -1,6 +1,6 @@
 export default {
   keyTag: 'connectKey',
-  chipsToDollar: 7.86,
+  chipsToDollar: 4.00,
 };
 
 export const dateFormats = {
@@ -44,11 +44,6 @@ export const colors = {
   connecting: '#FFB422',
   disconnected: '#D95656',
 
-};
-
-export const qrType = {
-  tally: 'tally',
-  connect: 'connect',
 };
 
 export const keyServices = {

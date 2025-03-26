@@ -12,14 +12,14 @@ import {
 } from 'react-native';
 import {Camera, CameraType} from 'react-native-camera-kit';
 import * as Keychain from 'react-native-keychain';
-import {colors, qrType} from '../../config/constants';
+import {colors} from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
 import {parse} from '../../utils/query-string';
 import {PERMISSIONS, RESULTS, check, request} from 'react-native-permissions';
 import {LINK_PREFIXES, addUuidToUrl} from '../../utils/deep-links';
 
 const Scanner = props => {
-  const {connectSocket, disconnectSocket, wm, ws, status} = useSocket();
+  const {connectSocket, disconnectSocket, status} = useSocket();
 
   const [hasPermission, setHasPermission] = useState(false);
   const [isActive, setIsActive] = useState(true);
