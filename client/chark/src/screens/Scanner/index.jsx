@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import {Camera, CameraType} from 'react-native-camera-kit';
+import ScannerCamera from '../../utils/scanner';
 import * as Keychain from 'react-native-keychain';
 import {colors} from '../../config/constants';
 import useSocket from '../../hooks/useSocket';
@@ -209,23 +209,16 @@ const Scanner = props => {
     hasPermission && (
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         {isActive ? (
-          <Camera
+          <ScannerCamera
             style={StyleSheet.absoluteFill}
-            cameraType={CameraType.Back}
-            flashMode="off"
-            scanBarcode={isActive}
-            onReadCode={event => onQrAccepted(event)}
-            showFrame={true}
-            laserColor="blue"
-            frameColor="white"
+            isActive={isActive}
+            onReadCode={onQrAccepted}
           />
         ) : (
-          <Camera
+          <ScannerCamera
             style={StyleSheet.absoluteFill}
-            cameraType={CameraType.Back}
-            flashMode="off"
-            scanBarcode={false}
-            showFrame={true}
+            isActive={false}
+            onReadCode={onQrAccepted}
           />
         )}
 

@@ -41,7 +41,7 @@
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="mychips" />
+        <data android:scheme="mychips" android:host="*" />
         <data android:pathPattern="/tally-preview" />
       </intent-filter>
 

@@ -1,0 +1,31 @@
+diff --git a/node_modules/react-native-quick-crypto/android/src/main/java/com/margelo/quickcrypto/QuickCryptoModule.java b/node_modules/react-native-quick-crypto/android/src/main/java/com/margelo/quickcrypto/QuickCryptoModule.java
+index b24b9ee..4d1a05e 100644
+--- a/node_modules/react-native-quick-crypto/android/src/main/java/com/margelo/quickcrypto/QuickCryptoModule.java
++++ b/node_modules/react-native-quick-crypto/android/src/main/java/com/margelo/quickcrypto/QuickCryptoModule.java
+@@ -3,6 +3,7 @@ package com.margelo.quickcrypto;
+ import android.util.Log;
+ 
+ import androidx.annotation.NonNull;
++import androidx.annotation.OptIn;
+ 
+ import com.facebook.jni.HybridData;
+ import com.facebook.proguard.annotations.DoNotStrip;
+@@ -11,9 +12,11 @@ import com.facebook.react.bridge.JavaScriptContextHolder;
+ import com.facebook.react.bridge.ReactContextBaseJavaModule;
+ import com.facebook.react.bridge.ReactApplicationContext;
+ import com.facebook.react.bridge.ReactMethod;
++import com.facebook.react.common.annotations.FrameworkAPI;
+ import com.facebook.react.module.annotations.ReactModule;
+ import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
+ 
++@OptIn(markerClass = FrameworkAPI.class)
+ @ReactModule(name = QuickCryptoModule.NAME)
+ public class QuickCryptoModule extends ReactContextBaseJavaModule {
+   public static final String NAME = "QuickCrypto";
+@@ -66,5 +69,6 @@ public class QuickCryptoModule extends ReactContextBaseJavaModule {
+     mHybridData.resetNative();
+   }
+ 
++  @OptIn(markerClass = FrameworkAPI.class)
+   private native void nativeInstall(long jsiPtr, CallInvokerHolderImpl jsCallInvokerHolder);
+ }
