@@ -1,0 +1,65 @@
+#!/bin/bash
+# Display current build numbers for both iOS and Android
+
+# Determine the script directory regardless of where it's called from
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
+echo "Project root directory: $PROJECT_ROOT"
+
+# Extract Android build number and version name
+echo "Checking Android build info..."
+ANDROID_GRADLE_PATH="$PROJECT_ROOT/android/app/build.gradle"
+if [ -f "$ANDROID_GRADLE_PATH" ]; then
+  ANDROID_BUILD_NUMBER=$(grep "versionCode" "$ANDROID_GRADLE_PATH" | sed -E 's/.*versionCode ([0-9]+).*/\1/')
+  ANDROID_VERSION_NAME=$(grep "versionName" "$ANDROID_GRADLE_PATH" | sed -E 's/.*versionName "([^"]+)".*/\1/')
+else
+  echo "Warning: Android build.gradle not found at $ANDROID_GRADLE_PATH"
+  ANDROID_BUILD_NUMBER="unknown"
+  ANDROID_VERSION_NAME="unknown"
+fi
+
+# Extract iOS build number and version from Info.plist
+echo "Checking iOS build info..."
+IOS_PLIST_PATH="$PROJECT_ROOT/ios/chark/Info.plist"
+if [ -f "$IOS_PLIST_PATH" ]; then
+  # Check if plutil is available (macOS)
+  if command -v plutil >/dev/null 2>&1; then
+    IOS_VERSION=$(plutil -p "$IOS_PLIST_PATH" | grep CFBundleShortVersionString | awk -F'"' '{print $4}')
+    IOS_BUILD_NUMBER=$(plutil -p "$IOS_PLIST_PATH" | grep CFBundleVersion | awk -F'"' '{print $4}')
+  else
+    # Fallback to xmllint if available
+    if command -v xmllint >/dev/null 2>&1; then
+      IOS_VERSION=$(xmllint --xpath 'string(//plist/dict/key[.="CFBundleShortVersionString"]/following-sibling::string[1])' "$IOS_PLIST_PATH")
+      IOS_BUILD_NUMBER=$(xmllint --xpath 'string(//plist/dict/key[.="CFBundleVersion"]/following-sibling::string[1])' "$IOS_PLIST_PATH")
+    else
+      # Last resort: basic grep/sed
+      IOS_VERSION=$(grep -A 1 "CFBundleShortVersionString" "$IOS_PLIST_PATH" | grep string | sed -E 's/.*<string>([^<]+)<\/string>.*/\1/')
+      IOS_BUILD_NUMBER=$(grep -A 1 "CFBundleVersion" "$IOS_PLIST_PATH" | grep string | sed -E 's/.*<string>([^<]+)<\/string>.*/\1/')
+    fi
+  fi
+else
+  echo "Warning: iOS Info.plist not found at $IOS_PLIST_PATH"
+  IOS_VERSION="unknown"
+  IOS_BUILD_NUMBER="unknown"
+fi
+
+# Print results in a nice format
+echo ""
+echo "============================================"
+echo "📱 Current Build Numbers for $(basename "$PROJECT_ROOT")"
+echo "============================================"
+echo "📊 iOS:"
+echo "   Version: $IOS_VERSION (Build: $IOS_BUILD_NUMBER)"
+echo ""
+echo "🤖 Android:"
+echo "   Version: $ANDROID_VERSION_NAME (Build: $ANDROID_BUILD_NUMBER)"
+echo "============================================"
+
+# Also look for a package.json version for reference
+PACKAGE_JSON_PATH="$PROJECT_ROOT/package.json"
+if [ -f "$PACKAGE_JSON_PATH" ]; then
+  PACKAGE_VERSION=$(grep '"version":' "$PACKAGE_JSON_PATH" | head -1 | sed -E 's/.*"version": "([^"]+)".*/\1/')
+  echo "📦 Package.json version: $PACKAGE_VERSION"
+  echo "============================================"
+fi

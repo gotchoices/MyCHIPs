@@ -11,7 +11,7 @@ X- Find language tags for key management screens
 X- Make signing key export produce deep link URL, not JSON
 X- Context help buttons not showing correctly
 X- Can process signing key deep link
-- Can read signing key QR
+X- Can read signing key QR
 - Test tally sequence
 - Test all deep link modes (connect, pay, key import)
 - Language tags

@@ -1,6 +1,6 @@
 {
   "name": "chark",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -9,7 +9,7 @@
     "test": "jest",
     "lint": "eslint .",
     "develop": "bin/develop",
-    "build": "bin/build",
+    "builds": "bin/builds",
     "test:android": "bin/test-e2e",
     "linklaunch": "bin/linklaunch",
     "incbuild:ios": "RNV=ios react-native-version -A",
