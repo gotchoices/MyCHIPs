@@ -106,7 +106,7 @@ export const importKey = async (format, key, algorithm, extractable, usage) => {
  * @param {Uint8Array} [salt] - The salt to use (generated if not provided)
  * @returns {Promise<Array>} - [derivedKey, salt]
  */
-export const deriveKey = async (password, salt) => {
+export const derivePassKey = async (password, salt) => {
   try {
     // Generate a random salt if not provided
     const useSalt = salt || getRandomValues(new Uint8Array(8));
@@ -247,12 +247,12 @@ export const decrypt = async (ciphertext, key, iv) => {
 
 /**
  * Sign data using the private key
- * @param {ArrayBuffer} data - The data to sign
- * @param {CryptoKey} privateKey - The private key to use
  * @param {Object} algorithm - The algorithm to use
+ * @param {CryptoKey} privateKey - The private key to use
+ * @param {ArrayBuffer} data - The data to sign
  * @returns {Promise<ArrayBuffer>} - The signature
  */
-export const sign = async (data, privateKey, algorithm) => {
+export const sign = async (algorithm, privateKey, data) => {
   try {
     const subtle = getSubtle();
     return subtle.sign(algorithm, privateKey, data);

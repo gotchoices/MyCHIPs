@@ -2,7 +2,7 @@ import ReactNativeFS from 'react-native-fs';
 import Share from 'react-native-share';
 import { Platform, Alert } from 'react-native';
 import { Buffer } from 'buffer';
-import { deriveKey, encrypt, decrypt, getRandomValues } from '../services/crypto';
+import { derivePassKey, encrypt, decrypt, getRandomValues } from '../services/crypto';
 
 const getDateTime = () => {
   const currentDate = new Date();
@@ -101,7 +101,7 @@ export const encryptJSON = async (jsonString, passphrase) => {
     let iv = getRandomValues(new Uint8Array(12));
     
     // Use the crypto service to derive a key and encrypt
-    const [key, salt] = await deriveKey(passphrase);
+    const [key, salt] = await derivePassKey(passphrase);
     const { ciphertext } = await encrypt(stringToEncrypt, key, iv);
     
     // Format the encrypted data
@@ -151,7 +151,7 @@ export const decryptJSON = async (encryptedString, passphrase) => {
       const data = Buffer.from(d, 'base64');
       
       // Use the crypto service to derive a key and decrypt
-      deriveKey(passphrase, salt)
+      derivePassKey(passphrase, salt)
         .then(([key]) => key)
         .then(key => decrypt(data, key, iv))
         .then(bufferData => Buffer.from(new Uint8Array(bufferData)).toString())

@@ -83,7 +83,7 @@ android {
         applicationId "org.mychips.chark"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "0.2.2"
+        versionName "0.2.3"
         versionCode 43
 
 /* need these anymore?
