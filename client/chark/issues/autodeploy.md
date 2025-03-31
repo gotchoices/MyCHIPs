@@ -207,7 +207,10 @@ We recommend phasing out bin/build entirely in favor of direct Fastlane usage th
 
 #### Future Enhancements
 - [ ] Test and verify App Store production release
-- [ ] Add support for automatically submitting to TestFlight External Testing
+- [x] Add support for automatically submitting to TestFlight External Testing ⚠️ (Implemented but not yet tested)
+  - Added `distribute_external: true` and `groups: ["MT"]` to the TestFlight upload action
+  - Added beta app review info parameters to automate the external testing approval process
+  - Needs testing during the next TestFlight submission
 - [ ] Add changelog generation or management in deployment process
 - [ ] Add safety checks to prevent accidentally uploading debug builds
 

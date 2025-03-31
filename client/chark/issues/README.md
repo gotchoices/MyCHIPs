@@ -9,12 +9,16 @@ This directory contains documentation for various issues, enhancements, and impl
 - [iOS Deep Links](ios_deeplinks.md) 
 - [React useEffect Dependency Arrays](use_effect.md)
 - [Crypto Service Implementation](crypto_service.md) - Centralized crypto service using QuickCrypto
+- [QR Code Scanner Compatibility](scanner.md) - Fixed scanner after React Native 0.77 upgrade
 
 ### In Progress
-- [Automated Deployment](autodeploy.md) - Fastlane implementation, requires final testing
-- [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API
+- [Automated Deployment](autodeploy.md) - Fastlane implementation, 90% complete
+  - Basic functionality working for all platforms
+  - Added automatic external testing group distribution for TestFlight (untested)
+  - Remaining: Test App Store production release
 
 ### Future (Priority Order)
+- [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API
 - [Language Text Tags](lang_text.md) - Standardize language text implementation and fill missing tags
 - [Toast and Modal UI Improvements](toasting.md) - Standardize feedback mechanisms and user interactions
 - [TypeScript Migration](ts_migrate.md) - Migrate codebase to TypeScript
