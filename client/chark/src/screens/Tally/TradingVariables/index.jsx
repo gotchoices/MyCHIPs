@@ -85,14 +85,13 @@ const TradingVariables = (props) => {
           uuid,
           date,
           by: tally_type,
-          type: "tran",
+          type: "set",
           tally: tally_uuid,
           ref: reference,
         };
         
         // Stringify it for signing
         const message = stringify(chitJson);
-        
         // Sign and submit as a chit
         (async () => {
           try {
@@ -119,6 +118,11 @@ const TradingVariables = (props) => {
               text1: charkMessageText?.updated?.help ?? 'Trading variables updated',
               visibilityTime: toastVisibilityTime,
             });
+            
+            // Navigate back after successful submission
+            setTimeout(() => {
+              props.navigation.goBack();
+            }, 1000); // Short delay to show the toast before navigation
           } catch (err) {
             if(err instanceof KeyNotFoundError) {
               showCreateSignatureModal();

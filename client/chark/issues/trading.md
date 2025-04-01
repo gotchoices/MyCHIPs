@@ -40,11 +40,12 @@ The trading variables configuration has several issues that need to be addressed
 - [x] Validate the values before including them in the reference object
 - [x] Add proper error handling for invalid numeric values
 
-### 2. Request Status
+### 2. Request Status and Type
 
 - [x] Set request status to 'good' in trading variable chits
-- [ ] Update any code that filters or processes setting chits to handle this status
-- [ ] Verify server-side processing works with this status value
+- [x] Fix the chit type from "tran" to "set" for proper signature validation
+- [x] Verified that correct type and status enable successful processing
+- [ ] Investigate why server initially marks settings chits as 'pend'
 
 ### 3. Units Conversion
 
@@ -55,6 +56,7 @@ The trading variables configuration has several issues that need to be addressed
 
 ### 4. User Interface Improvements
 
+- [x] Add automatic navigation back after successful form submission
 - [ ] Redesign the trading variables web form
 - [ ] Add better descriptions and tooltips for each variable
 - [ ] Implement input validation with visual feedback
@@ -83,11 +85,22 @@ const reference = {
 };
 ```
 
-### Setting Request Status
+### Setting Request Status and Type
 
-Updated the payload to include the proper request status:
+Updated the payload and JSON structure with the proper type and request status:
 
 ```javascript
+// In the signed JSON object
+const chitJson = {
+  uuid,
+  date,
+  by: tally_type,
+  type: "set", // Critical: Must be "set" not "tran" for proper signature validation
+  tally: tally_uuid,
+  ref: reference,
+};
+
+// In the API payload
 const payload = {
   signature,
   reference,
@@ -104,7 +117,9 @@ const payload = {
 
 ## Success Criteria
 
-- [ ] Trading variables can be successfully updated without errors
+- [x] Trading variables can be successfully updated without errors
+- [x] Parameters are properly converted to numeric values
+- [x] Automatic navigation provides a smooth user experience
 - [ ] Values are properly converted between decimal and integer units
 - [ ] The web form UI is intuitive and visually aligned with the app
 - [ ] Changes are properly signed, recorded, and reflected in the system
