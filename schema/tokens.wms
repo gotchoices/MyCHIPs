@@ -21,7 +21,7 @@ table mychips.tokens {mychips.tallies base.ent} {
   , token	text		not null unique
   , reuse	boolean		not null default false
   , used	timestamp
-  , expires	timestamp(0)	default current_timestamp + '45 minutes'
+  , expires	timestamp(0)	default current_timestamp + '48 hours'
   , tally_seq	int           , foreign key (token_ent, tally_seq) references mychips.tallies on update cascade on delete cascade
     eval(s $glob::stamps)
 }
