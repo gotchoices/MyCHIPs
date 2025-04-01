@@ -2,7 +2,12 @@ import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { AddIcon, ShareIcon } from "../SvgAssets/SvgAssets";
 
-const FloatingActionButton = ({ onPress, type, disabled }) => {
+// Using ES6 default parameters instead of defaultProps
+const FloatingActionButton = ({ 
+  onPress, 
+  type = "add", 
+  disabled = false 
+}) => {
   const getIcon = () => {
     switch (type){
       case 'add':
@@ -24,11 +29,6 @@ const FloatingActionButton = ({ onPress, type, disabled }) => {
       <View style={styles.fabContent}>{getIcon()}</View>
     </TouchableOpacity>
   );
-};
-
-FloatingActionButton.defaultProps = {
-  type: "add",
-  disabled: false
 };
 
 const styles = StyleSheet.create({
