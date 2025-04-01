@@ -34,9 +34,13 @@ const Activity = (props) => {
     return [...tallies, ...chits];
   }, [tallies, chits])
 
-  const allActivities = useMemo(() => {
-    return [...activities, ...goodChits]
-  }, [activities, goodChits])
+  // Original logic included good chits in the activity feed
+  // const allActivities = useMemo(() => {
+  //   return [...activities, ...goodChits]
+  // }, [activities, goodChits])
+  
+  // Modified to only show items requiring attention (tallies with action=true and pending chits)
+  const allActivities = activities;
 
   // Register chits texts
   useChitsMeText(wm);
@@ -55,9 +59,10 @@ const Activity = (props) => {
     fetchTallies();
   }, [tallyNegotiation])
 
-  useEffect(() => {
-    dispatch(getGoodChits({ wm }));
-  }, [chitTrigger])
+  // Fetch good chits (completed transactions) - disabled as they're not shown in the activity feed anymore
+  // useEffect(() => {
+  //   dispatch(getGoodChits({ wm }));
+  // }, [chitTrigger])
 
   useEffect(() => {
     // Setting only after the tallies and chits have been fetched
@@ -150,7 +155,22 @@ const Activity = (props) => {
     <View style={styles.main}>
       <FlatList
         data={allActivities}
-        keyExtractor={(item) => item.chit_uuid ?? item.tally_uuid}
+        keyExtractor={(item) => {
+          // Check if it's a tally record
+          if (item.tally_ent && !item.chit_ent) {
+            return `t-${item.tally_ent}-${item.tally_seq}`;
+          } 
+          // Check if it's a good chit (from goodChits array)
+          else if (item.chit_ent && (item.state === 'A.good' || item.state === 'L.good')) {
+            return `g-${item.chit_ent}-${item.chit_seq}-${item.chit_idx}`;
+          }
+          // It's a regular chit
+          else if (item.chit_ent) {
+            return `c-${item.chit_ent}-${item.chit_seq}-${item.chit_idx}`;
+          }
+          // Fallback (should never happen if data is well-formed)
+          return `item-${Math.random()}`;
+        }}
         renderItem={renderItem}
       />
     </View>

@@ -87,7 +87,7 @@ const PendingChits = (props) => {
         data={chits}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        keyExtractor={(_, index) => index}
+        keyExtractor={(item) => `c-${item.chit_ent}-${item.chit_seq}-${item.chit_idx}`}
         ListHeaderComponent={
           <HelpText
             label={chitsMeMessageText?.pending?.title ?? ''}
