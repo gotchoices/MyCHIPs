@@ -12,7 +12,7 @@
 #    export PATH="$PATH:$HOME/devel/node_modules/.bin"
 #
 
-deps="chipcryptbase chipcrypt chipcode chipnet wylib wyseman wyclif wyselib"
+deps="ChipCryptbase ChipCrypt ChipCode ChipNet wylib wyseman wyclif wyselib"
 appdir="$(git rev-parse --show-toplevel)"		#MyCHIPs home directory
 devdir="$(dirname "$appdir")"
 #echo "appdir:$appdir devdir:$devdir"; exit 0
