@@ -21,6 +21,11 @@ This directory contains documentation for various issues, enhancements, and impl
   - Improved UUID and timestamp generation for payment chits
   - Standardized reference object handling
   - Remaining: Memo field validation and additional testing
+- [Trading Variables Implementation](trading.md) - Fixing and improving trading variables handling
+  - Fixed data type conversion for trading parameters
+  - Added request status to settings chits
+  - Identified improvements needed for web-based trading form
+  - Remaining: Units conversion and UI improvements
 
 ### Future (Priority Order)
 - [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API

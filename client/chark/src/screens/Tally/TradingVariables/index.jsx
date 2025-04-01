@@ -45,63 +45,95 @@ const TradingVariables = (props) => {
     }).catch(console.log)
   }, [wm, tally_seq, setTrade])
 
-  const applySettings = async (request) => {
-    const { target, bound, reward, clutch } = parse(request.url ?? '');
-
-    const _chad = `chip://${chad.cuid}:${chad.agent}`
-    const date = generateTimestamp();
-    const uuid = generateUuid(tally_uuid, uuidv5.URL, _chad);
-
-    const reference = {
-      target,
-      bound,
-      reward,
-      clutch,
-    };
-
-    const chitJson = {
-      uuid,
-      date,
-      by: tally_type,
-      type: "tran",
-      tally: tally_uuid,
-      ref: reference,
-    }
-
-    const message = stringify(chitJson);
-
-    await promptBiometrics("Use biometrics to create a signature")
-   
-    createSignature(message).then((signature) => {
-      const payload = {
-        signature,
-        reference,
-        chit_type: 'set',
-        chit_ent: tally_ent,
-        chit_seq: tally_seq,
-        chit_date: date, // Include date to ensure consistency with PaymentDetail
-        units: null,
-        issuer: tally_type,
-        chit_uuid: uuid, // Include UUID to ensure DB doesn't generate a different one
-      };
-
-      return insertChit(wm, payload)
-    }).then(() => {
-      Toast.show({
-        type: 'success',
-        text1: charkMessageText?.updated?.help ?? '',
-        visibilityTime: toastVisibilityTime,
-      })
-    }).catch((err) => {
-      if(err instanceof KeyNotFoundError) {
-        showCreateSignatureModal();
-      } else {
-        showError(err)
+  const applySettings = (request) => {
+    try {
+      const url = request.url || '';
+      const parts = url.split('?');
+      
+      if (parts.length > 1) {
+        const queryString = parts[1];
+        const params = {};
+        
+        queryString.split('&').forEach(pair => {
+          const [key, value] = pair.split('=');
+          if (key && value !== undefined) {
+            params[key] = value;
+          }
+        });
+        
+        // Extract and convert parameters to numbers
+        const targetNum = parseFloat(params.target);
+        const boundNum = parseFloat(params.bound);
+        const rewardNum = parseFloat(params.reward);
+        const clutchNum = parseFloat(params.clutch);
+        
+        // Build a reference object with the numeric values
+        const reference = {
+          target: targetNum,
+          bound: boundNum,
+          reward: rewardNum,
+          clutch: clutchNum
+        };
+        
+        // Create UUID and timestamp
+        const _chad = `chip://${chad.cuid}:${chad.agent}`;
+        const date = generateTimestamp();
+        const uuid = generateUuid(tally_uuid, uuidv5.URL, _chad);
+        
+        // Create the chitJson object
+        const chitJson = {
+          uuid,
+          date,
+          by: tally_type,
+          type: "tran",
+          tally: tally_uuid,
+          ref: reference,
+        };
+        
+        // Stringify it for signing
+        const message = stringify(chitJson);
+        
+        // Sign and submit as a chit
+        (async () => {
+          try {
+            await promptBiometrics("Use biometrics to create a signature");
+            const signature = await createSignature(message);
+            
+            const payload = {
+              signature,
+              reference,
+              chit_type: 'set',
+              chit_ent: tally_ent,
+              chit_seq: tally_seq,
+              chit_date: date,
+              units: null,
+              issuer: tally_type,
+              chit_uuid: uuid,
+              request: 'good', // Set request to 'good' like payment chits
+            };
+            
+            await insertChit(wm, payload);
+            
+            Toast.show({
+              type: 'success',
+              text1: charkMessageText?.updated?.help ?? 'Trading variables updated',
+              visibilityTime: toastVisibilityTime,
+            });
+          } catch (err) {
+            if(err instanceof KeyNotFoundError) {
+              showCreateSignatureModal();
+            } else {
+              showError(err);
+            }
+          }
+        })();
       }
-    });
-
+    } catch (error) {
+      showError(error);
+    }
+    
     return false;
-  }
+  };
 
   return (
     <View style={styles.container}>
