@@ -16,6 +16,11 @@ This directory contains documentation for various issues, enhancements, and impl
   - Basic functionality working for all platforms
   - Added automatic external testing group distribution for TestFlight (untested)
   - Remaining: Test App Store production release
+- [Payment Processing Improvements](payments.md) - Standardizing units, references, UUIDs and timestamps
+  - Added centralized constants and utility functions for unit conversions
+  - Improved UUID and timestamp generation for payment chits
+  - Standardized reference object handling
+  - Remaining: Memo field validation and additional testing
 
 ### Future (Priority Order)
 - [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API

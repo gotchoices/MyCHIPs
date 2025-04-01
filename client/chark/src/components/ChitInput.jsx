@@ -14,7 +14,7 @@ import { ChitIcon, SwapIcon } from '../components/SvgAssets/SvgAssets';
 import { colors } from '../config/constants';
 import { getCurrency } from '../services/user';
 import useSocket from '../hooks/useSocket';
-import { round } from '../utils/common';
+import { round, formatChipValue } from '../utils/common';
 
 const ChitInput = props => {
   const {wm} = useSocket();
@@ -115,22 +115,10 @@ const ChitInput = props => {
   };
 
   const checkChipDecimalPlace = () => {
-    let newValue = '';
     if (chit) {
-      const [precision, decimalPlace] = chit.split('.');
-      if (decimalPlace) {
-        const decimalLength = decimalPlace.length;
-        const remainingLength = Math.max(3 - decimalLength, 0);
-        newValue = chit + Array(remainingLength).fill('0').join('');
-        props.setChit(newValue);
-      } else {
-        newValue = precision + '.000';
-        props.setChit(newValue);
-      }
-    }
-
-    if (newValue) {
-      setInputWidth(Math.max(Math.ceil(newValue.length * 20), 80));
+      const formattedValue = formatChipValue(chit);
+      props.setChit(formattedValue);
+      setInputWidth(Math.max(Math.ceil(formattedValue.length * 20), 80));
     }
   };
 

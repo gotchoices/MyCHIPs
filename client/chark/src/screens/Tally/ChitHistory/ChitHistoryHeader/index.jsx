@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from "react-native"
 import { useSelector } from 'react-redux';
 
 import { colors } from "../../../../config/constants";
-import { round } from "../../../../utils/common";
+import { round, unitsToChips } from "../../../../utils/common";
 import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
 import { formatDate } from "../../../../utils/format-date";
@@ -32,7 +32,8 @@ const ChistHistoryHeader = (props) => {
 
   const totalNetDollar = useMemo(() => {
     if (conversionRate) {
-      const total = round((net ?? 0) / 1000, 3) * conversionRate;
+      const chips = unitsToChips(net ?? 0);
+      const total = chips * conversionRate;
       return round(total, 2);
     }
 

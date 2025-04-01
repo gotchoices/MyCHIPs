@@ -1,4 +1,4 @@
-import { random } from '../utils/common';
+import { random, chipsToUnits } from '../utils/common';
 import { request } from './request';
 
 /**
@@ -18,7 +18,7 @@ export const createLiftsPay = (wm, payload) => {
   const sign = 'Signature';
 
   const auth = { memo, ref, sign };
-  const _units = parseInt(units) * 1000;
+  const _units = chipsToUnits(units);
   const find = { cuid, agent }
 
   const spec = {

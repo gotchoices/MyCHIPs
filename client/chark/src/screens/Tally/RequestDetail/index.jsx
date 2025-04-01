@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   Keyboard,
 } from 'react-native';
+import { v5 as uuidv5 } from 'uuid';
+import moment from 'moment';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { colors } from '../../../config/constants';
 import Button from '../../../components/Button';
 import useSocket from '../../../hooks/useSocket';
-import {round} from '../../../utils/common';
+import { round, chipsToUnits } from '../../../utils/common';
 import {insertChit } from '../../../services/tally';
 import {useChitsMeText} from '../../../hooks/useLanguage';
 import useTitle from '../../../hooks/useTitle';
@@ -44,13 +46,9 @@ const RequestDetail = props => {
   useTitle(props.navigation, chitsText?.msg?.dirreq?.title)
 
   const onMakePayment = () => {
-    const net = round((chit ?? 0) * 1000, 0);
+    const net = chipsToUnits(chit);
 
-    if (net < 0) {
-      return setChitInputError(true);
-    }
-
-    if (net == 0) {
+    if (net <= 0) {
       return setChitInputError(true);
     }
 
@@ -59,10 +57,9 @@ const RequestDetail = props => {
 
     Keyboard.dismiss();
     const payload = {
-      reference: JSON.stringify(reference),
+      reference, // Pass reference object directly
       memo: memo,
       status: 'open',
-      signature: 'Signature',
       request: 'pend',
       issuer: tally_type === 'stock' ? 'foil' : 'stock',
       units: net,

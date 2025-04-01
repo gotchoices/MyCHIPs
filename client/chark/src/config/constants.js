@@ -68,4 +68,10 @@ export const KeyConfig = {
   hash: {name: 'SHA-384'}
 };
 
+// Number of units per CHIP (e.g., 1000 milliCHIPs = 1 CHIP)
+export const CHIP_UNIT_FACTOR = 1000;
+
+// Number of decimal places to display in CHIP amounts
+export const CHIP_DECIMAL_PLACES = 3;
+
 export const toastVisibilityTime = 10000;

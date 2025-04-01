@@ -3,9 +3,9 @@ import { useDispatch } from 'react-redux';
 import { StyleSheet, View, Alert } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Toast from 'react-native-toast-message';
-import moment from 'moment';
 import stringify from 'json-stable-stringify';
 import { v5 as uuidv5 } from 'uuid';
+import { generateUuid, generateTimestamp } from '../../../utils/common';
 
 import useSocket from '../../../hooks/useSocket';
 import {  fetchTradingVariables } from '../../../services/tally';
@@ -49,8 +49,8 @@ const TradingVariables = (props) => {
     const { target, bound, reward, clutch } = parse(request.url ?? '');
 
     const _chad = `chip://${chad.cuid}:${chad.agent}`
-    const date = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-    const uuid = uuidv5(date + Math.random(), uuidv5(_chad, uuidv5.URL));
+    const date = generateTimestamp();
+    const uuid = generateUuid(tally_uuid, uuidv5.URL, _chad);
 
     const reference = {
       target,
@@ -79,8 +79,10 @@ const TradingVariables = (props) => {
         chit_type: 'set',
         chit_ent: tally_ent,
         chit_seq: tally_seq,
+        chit_date: date, // Include date to ensure consistency with PaymentDetail
         units: null,
         issuer: tally_type,
+        chit_uuid: uuid, // Include UUID to ensure DB doesn't generate a different one
       };
 
       return insertChit(wm, payload)

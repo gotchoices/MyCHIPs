@@ -15,7 +15,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { colors } from "../../../config/constants";
 import Button from "../../../components/Button";
 import useSocket from "../../../hooks/useSocket";
-import { round } from "../../../utils/common";
+import { round, chipsToUnits, generateUuid, generateTimestamp } from "../../../utils/common";
 import { insertChit } from "../../../services/tally";
 import { useChitsMeText } from "../../../hooks/useLanguage";
 import useMessageText from "../../../hooks/useMessageText";
@@ -88,22 +88,17 @@ const PaymentDetail = (props) => {
 
   const onMakePayment = async () => {
     Keyboard.dismiss();
-    const net = round((chit ?? 0) * 1000, 0);
+    const net = chipsToUnits(chit);
 
-    if (net < 0) {
-      return setChitInputError(true);
-    }
-
-    if (net == 0) {
+    if (net <= 0) {
       return setChitInputError(true);
     }
 
     setChitInputError(false);
     setDisabled(true);
     const _chad = `chip://${chad.cuid}:${chad.agent}`
-    const date = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-    const uuid = uuidv5(date + Math.random(), uuidv5(_chad, uuidv5.URL));
-    const referenceJson = JSON.stringify({});
+    const date = generateTimestamp();
+    const uuid = generateUuid(tally_uuid, uuidv5.URL, _chad);
 
     const chitJson = {
       uuid,
@@ -113,25 +108,25 @@ const PaymentDetail = (props) => {
       by: tally_type,
       type: "tran",
       tally: tally_uuid,
-      ref: reference,
+      ref: reference, // This is a reference to the state variable (empty object)
     }
 
     try {
       const json = stringify(chitJson);
-
       await promptBiometrics("Use biometrics to create a signature")
       const signature = await createSignature(json)
 
       const payload = {
         chit_ent,
         chit_seq,
+        chit_uuid: uuid,
         memo,
         chit_date: date,
         signature,
         units: net,
         request: "good",
         issuer: tally_type,
-        reference: referenceJson,
+        reference, // Pass reference object directly
       };
 
       await insertChit(wm, payload)

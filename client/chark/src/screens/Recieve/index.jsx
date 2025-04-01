@@ -14,7 +14,7 @@ import ChitInput from '../../components/ChitInput';
 
 import { colors } from "../../config/constants";
 import useSocket from "../../hooks/useSocket";
-import { round } from "../../utils/common";
+import { round, chipsToUnits } from "../../utils/common";
 import { receiveChit } from '../../services/chit';
 import { showError } from '../../utils/error';
 import { useChitsMeText } from '../../hooks/useLanguage';
@@ -36,13 +36,9 @@ const Receive = props => {
   useTitle(props.navigation, chitsMeText?.col?.request?.title)
 
   const onReceive = async () => {
-    const net = round((chit ?? 0) * 1000, 0);
+    const net = chipsToUnits(chit);
 
-    if (net < 0) {
-      return setChitInputError(true);
-    }
-
-    if (net == 0) {
+    if (net <= 0) {
       return setChitInputError(true);
     }
 
