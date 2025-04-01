@@ -7,6 +7,18 @@
 //- Should serve documents via https to prevent spoofing a document and digest
 //- Able to launch without SPA services
 //- 
+
+// Process-level unhandled error handlers
+process.on('uncaughtException', (err, origin) => {
+  console.error('Uncaught Exception:', err, '\nOrigin:', origin)
+  // Log and gracefully shutdown, but don't exit immediately to allow cleanup
+  // setTimeout(() => process.exit(1), 1000)
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, '\nReason:', reason)
+})
+
 const MaxTimeDelta = 60000		//Allow max 1 minute time difference with client's clock
 const Os = require('os')
 const Path = require('path')
