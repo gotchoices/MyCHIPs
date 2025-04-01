@@ -25,8 +25,9 @@ const HelpText = (props) => {
             <Tooltip
               isVisible={isVisible}
               content={
-                <Text>{props.helpText}</Text>
+                <Text style={styles.tooltipText}>{props.helpText}</Text>
               }
+              contentStyle={styles.tooltipContent}
               placement={props.placement ?? 'top'}
               onClose={() => setIsVisible(false)}
             >
@@ -59,6 +60,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     fontFamily: 'inter',
+  },
+  tooltipContent: {
+    width: 250,
+    maxWidth: '90%',
+    padding: 10,
+  },
+  tooltipText: {
+    fontSize: 14,
+    color: 'black',
+    lineHeight: 20,
+    flexWrap: 'wrap',
   },
 });
 
