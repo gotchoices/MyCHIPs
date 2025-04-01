@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, RefreshControl } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, RefreshControl, TouchableOpacity } from "react-native";
 import { colors, toastVisibilityTime } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
-import { fetchChitHistory, updateChitState } from "../../../services/tally";
+import { fetchChitHistory, fetchTallies, updateChitState } from "../../../services/tally";
 import Button from "../../../components/Button";
 import { round } from "../../../utils/common";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
@@ -10,16 +10,23 @@ import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
 import { showError } from '../../../utils/error';
 import { useLiftsPayMeText } from '../../../hooks/useLanguage';
+import { useSelector } from "react-redux";
 
 const ChitDetail = (props) => {
   const { chit_ent, chit_idx, chit_seq, chit_uuid } = props.route.params;
   const { wm } = useSocket();
   const [chit, setChit] = useState(undefined);
   const [loading, setLoading] = useState(true);
+  const [tallyDetails, setTallyDetails] = useState(null);
+  const [loadingTally, setLoadingTally] = useState(false);
+
+  // Get open tallies data from Redux to find partner name
+  const { tallies: openTallies } = useSelector(state => state.openTallies);
 
   const { messageText } = useMessageText();
   const chitsMeText = messageText?.chits_v_me?.col;
   const chitsMeMessageText = messageText?.chits_v_me?.msg;
+  const talliesMeText = messageText?.tallies_v_me?.col;
   const charkText = messageText?.chark?.msg;
 
   const liftsPayMeText = useLiftsPayMeText(wm)
@@ -34,6 +41,48 @@ const ChitDetail = (props) => {
     return 0;
   }, [chit?.net]);
 
+  // Function to extract partner name from a tally
+  const getPartnerName = (tally) => {
+    if (!tally?.part_cert) return "";
+    
+    const partCert = tally.part_cert;
+    return partCert.type === 'o'
+      ? `${partCert.name}`
+      : `${partCert?.name?.first || ''}${partCert?.name?.middle ? ' ' + partCert?.name?.middle : ''} ${partCert?.name?.surname || ''}`.trim();
+  }
+
+  // Get the tally details, first from Redux, then from direct fetch if needed
+  useEffect(() => {
+    if (chit && chit.tally_uuid) {
+      // First try to find in Redux state
+      const tally = openTallies.find(t => t.tally_uuid === chit.tally_uuid);
+      if (tally) {
+        setTallyDetails(tally);
+        return;
+      }
+      
+      // If not found in Redux, fetch directly
+      setLoadingTally(true);
+      fetchTallies(wm, {
+        fields: ['tally_ent', 'tally_seq', 'tally_uuid', 'part_cert', 'tally_type'],
+        where: {
+          tally_uuid: chit.tally_uuid
+        }
+      })
+      .then(tallies => {
+        if (tallies && tallies.length > 0) {
+          setTallyDetails(tallies[0]);
+        }
+      })
+      .catch(err => {
+        console.log("Error fetching tally details:", err);
+      })
+      .finally(() => {
+        setLoadingTally(false);
+      });
+    }
+  }, [chit?.tally_uuid, openTallies]);
+
   useEffect(() => {
     if (chit_uuid) {
       _fetchChitDetails();
@@ -44,7 +93,8 @@ const ChitDetail = (props) => {
     fetchChitHistory(
       wm,
       {
-        fields: ['net', 'chain_idx', 'signature', 'clean', 'state', 'request', 'status', 'action', 'reference', 'memo'],
+        fields: ['net', 'chain_idx', 'signature', 'clean', 'state', 'request', 'status', 'action', 
+                'reference', 'memo', 'tally_uuid'],
         where: {
           chit_uuid,
           chit_ent,
@@ -60,6 +110,23 @@ const ChitDetail = (props) => {
     }).catch(err => {
       showError(err)
     }).finally(() => setLoading(false))
+  }
+  
+  // Navigate to tally details
+  const navigateToTally = () => {
+    if (tallyDetails) {
+      // For navigating we need the tallyDetails which has proper tally_ent field
+      props.navigation.navigate('TallyPreview', {
+        tally_seq: tallyDetails.tally_seq,
+        tally_ent: tallyDetails.tally_ent,
+        tally_uuid: tallyDetails.tally_uuid,
+      });
+    } else if (chit?.tally_uuid) {
+      // If we don't have tallyDetails yet but have the UUID, navigate to a lookup route
+      props.navigation.navigate('TallyPreview', {
+        tally_uuid: chit.tally_uuid
+      });
+    }
   }
 
   const onPay = () => {
@@ -156,21 +223,78 @@ const ChitDetail = (props) => {
       contentContainerStyle={styles.contentContainer}
       refreshControl={
         <RefreshControl
-          refreshing={loading}
+          refreshing={loading || loadingTally}
           onRefresh={_fetchChitDetails}
         />
       }
     >
-      <Text style={styles.text}>{chitsMeText?.chit_uuid?.title ?? ''}: {chit_uuid}</Text>
-      <Text style={styles.text}>{chitsMeText?.signature?.title ?? ''}: {chit?.signature}</Text>
-      <Text style={styles.text}>{chitsMeText?.clean?.title ?? ''}: {chit?.clean?.toString()}</Text>
-      <Text style={styles.text}>{chitsMeText?.net?.title ?? ''}: {totalChitNet}</Text>
-      <Text style={styles.text}>{chitsMeText?.reference?.title ?? ''}: {JSON.stringify(chit?.reference ?? {})}</Text>
-      <Text style={styles.text}>{chitsMeText?.memo?.title ?? ''}: {chit?.memo}</Text>
-      <Text style={styles.text}>{chitsMeText?.request?.title ?? ''}: {chit?.request ?? 'None'}</Text>
-      <Text style={styles.text}>{chitsMeText?.status?.title ?? ''}: {chit?.status}</Text>
-      <Text style={styles.text}>{chitsMeText?.state?.title ?? ''}: {chit?.state}</Text>
+      {/* Partner Information Section */}
+      {tallyDetails && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Partner Information</Text>
+          <Text style={styles.text}>
+            <Text style={styles.labelText}>Partner: </Text>
+            {getPartnerName(tallyDetails)}
+          </Text>
+          <TouchableOpacity onPress={navigateToTally}>
+            <Text style={styles.linkText}>
+              <Text style={styles.labelText}>{talliesMeText?.tally_uuid?.title ?? 'Tally'}: </Text>
+              {chit?.tally_uuid}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
+      {/* Chit Details Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Chit Details</Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.chit_uuid?.title ?? ''}: </Text>
+          {chit_uuid}
+        </Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.signature?.title ?? ''}: </Text>
+          {chit?.signature}
+        </Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.net?.title ?? ''}: </Text>
+          {totalChitNet}
+        </Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.memo?.title ?? ''}: </Text>
+          {chit?.memo}
+        </Text>
+      </View>
+
+      {/* Status Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Status</Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.clean?.title ?? ''}: </Text>
+          {chit?.clean?.toString()}
+        </Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.request?.title ?? ''}: </Text>
+          {chit?.request ?? 'None'}
+        </Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.status?.title ?? ''}: </Text>
+          {chit?.status}
+        </Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.state?.title ?? ''}: </Text>
+          {chit?.state}
+        </Text>
+      </View>
+
+      {/* Technical Details Section (can be collapsed in future) */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Technical Details</Text>
+        <Text style={styles.text}>
+          <Text style={styles.labelText}>{chitsMeText?.reference?.title ?? ''}: </Text>
+          {JSON.stringify(chit?.reference ?? {})}
+        </Text>
+      </View>
     </ScrollView>
     {chit?.action ? <View style={styles.row}>
       <Button
@@ -203,10 +327,32 @@ const styles = StyleSheet.create({
     padding: 16,
     margin: 12,
   },
-  text: {
-    fontSize: 16,
+  section: {
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.lightgray,
+    paddingBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
     color: colors.black,
-    marginVertical: 8,
+    marginBottom: 10,
+  },
+  text: {
+    fontSize: 15,
+    color: colors.black,
+    marginVertical: 5,
+  },
+  labelText: {
+    fontWeight: '600',
+    color: colors.gray300,
+  },
+  linkText: {
+    fontSize: 15,
+    color: colors.blue,
+    marginVertical: 5,
+    textDecorationLine: 'underline',
   },
   loadingContainer: {
     flex: 1,

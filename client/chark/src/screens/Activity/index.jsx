@@ -106,6 +106,9 @@ const Activity = (props) => {
     fetchChits();
   }
 
+  // Get open tallies for partner name lookup
+  const { tallies: openTallies } = useSelector(state => state.openTallies);
+  
   const renderItem = ({ item }) => {
     if(item.tally_ent) {
       return (
@@ -119,7 +122,18 @@ const Activity = (props) => {
       )
     } else if(item.chit_ent) {
       const digest = partnerDigestByTallies?.[item?.tally_uuid];
-      const avatar = imagesByDigest?.[digest]
+      const avatar = imagesByDigest?.[digest];
+      
+      // Find tally info to get partner name
+      const relatedTally = openTallies.find(t => t.tally_uuid === item.tally_uuid);
+      const partCert = relatedTally?.part_cert;
+      let partnerName = '';
+      
+      if (partCert) {
+        partnerName = partCert.type === 'o'
+          ? `${partCert.name}`
+          : `${partCert?.name?.first || ''}${partCert?.name?.middle ? ' ' + partCert?.name?.middle : ''} ${partCert?.name?.surname || ''}`;
+      }
 
       return (
         <ChitItem
@@ -130,6 +144,7 @@ const Activity = (props) => {
           postAccept={postChitAction}
           postReject={postChitAction}
           currencyCode={currencyCode}
+          partnerName={partnerName.trim()}
         />
       )
     }

@@ -80,23 +80,39 @@ const ChitItem = (props) => {
                 helpText={chitTypeHelp}
               />
             </View>
-
-            <View style={styles.description}>
+            
+            {/* Top row with name and amounts */}
+            <View style={styles.topRow}>
+              {/* Left column - Name */}
+              <View style={styles.nameContainer}>
+                {props.partnerName ? (
+                  <Text style={styles.name} numberOfLines={1}>
+                    {props.partnerName}
+                  </Text>
+                ) : null}
+              </View>
+              
+              {/* Right column - Amounts */}
+              <View style={styles.amountsContainer}>
+                <View style={styles.chit}>
+                  <ChitIcon color={isNegative ? colors.red : colors.green} />
+                  <Text style={styles.pend(isNegative)}>
+                    {net_pc}
+                  </Text>
+                </View>
+                
+                <Text style={styles.currency}>
+                  {props.currencyCode} {convertedNet}
+                </Text>
+              </View>
+            </View>
+            
+            {/* Bottom row - Memo spans full width */}
+            <View style={styles.memoContainer}>
               <Text style={styles.memo}>
                 {(props.chit.memo ?? '')}
               </Text>
             </View>
-
-            <View style={styles.chit}>
-              <ChitIcon color={isNegative ? colors.red : colors.green} />
-              <Text style={styles.pend(isNegative)}>
-                {net_pc}
-              </Text>
-            </View>
-
-            <Text style={styles.currency}>
-            {props.currencyCode} {convertedNet} 
-            </Text>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -147,24 +163,35 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   item: {
-    //width: '75%',
+    flex: 1,
     justifyContent: 'center',
   },
-  description: {
+  topRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 4,
+  },
+  nameContainer: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  amountsContainer: {
+    alignItems: 'flex-end',
+  },
+  memoContainer: {
+    marginTop: 2,
   },
   memo: {
     ...font,
     color: colors.black,
+    fontSize: 12,
   },
   chit: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
   },
   pend: (isNegative) => ({
-    fontSize: 20,
+    fontSize: 18,
     marginLeft: 4,
     color: isNegative ? colors.red : colors.green,
   }),
@@ -204,8 +231,8 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: 'inter',
     color: colors.black,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
@@ -216,6 +243,8 @@ ChitItem.propTypes = {
   conversionRate: PropTypes.number,
   postAccept: PropTypes.func,
   postReject: PropTypes.func,
+  partnerName: PropTypes.string,
+  currencyCode: PropTypes.string,
 }
 
 export default ChitItem;

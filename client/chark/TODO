@@ -20,6 +20,7 @@ X  - Can I sign tallies/chits using the new crypto library?
   - If key signature fails, why don't we get an error back to the app (general err handling)
   - Can we re-sign existing tallies (for debugging only)?
 - Test all deep link modes (connect, pay, key import)
+- Clean up chit history screen
 - Language tags
   - Missing tag in key export, file
   - Review/refine issues/lang_text.md
