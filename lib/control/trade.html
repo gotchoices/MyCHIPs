@@ -461,7 +461,7 @@ function setLimit(limit) {		//Set new credit limit
     , step = Math.pow(10, digs)		//;console.log('Nd:', digs, 'St:', step)
   credLimit = limit
   target.step = bound.step = step
-  target.dig = bound.digs = -digs
+  target.dig = bound.dig = -digs
   target.max = bound.max = limit
 }
 
@@ -480,7 +480,7 @@ function fetchData(cb) {		//Grab tally data from server
       }
       if (row[id] !== null && row[id] !== undefined)
         updateSetting(el, row[id], null, null, false)
-      if (id = 'bound' && el.value > credLimit)
+      if (id === 'bound' && el.value > credLimit)
         setLimit(nextLogValue(el.value))
     })
     entityData.forEach(el => {
