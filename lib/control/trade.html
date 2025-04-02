@@ -146,6 +146,7 @@ const markerWidth	= 12			//Link arrowhead marker
 const markerHeight	= 8
 const arrowPoints	= [[0, 0], [0, markerHeight], [markerWidth, markerHeight/2]]	//Path to sketch arrowhead
 const timerInt		= 500
+const unitMult		= 1000			//Scale units to CHIPs
 var minCredLimit	= 10
 var graphX		= 280			//Graphing space
 var graphY		= 140
@@ -519,8 +520,10 @@ function fetchData(cb) {		//Grab tally data from server
         el.label = col[id].title
         el.help = col[id].help
       }
-      if (row[id] !== null && row[id] !== undefined)
-        updateSetting(el, row[id], null, null, false)
+      if (row[id] !== null && row[id] !== undefined) {
+        let val = (id === 'target' || id === 'bound') ? row[id] / unitMult : row[id]
+        updateSetting(el, val, null, null, false)
+      }
       if (id === 'bound' && el.value > credLimit)
         setLimit(nextLogValue(el.value))
     })

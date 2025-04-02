@@ -1,6 +1,6 @@
 # Trading Variables Implementation and User Interface
 
-*Last updated: April 1, 2025*
+*Last updated: April 2, 2025*
 
 ## Background
 
@@ -50,8 +50,8 @@ The trading variables configuration has several issues that need to be addressed
 ### 3. Units Conversion
 
 - [ ] Update web form to display and accept values in CHIPs (decimal format)
-- [ ] Implement consistent units conversion using the CHIP_UNIT_FACTOR constant
-- [ ] Convert web form values to integer units before sending to the server
+- [x] Implement consistent units conversion using the CHIP_UNIT_FACTOR constant
+- [x] Convert web form values to integer units before sending to the server
 - [ ] Ensure values are properly displayed and formatted in the UI
 
 ### 4. User Interface Improvements
@@ -120,7 +120,7 @@ const payload = {
 - [x] Trading variables can be successfully updated without errors
 - [x] Parameters are properly converted to numeric values
 - [x] Automatic navigation provides a smooth user experience
-- [ ] Values are properly converted between decimal and integer units
+- [x] Values are properly converted between decimal and integer units
 - [ ] The web form UI is intuitive and visually aligned with the app
 - [ ] Changes are properly signed, recorded, and reflected in the system
 - [ ] Error handling is robust and provides helpful feedback

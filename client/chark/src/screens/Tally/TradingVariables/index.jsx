@@ -5,7 +5,7 @@ import { WebView } from 'react-native-webview';
 import Toast from 'react-native-toast-message';
 import stringify from 'json-stable-stringify';
 import { v5 as uuidv5 } from 'uuid';
-import { generateUuid, generateTimestamp } from '../../../utils/common';
+import { generateUuid, generateTimestamp, chipsToUnits } from '../../../utils/common';
 
 import useSocket from '../../../hooks/useSocket';
 import {  fetchTradingVariables } from '../../../services/tally';
@@ -61,18 +61,19 @@ const TradingVariables = (props) => {
           }
         });
         
-        // Extract and convert parameters to numbers
+        // Extract parameters and convert to numbers
         const targetNum = parseFloat(params.target);
         const boundNum = parseFloat(params.bound);
         const rewardNum = parseFloat(params.reward);
         const clutchNum = parseFloat(params.clutch);
         
-        // Build a reference object with the numeric values
+        // Build a reference object with values converted to integer units where needed
+        // target and bound are chip amounts that need conversion to integer units
         const reference = {
-          target: targetNum,
-          bound: boundNum,
-          reward: rewardNum,
-          clutch: clutchNum
+          target: chipsToUnits(targetNum),
+          bound: chipsToUnits(boundNum),
+          reward: rewardNum, // reward is a percentage, not a chip amount - no conversion needed
+          clutch: clutchNum  // clutch is a ratio, not a chip amount - no conversion needed
         };
         
         // Create UUID and timestamp
