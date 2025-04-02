@@ -596,13 +596,9 @@ function updateSetting(d, value, step, manual, check = true) {	//console.log('Up
     d.value = parseFloat(d.value) + parseFloat(d.step) * step
   }
   
-  // Handle manual input formatting
-  if (manual) {
-    d3.select(`#${d.id}_inp`).classed('warning', d.value < 0)
-  } else {
+  // Handle rounding for non-manual inputs
+  if (!manual) {
     d.value = rounder(d.value, d.dig)
-    d3.select(`#${d.id}_inp`).property('value', d.value)
-   .classed('warning', d.value < 0)
   }
   
   // For target or bound, check if range adjustment is needed
@@ -612,6 +608,12 @@ function updateSetting(d, value, step, manual, check = true) {	//console.log('Up
   
   // Now apply clamping with the potentially adjusted range
   d.value = Math.max(d.min, Math.min(d.max, d.value))
+  
+  // Update the input field display with the clamped value and warning status
+  // Only show warning if the value is actually negative (which should only happen for reward/clutch)
+  d3.select(`#${d.id}_inp`)
+    .property('value', d.value)
+    .classed('warning', d.value < 0)
   if (d.dir) {
     let { target, bound } = settingsObj
     
@@ -628,13 +630,44 @@ function updateSetting(d, value, step, manual, check = true) {	//console.log('Up
     
     paintSets()
   } else {
-    let { reward, clutch } = settingsObj
-      , illegal = (reward.value + clutch.value < 0)
-    d3.select('#submit').property('disabled', illegal)
     d3.select(`#${d.id}_rng`).property('value', d.value)
     liftArrowObj[d.arr].tap = d.value	//associate with lift arrow
     paintArrows()
   }
+  
+  // Comprehensive validation of all settings
+  validateAllSettings()
+}
+
+// Check all four settings for validity
+function validateAllSettings() {
+  let { target, bound, reward, clutch } = settingsObj
+    , isValid = true
+    , targetVal = parseFloat(target.value)
+    , boundVal = parseFloat(bound.value)
+    , rewardVal = parseFloat(reward.value)
+    , clutchVal = parseFloat(clutch.value)
+  
+  // Check individual ranges
+  if (targetVal < 0 || boundVal < 0) {
+    isValid = false  // Target and bound must be non-negative
+  }
+  
+  if (rewardVal < -1 || rewardVal > 1) {
+    isValid = false  // Reward must be between -1 and 1
+  }
+  
+  if (clutchVal < -1 || clutchVal > 1) {
+    isValid = false  // Clutch must be between -1 and 1
+  }
+  
+  // Check sum constraint
+  if (rewardVal + clutchVal < 0) {
+    isValid = false  // Reward + clutch must be non-negative
+  }
+  
+  // Update submit button state based on comprehensive validation
+  d3.select('#submit').property('disabled', !isValid)
 }
 
 function submit() {
@@ -660,6 +693,7 @@ function reset() {		//console.log('Reset!')
     paintArrows()
     paintAxis()
     paintSets()
+    validateAllSettings()
 
 /*    d3.selectAll('.inpRange').on('touchmove', function(event) {
       event.preventDefault();
