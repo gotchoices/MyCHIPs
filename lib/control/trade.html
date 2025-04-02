@@ -372,6 +372,39 @@ function nextLogValue(val, dir = 1) {	//Adjust scale max: 10, 25, 50, 100 ...
   return scaled * Math.pow(10, powTen)
 }
 
+// Core function to determine if range adjustment is needed
+function adjustRangeIfNeeded(value, forceDir = null) {
+  let dir = forceDir
+  
+  // If direction not forced, determine based on value
+  if (dir === null) {
+    if (value > credLimit * 0.9) {
+      dir = 1  // Expand
+    } else if (value < credLimit / 3 && credLimit > minCredLimit) {
+      dir = -1 // Contract
+    } else {
+      dir = 0  // No change needed
+    }
+  }
+  
+  if (dir !== 0) {
+    let newLimit = nextLogValue(credLimit, dir)
+    
+    // For expansion, keep expanding until value fits comfortably within range
+    if (dir > 0 && value > newLimit * 0.9) {
+      while (value > newLimit * 0.9) {
+        newLimit = nextLogValue(newLimit, 1)
+      }
+    }
+    
+    setLimit(newLimit)
+    paintAxis()
+    paintSets()
+    return true
+  }
+  return false
+}
+
 function checkBound(ev, d) {		//Target always <= bound
   let dir = 0
   if (ev.x > graphX + handle/2) {
@@ -382,11 +415,7 @@ function checkBound(ev, d) {		//Target always <= bound
   if (dir) {				//In a dragging zone
     if (!boundTimer) {			//console.log('SI:', d.id, boundTimer)
       boundTimer = setInterval(() => {
-        let newLimit = nextLogValue(credLimit, dir)	//;console.log('I1:', credLimit)
-        if (newLimit >= d.value - 1)
-          setLimit(nextLogValue(credLimit, dir))	//;console.log('I2:', credLimit)
-        paintAxis()
-        paintSets()
+        adjustRangeIfNeeded(d.value, dir)
       }, timerInt)
     }
   } else {				//console.log('CI:', d.id)
@@ -404,13 +433,25 @@ const dragSets = d3.drag()		//Drag function called by set points
     let { target, bound } = settingsObj
     d.x = ev.x < 0 ? 0 :
           ev.x > graphX ? graphX : ev.x
-    if (target.x > bound.x) {
-      target.x = bound.x
-      target.value = xScale.invert(target.x).toFixed(3)
-    }
+    
+    // Update value from position
     d.value = xScale.invert(d.x).toFixed(3)
     
-    if (d.id === 'bound') checkBound(ev, d)
+    // If target exceeds bound, either pull target down or push bound up
+    if (target.x > bound.x) {
+      if (d.id === 'target') {
+        // Target is being dragged - push bound up
+        bound.x = target.x
+        bound.value = xScale.invert(bound.x).toFixed(3)
+      } else {
+        // Bound is being dragged - pull target down
+        target.x = bound.x
+        target.value = xScale.invert(target.x).toFixed(3)
+      }
+    }
+    
+    // Check bounds for both target and bound since either can trigger range expansion
+    if (d.id === 'bound' || d.id === 'target') checkBound(ev, d)
     paintSets()
   })
   .on("end", function (ev, d) {
@@ -548,12 +589,14 @@ function rounder(value, precision) {		//console.log("R:", value, typeof value)
 }
 
 function updateSetting(d, value, step, manual, check = true) {	//console.log('Update:', d, value, step, manual)
+  // Update the value based on input type
   if (value !== null && value !== undefined)
     d.value = value
   if (step) {
     d.value = parseFloat(d.value) + parseFloat(d.step) * step
-    d.value = Math.max(d.min, Math.min(d.max, d.value))
   }
+  
+  // Handle manual input formatting
   if (manual) {
     d3.select(`#${d.id}_inp`).classed('warning', d.value < 0)
   } else {
@@ -561,9 +604,28 @@ function updateSetting(d, value, step, manual, check = true) {	//console.log('Up
     d3.select(`#${d.id}_inp`).property('value', d.value)
    .classed('warning', d.value < 0)
   }
+  
+  // For target or bound, check if range adjustment is needed
+  if (d.id === 'bound' || d.id === 'target') {
+    adjustRangeIfNeeded(d.value)
+  }
+  
+  // Now apply clamping with the potentially adjusted range
+  d.value = Math.max(d.min, Math.min(d.max, d.value))
   if (d.dir) {
     let { target, bound } = settingsObj
-    if (check && (target.value > bound.value)) target.value = bound.value
+    
+    // If target exceeds bound, either pull target down or push bound up
+    if (check && (target.value > bound.value)) {
+      if (d.id === 'target') {
+        // Target is being updated - push bound up
+        bound.value = target.value
+      } else {
+        // Bound is being updated - pull target down
+        target.value = bound.value
+      }
+    }
+    
     paintSets()
   } else {
     let { reward, clutch } = settingsObj
