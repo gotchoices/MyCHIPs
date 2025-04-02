@@ -16,8 +16,8 @@ X- Test tally sequence
 X- Do we still use the 'mychips://' deep link prefix for anything?
 - Signatures
 X  - Can I sign tallies/chits using the new crypto library?
-  - Re-enable signature checking in the backend
-  - If key signature fails, why don't we get an error back to the app (general err handling)
+X  - Re-enable signature checking in the backend
+X  - If key signature fails, why don't we get an error back to the app (general err handling)
   - Can we re-sign existing tallies (for debugging only)?
 - Test all deep link modes (connect, pay, key import)
 - Clean up chit history screen
@@ -36,7 +36,7 @@ X  - Can I sign tallies/chits using the new crypto library?
 - Try to add setting for custom, explicit CHIP conversion ratio
 - How is tally list maintained (in view or local cache of model)?
 - Generalize wyseman to handle sync or async localstorage
-- Can a request() invoke the callback more than once
+- Can a request() invoke the callback more than once (like on language update)?
 - Should a request return a promise if no callback is given?
 - Lazy connection to backend
 - Why do we lose our connection key sometimes?

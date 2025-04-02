@@ -195,22 +195,10 @@ platform :ios do
     # Set up the App Store Connect API key (this is the method that works)
     setup_app_store_api_key
     
-    # Upload to TestFlight and distribute to external testing group MT
+    # Upload to TestFlight
     upload_to_testflight(
       ipa: "build/chark-testflight.ipa",
-      skip_waiting_for_build_processing: false, # Need to wait for processing to distribute
-      distribute_external: true,       # Enable distribution to external testers
-      groups: ["MT"],                  # Add your external testing group here
-      notify_external_testers: true,   # Send email notifications to testers
-      beta_app_review_info: {
-        contact_email: ENV["BETA_APP_REVIEW_EMAIL"] || "your-contact-email@example.com",
-        contact_first_name: ENV["BETA_APP_REVIEW_FIRST_NAME"] || "Your",
-        contact_last_name: ENV["BETA_APP_REVIEW_LAST_NAME"] || "Name",
-        contact_phone: ENV["BETA_APP_REVIEW_PHONE"] || "1-555-555-5555",
-        demo_account_name: ENV["BETA_APP_REVIEW_DEMO_ACCOUNT"] || "", # Only if your app requires login
-        demo_account_password: ENV["BETA_APP_REVIEW_DEMO_PASSWORD"] || "", # Only if your app requires login
-        notes: ENV["BETA_APP_REVIEW_NOTES"] || "Thank you for reviewing our app!"
-      }
+      skip_waiting_for_build_processing: true
       # No need to pass api_key here as it's already set up globally
     )
   end
