@@ -6,7 +6,7 @@ import Avatar from "../../../../components/Avatar";
 import ChipValue from "../../../../components/ChipValue";
 import useMessageText from "../../../../hooks/useMessageText";
 
-const ChistHistoryHeader = (props) => {
+const ChitHistoryHeader = (props) => {
   const { part_name, cuid, net, wm, avatar, net_pc } = props.args ?? {};
   const { messageText } = useMessageText();
   const chitMeText = messageText?.chits_v_me?.col;
@@ -125,4 +125,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChistHistoryHeader;
+export default ChitHistoryHeader;

@@ -1,32 +1,92 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { StyleSheet, FlatList, View, Text, ActivityIndicator, TouchableOpacity, RefreshControl } from "react-native";
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 import useSocket from "../../../hooks/useSocket";
 import { fetchChitHistory } from "../../../services/tally";
 import { round, unitsToChips, unitsToFormattedChips } from "../../../utils/common";
-import ChistHistoryHeader from "./ChitHistoryHeader";
+import ChitHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
 import ChipValue from "../../../components/ChipValue";
 import { formatDate } from "../../../utils/format-date";
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
+import { 
+  FilterSecondIcon, 
+  SelectedIcon, 
+  UnSelectedIcon
+} from "../../../components/SvgAssets/SvgAssets";
 
 const ChitHistory = (props) => {
   const { tally_uuid, digest } = props.route?.params ?? {};
   const { wm } = useSocket();
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
+  const [sortAscending, setSortAscending] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState('good'); // Default status filter
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const avatar = imagesByDigest?.[digest];
   const { messageText } = useMessageText();
   const chitMeText = messageText?.chits_v_me;
 
   useTitle(props.navigation, chitMeText?.msg?.chits?.title)
+  
+  // Component for the filter bar above the chit list
+  const ChitFilterBar = () => {
+    const { messageText } = useMessageText();
+    const talliesMeText = messageText?.tallies_v_me?.msg;
+    const chitMeText = messageText?.chits_v_me?.col;
+    
+    return (
+      <View style={styles.filterBarContainer}>
+        {/* Date sort toggle */}
+        <View style={styles.filterSection}>
+          <TouchableOpacity 
+            style={styles.filterButton}
+            onPress={() => setSortAscending(!sortAscending)}
+          >
+            <Icon 
+              name={sortAscending ? "sort-amount-asc" : "sort-amount-desc"} 
+              size={14} 
+              color="#636363" 
+            />
+            <Text style={styles.filterText}>
+              {chitMeText?.crt_date?.title}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Status filter */}
+        <View style={styles.filterSection}>
+          <TouchableOpacity 
+            style={styles.filterButton}
+            onPress={() => {
+              // Toggle between statuses (just UI for now)
+              // Later we'll implement a proper dropdown/modal
+              setSelectedStatus(selectedStatus === 'good' ? 'pend' : 'good');
+            }}
+          >
+            <FilterSecondIcon />
+            <Text style={styles.filterText}>
+              {chitMeText?.status?.title}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   useEffect(() => {
     _fetchChitHistory();
   }, [tally_uuid])
+  
+  // When sort or status filter changes, refetch/reprocess data
+  useEffect(() => {
+    if (chits) {
+      processChits(chits);
+    }
+  }, [sortAscending, selectedStatus])
 
   const _fetchChitHistory = () => {
     setLoading(true);
@@ -39,7 +99,7 @@ const ChitHistory = (props) => {
         ],
         where: [
           `tally_uuid = ${tally_uuid}`,
-          "status = good",
+          // We'll filter by status in our processChits function
           "chit_type != set"
         ],
         order: [
@@ -49,24 +109,66 @@ const ChitHistory = (props) => {
           },
           {
             field: 'crt_date',
-            asc: false,
+            asc: sortAscending, // Use the current sort direction
           },
         ]
       }
     ).then(data => {
       if (data?.length) {
-        let runningBalance = 0;
-        const chitsWithRunningBalance = data.map((item) => {
-          runningBalance += item.net;
-          return { ...item, runningBalance };
-        });
-        setChits(chitsWithRunningBalance);
+        // Store the raw data and process it
+        processChits(data);
+      } else {
+        setChits([]);
+        setLoading(false);
       }
     }).catch(ex => {
       console.log("EXCEPTION ==> ", ex);
-    }).finally(() => {
       setLoading(false);
     });
+  }
+  
+  // Process chits for display based on current filters
+  const processChits = (rawChits) => {
+    if (!rawChits || rawChits.length === 0) {
+      setChits([]);
+      setLoading(false);
+      return;
+    }
+    
+    // Filter by status if needed
+    const filteredChits = rawChits.filter(chit => {
+      // If "good" is selected, only show good status
+      if (selectedStatus === 'good') {
+        return chit.status === 'good';
+      } 
+      // If "pend" is selected, show all non-good statuses
+      else { 
+        return chit.status !== 'good';
+      }
+    });
+    
+    // Sort by date if needed
+    const sortedChits = [...filteredChits].sort((a, b) => {
+      const dateA = new Date(a.crt_date).getTime();
+      const dateB = new Date(b.crt_date).getTime();
+      
+      if (sortAscending) {
+        return dateA - dateB; // Oldest first
+      } else {
+        return dateB - dateA; // Newest first
+      }
+    });
+    
+    // Calculate running balance
+    let runningBalance = 0;
+    const chitsWithRunningBalance = sortedChits.map((item) => {
+      runningBalance += item.net;
+      return { ...item, runningBalance };
+    });
+    
+    // Update the state
+    setChits(chitsWithRunningBalance);
+    setLoading(false);
   }
 
   const onChipClick = (item, index) => {
@@ -170,13 +272,16 @@ const ChitHistory = (props) => {
         />
       }
       ListHeaderComponent={
-        <ChistHistoryHeader
-          args={{
-            ...props.route?.params,
-            wm,
-            avatar,
-          }}
-        />
+        <>
+          <ChitHistoryHeader
+            args={{
+              ...props.route?.params,
+              wm,
+              avatar,
+            }}
+          />
+          <ChitFilterBar />
+        </>
       }
       contentContainerStyle={styles.contentContainer}
       data={chits}
@@ -195,6 +300,38 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16
+  },
+  filterBarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    marginBottom: 8,
+    backgroundColor: colors.white,
+    borderRadius: 8,
+  },
+  filterSection: {
+    flex: 1,
+    alignItems: 'flex-start',
+    marginHorizontal: 4,
+  },
+  filterButton: {
+    borderWidth: 1,
+    height: 30,
+    borderColor: colors.white100,
+    backgroundColor: colors.white200,
+    flexDirection: 'row',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterText: {
+    fontSize: 12,
+    color: '#636363',
+    marginStart: 4,
+    fontFamily: 'inter',
   },
   chitItem: {
     backgroundColor: 'white',
