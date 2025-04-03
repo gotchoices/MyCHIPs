@@ -21,10 +21,7 @@ import { getIntegerValue, getDecimalValue } from '../../utils/user';
  */
 const ChipValue = ({
   units,
-  currencyValue: externalCurrencyValue,
-  currencyCode: externalCurrencyCode,
   showCurrency = true,
-  calculateCurrency = true, // Default to internal conversion
   size = 'medium',
   showIcon = true,
   iconSize,
@@ -43,6 +40,14 @@ const ChipValue = ({
   // Generate size-based styles
   const sizeStyles = getSizeStyles(size);
   
+  // Currency text style should match the component size
+  const currencyTextStyle = {
+    xs: { fontSize: 8, marginBottom: 1 },
+    small: { fontSize: 9, marginBottom: 1 },
+    medium: { fontSize: 12, marginBottom: 2 },
+    large: { fontSize: 14, marginBottom: 3 }
+  }[size] || { fontSize: 12, marginBottom: 2 };
+  
   // Determine icon dimensions based on size or explicit props
   const iconDimensions = iconSize || {
     width: sizeStyles.iconSize,
@@ -60,17 +65,9 @@ const ChipValue = ({
       return { currencyValue: undefined, currencyCode: undefined };
     }
     
-    // If using external values, use those
-    if (!calculateCurrency || !conversionRate) {
-      return { 
-        currencyValue: externalCurrencyValue, 
-        currencyCode: externalCurrencyCode 
-      };
-    }
-    
-    // Otherwise calculate internally
+    // Calculate currency value from the chip amount
     const chipNumber = parseFloat(displayValue);
-    const currencyValue = round(chipNumber * conversionRate, 2);
+    const currencyValue = conversionRate ? round(chipNumber * conversionRate, 2) : undefined;
     
     return {
       currencyValue,
@@ -78,9 +75,6 @@ const ChipValue = ({
     };
   }, [
     showCurrency, 
-    calculateCurrency, 
-    externalCurrencyValue, 
-    externalCurrencyCode, 
     conversionRate, 
     displayValue, 
     preferredCurrency
@@ -90,7 +84,7 @@ const ChipValue = ({
     <View style={[styles.container, style]}>
       {/* Currency value */}
       {currencyInfo.currencyValue !== undefined && currencyInfo.currencyCode && (
-        <Text style={styles.currencyText}>
+        <Text style={[styles.currencyText, currencyTextStyle]}>
           {currencyInfo.currencyCode} {currencyInfo.currencyValue}
         </Text>
       )}
@@ -99,11 +93,13 @@ const ChipValue = ({
       <View style={styles.chipContainer}>
         {/* Optional ChitIcon */}
         {showIcon && (
-          <ChitIcon
-            color={isNegative ? colors.red : colors.green}
-            width={iconDimensions.width}
-            height={iconDimensions.height}
-          />
+          <View style={{ marginRight: size === 'small' ? 3 : 2 }}>
+            <ChitIcon
+              color={isNegative ? colors.red : colors.green}
+              width={iconDimensions.width}
+              height={iconDimensions.height}
+            />
+          </View>
         )}
         
         {/* Integer part */}
@@ -135,6 +131,19 @@ const ChipValue = ({
 // Size presets for different contexts
 const getSizeStyles = (size) => {
   switch (size) {
+    case 'xs':
+      return {
+        integerText: {
+          fontSize: 13,
+          lineHeight: 13,
+        },
+        decimalText: {
+          fontSize: 9,
+          lineHeight: 9,
+          paddingBottom: 4,
+        },
+        iconSize: 8
+      };
     case 'small':
       return {
         integerText: {
@@ -144,9 +153,9 @@ const getSizeStyles = (size) => {
         decimalText: {
           fontSize: 10,
           lineHeight: 10,
-          paddingBottom: 6,
+          paddingBottom: 5,
         },
-        iconSize: 12
+        iconSize: 10
       };
     case 'large':
       return {
@@ -188,14 +197,13 @@ const styles = StyleSheet.create({
   },
   currencyText: {
     fontFamily: 'inter',
-    fontSize: 12,
     color: colors.gray300,
-    marginBottom: 2,
+    // Base styles - specific size styles applied via currencyTextStyle
   },
   integerPart: {
     fontFamily: 'inter',
     fontWeight: '600',
-    marginHorizontal: 2,
+    marginRight: 2,
   },
   decimalPart: {
     fontFamily: 'inter',
@@ -211,11 +219,8 @@ const styles = StyleSheet.create({
 
 ChipValue.propTypes = {
   units: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  currencyValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  currencyCode: PropTypes.string,
   showCurrency: PropTypes.bool,
-  calculateCurrency: PropTypes.bool,
-  size: PropTypes.oneOf(['small', 'medium', 'large']),
+  size: PropTypes.oneOf(['xs', 'small', 'medium', 'large']),
   showIcon: PropTypes.bool,
   iconSize: PropTypes.shape({
     width: PropTypes.number,

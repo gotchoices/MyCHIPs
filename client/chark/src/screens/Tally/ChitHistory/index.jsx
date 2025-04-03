@@ -117,7 +117,7 @@ const ChitHistory = (props) => {
               units={item?.net ?? 0}
               size="small"
               showIcon={true}
-              iconSize={{width: 12, height: 12}}
+              iconSize={{width: 10, height: 10}}
             />
           </View>
           
@@ -125,9 +125,8 @@ const ChitHistory = (props) => {
           <View style={styles.balanceContainer}>
             <ChipValue 
               units={item?.runningBalance ?? 0}
-              size="small"
+              size="xs"
               showIcon={false}
-              iconSize={{width: 10, height: 10}}
             />
           </View>
         </View>
@@ -199,8 +198,8 @@ const styles = StyleSheet.create({
   },
   chitItem: {
     backgroundColor: 'white',
-    padding: 10,
-    paddingBottom: 8,
+    padding: 8,
+    paddingBottom: 6,
     borderRadius: 8,
     overflow: 'hidden'
   },
@@ -214,10 +213,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginLeft: 8
+    marginLeft: 6,
+    marginRight: 2
   },
   dateText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     color: colors.gray700,
     flex: 1
@@ -225,17 +225,19 @@ const styles = StyleSheet.create({
   amountContainer: {
     alignItems: 'center',
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingHorizontal: 2
   },
   balanceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'flex-end',
-    minWidth: 80
+    minWidth: 80,
+    marginLeft: 5
   },
   detailsContainer: {
-    marginTop: 6,
-    marginLeft: 16,
-    marginRight: 8
+    marginTop: 4,
+    marginLeft: 12,
+    marginRight: 6
   },
   memoText: {
     fontSize: 13,

@@ -197,8 +197,9 @@ The MyCHIPs mobile application displays financial information in various places,
   - [ ] Adapt sort utility functions for chit-specific fields
   - [ ] Implement persistent sorting preferences
   
-- [🔄] Code cleanup and optimization
+- [✅] Code cleanup and optimization
   - [✅] Refactor ChipValue component to accept units parameter
-  - [🔄] Remove unused currency conversion code from parent components
+  - [✅] Remove unused currency conversion code from parent components
+  - [✅] Simplify ChipValue API by removing legacy props
   - [ ] Audit and optimize Redux selectors for performance
   - [ ] Add unit tests for currency conversion logic

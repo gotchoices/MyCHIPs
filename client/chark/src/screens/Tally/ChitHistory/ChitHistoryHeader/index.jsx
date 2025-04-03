@@ -1,60 +1,31 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native"
-import { useSelector } from 'react-redux';
 
 import { colors } from "../../../../config/constants";
-import { round, unitsToChips, unitsToFormattedChips } from "../../../../utils/common";
-import { getCurrency } from "../../../../services/user";
 import Avatar from "../../../../components/Avatar";
 import ChipValue from "../../../../components/ChipValue";
 import useMessageText from "../../../../hooks/useMessageText";
 
 const ChistHistoryHeader = (props) => {
   const { part_name, cuid, net, wm, avatar, net_pc } = props.args ?? {};
-  const { preferredCurrency } = useSelector(state => state.profile);
-  const [conversionRate, setConversionRate] = useState(undefined);
-  const currencyCode = preferredCurrency.code;
-
   const { messageText } = useMessageText();
   const chitMeText = messageText?.chits_v_me?.col;
-
-  useEffect(() => {
-    if (currencyCode) {
-      getCurrency(wm, currencyCode).then(data => {
-        setConversionRate(parseFloat(data?.rate ?? 0));
-      }).catch(err => {
-        // HANDLE ERROR CASE
-      })
-    }
-  }, [currencyCode])
-
-  const totalNetDollar = useMemo(() => {
-    if (conversionRate) {
-      const chips = unitsToChips(net ?? 0);
-      const total = chips * conversionRate;
-      return round(total, 2);
-    }
-
-    return 0;
-  }, [net, conversionRate])
 
   const pendingText = useMemo(() => {
     return chitMeText?.status?.values?.find(s => s.value === 'pend');
   }, [chitMeText?.status?.values])
 
-  // Calculate pending amount (difference between pending and current)
-  const pendingAmount = useMemo(() => {
+  // Check if there's a pending amount (difference between pending and current)
+  const hasPendingAmount = useMemo(() => {
     if (net_pc !== undefined && net !== undefined) {
       const pendingValue = Number(net_pc);
       const currentValue = Number(net);
       const difference = pendingValue - currentValue;
       
-      // Only return a value if there's a non-zero difference
-      if (difference !== 0) {
-        return unitsToFormattedChips(difference);
-      }
+      // Only return true if there's a non-zero difference
+      return difference !== 0;
     }
-    return null;
+    return false;
   }, [net_pc, net]);
 
   return (
@@ -75,17 +46,22 @@ const ChistHistoryHeader = (props) => {
         {/* Right side - CHIP values */}
         <View style={styles.valueContainer}>
           {/* Show pending amount only if there's a non-zero difference */}
-          {pendingAmount && (
-            <Text style={styles.pendingText}>
-              {pendingText?.title ?? 'Pending'}: {pendingAmount}
-            </Text>
+          {hasPendingAmount && (
+            <View style={styles.pendingContainer}>
+              <Text style={styles.pendingText}>
+                {pendingText?.title ?? 'Pending'}:
+              </Text>
+              <ChipValue 
+                units={net_pc - net}
+                size="small"
+                showCurrency={false}
+              />
+            </View>
           )}
           
           {/* Tally total */}
           <ChipValue 
-            value={unitsToFormattedChips(net ?? 0)}
-            currencyValue={totalNetDollar}
-            currencyCode={currencyCode}
+            units={net ?? 0}
             size="large"
             iconSize={{ width: 24, height: 28 }}
           />
@@ -136,11 +112,16 @@ const styles = StyleSheet.create({
     color: colors.gray500,
     marginTop: 4,
   },
+  pendingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   pendingText: {
     fontSize: 12,
     color: colors.gray700,
-    marginBottom: 4,
     fontStyle: 'italic',
+    marginRight: 4,
   },
 });
 
