@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import { fetchTallies } from '../services/tally';
 import useSocket from '../hooks/useSocket';
+import { getTallyValidityStatus } from '../utils/tally-verification';
+import { updateTallyValidityStatus } from '../redux/openTalliesSlice';
 
 const useTallyUpdate = (wm, tally_seq, tally_ent) => {
   const { tallyNegotiation } = useSocket();
+  const dispatch = useDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
@@ -73,6 +77,16 @@ const useTallyUpdate = (wm, tally_seq, tally_ent) => {
           partLimit,
           tallyType,
         })
+        
+        // Validate the tally and update Redux store with validation result
+        getTallyValidityStatus(_tally).then(validityStatus => {
+          dispatch(updateTallyValidityStatus({
+            tallyUuid: _tally.tally_uuid,
+            tallyEnt: _tally.tally_ent,
+            tallySeq: _tally.tally_seq,
+            validityStatus
+          }));
+        });
       }
     }).finally(() => {
       setLoading(false);

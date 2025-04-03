@@ -18,7 +18,10 @@ X- Do we still use the 'mychips://' deep link prefix for anything?
 X  - Can I sign tallies/chits using the new crypto library?
 X  - Re-enable signature checking in the backend
 X  - If key signature fails, why don't we get an error back to the app (general err handling)
+X  - Add validation indicators for invalid tallies
   - Can we re-sign existing tallies (for debugging only)?
+- Activity screen should show pending settings chits appropriately (suppress amount, show type)
+- Chit screen probably doesn't need to show settings chits
 - Test all deep link modes (connect, pay, key import)
 - Clean up chit history screen
 - Language tags

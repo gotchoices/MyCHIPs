@@ -1,18 +1,27 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
+import {useSelector} from 'react-redux';
 
 import {colors} from '../../../config/constants';
 import {round} from '../../../utils/common';
 
 import Avatar from '../../../components/Avatar';
-import {ChitIcon} from '../../../components/SvgAssets/SvgAssets';
+import {ChitIcon, Warning_16} from '../../../components/SvgAssets/SvgAssets';
+import {needsWarningIndicator} from '../../../utils/tally-verification';
 import {formatRandomString} from '../../../utils/format-string';
 import useMessageText from '../../../hooks/useMessageText';
 import {getDecimalValue, getIntegerValue} from '../../../utils/user';
 
 const TallyItem = props => {
   const tally = props.tally;
+  // Get validation status from Redux store if available
+  const validityStatuses = useSelector(state => state.updateTally.validityStatuses || {});
+  const reduxValidityStatus = tally?.tally_uuid ? validityStatuses[tally.tally_uuid] : undefined;
+  
+  // Use the Redux status if available, otherwise fall back to the tally's direct status
+  const validityStatus = reduxValidityStatus || tally.validityStatus;
+  
   const net = round((tally?.net ?? 0) / 1000, 3);
   const pendingNet = tally?.net_pc ? round(tally.net_pc / 1000, 3) : 0;
   const convertedNet = round(net * props.conversionRate, 2);
@@ -37,7 +46,12 @@ const TallyItem = props => {
       <Avatar style={styles.avatar} avatar={props.image} />
 
       <View style={{flex: 1}}>
-        <Text style={styles.name}>{partName}</Text>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+          <Text style={styles.name}>{partName}</Text>
+          {needsWarningIndicator(validityStatus) && (
+            <Warning_16 size={18} />
+          )}
+        </View>
         <Text style={[styles.description, {marginTop: 4}]}>
           {partCert?.chad?.cuid}:{formatRandomString(partCert?.chad?.agent)}
         </Text>

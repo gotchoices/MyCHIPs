@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import { fetchTallies } from '../services/tally';
 import { isNil } from '../utils/common';
+import { getTallyValidityStatus } from '../utils/tally-verification';
 
 const initialState = {
   fetching: false,
@@ -16,10 +17,15 @@ const initialState = {
   partnerDigestByTallies: {}, 
 };
 
-export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies', async (args) => {
+export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies', async (args, {dispatch}) => {
   try {
+    // Include necessary fields for validation
     const tallies = await fetchTallies(args.wm, {
-      fields: ['tally_uuid', 'tally_seq', 'tally_ent', 'net','mag_p','tally_date', 'tally_type', 'part_chad', 'part_cert', 'hold_chad', 'net_pc'],
+      fields: [
+        'tally_uuid', 'tally_seq', 'tally_ent', 'net','mag_p','tally_date', 
+        'tally_type', 'part_chad', 'part_cert', 'hold_chad', 'net_pc',
+        'json_core', 'hold_sig', 'hold_cert' // Required for validation
+      ],
       where: {
         status: 'open',
       }
@@ -27,6 +33,8 @@ export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies',
 
     const partnerDigestByTallies = {};
     const hashes = [];
+    
+    // First process all non-validation properties to return quickly
     for(let tally of tallies) {
       const digest = tally?.part_cert?.file?.[0]?.digest;
       const tally_seq = tally?.tally_seq;
@@ -38,13 +46,56 @@ export const fetchOpenTallies = createAsyncThunk('openTallies/fetchOpenTallies',
           tally_seq,
         })
       }
+      
+      // Initialize validity status to undefined
+      tally.validityStatus = undefined;
     }
 
-    return {
+    // Return immediately to update the UI with basic tally data
+    const result = {
       tallies,
       hashes,
       partnerDigestByTallies,
     };
+    
+    // Then process validation asynchronously in the background
+    // and dispatch updates when each tally is validated
+    Promise.all(tallies.map(async (tally) => {
+      try {
+        const status = await getTallyValidityStatus(tally);
+        return {
+          tallyUuid: tally.tally_uuid,
+          tallyEnt: tally.tally_ent,
+          tallySeq: tally.tally_seq,
+          validityStatus: status
+        };
+      } catch (err) {
+        console.error(`Error validating tally #${tally.tally_seq}:`, err);
+        return {
+          tallyUuid: tally.tally_uuid,
+          tallyEnt: tally.tally_ent,
+          tallySeq: tally.tally_seq,
+          validityStatus: 'invalid'
+        };
+      }
+    })).then(validationResults => {
+      // Update both our openTallies slice and the updateTally slice
+      dispatch(updateTallyValidityStatuses(validationResults));
+      
+      // Also update the dedicated updateTally slice
+      validationResults.forEach(result => {
+        if (result.tallyUuid) {
+          import('./updateTallySlice').then(module => {
+            dispatch(module.setValidityStatus({
+              tallyUuid: result.tallyUuid,
+              validityStatus: result.validityStatus
+            }));
+          });
+        }
+      });
+    });
+
+    return result;
   } catch(err) {
     console.log('FETCH OPEN TALLIES>>>', { err })
     throw err;
@@ -81,6 +132,59 @@ export const openTalliesSlice = createSlice({
         }
       }
       state.fetching = false;
+    },
+    
+    // New action to update tally validity statuses
+    updateTallyValidityStatuses: (state, action) => {
+      const validationResults = action.payload;
+      
+      if (!validationResults || !Array.isArray(validationResults)) {
+        return;
+      }
+      
+      // Update each tally with its validation result
+      validationResults.forEach(result => {
+        const { tallyUuid, tallyEnt, tallySeq, validityStatus } = result;
+        
+        // Find the tally in the state
+        const foundIndex = state.tallies.findIndex(tally => {
+          return (
+            tally.tally_uuid === tallyUuid && 
+            tally.tally_ent === tallyEnt &&
+            tally.tally_seq == tallySeq
+          );
+        });
+        
+        // Update the tally if found
+        if (foundIndex >= 0) {
+          state.tallies[foundIndex] = {
+            ...state.tallies[foundIndex],
+            validityStatus
+          };
+        }
+      });
+    },
+    
+    // Action to update a single tally's validity status
+    updateTallyValidityStatus: (state, action) => {
+      const { tallyUuid, tallyEnt, tallySeq, validityStatus } = action.payload;
+      
+      // Find the tally in the state
+      const foundIndex = state.tallies.findIndex(tally => {
+        return (
+          tally.tally_uuid === tallyUuid && 
+          tally.tally_ent === tallyEnt &&
+          tally.tally_seq == tallySeq
+        );
+      });
+      
+      // Update the tally if found
+      if (foundIndex >= 0) {
+        state.tallies[foundIndex] = {
+          ...state.tallies[foundIndex],
+          validityStatus
+        };
+      }
     }
   },
 
@@ -106,4 +210,6 @@ export default openTalliesSlice.reducer;
 
 export const {
   updateTallyOnChitTransferred,
+  updateTallyValidityStatuses,
+  updateTallyValidityStatus
 } = openTalliesSlice.actions;

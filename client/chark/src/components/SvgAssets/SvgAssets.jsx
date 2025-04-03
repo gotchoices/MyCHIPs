@@ -13,6 +13,7 @@ import ICSearch from "../../../assets/svg/ic_search.svg";
 import ICSetting from "../../../assets/svg/ic_setting.svg";
 import ICTabular from "../../../assets/svg/ic_tabular.svg";
 import ICWarning from "../../../assets/svg/ic_warning.svg";
+import WarningYield from "../../../assets/svg/warning_icon.svg";
 import ICScannner from "../../../assets/svg/ic_scanner.svg";
 import IMGProfile from "../../../assets/svg/img_profile.svg";
 import ICSelected from "../../../assets/svg/ic_selected.svg";
@@ -167,4 +168,12 @@ export const DownArrowIcon = (props) => {
 
 export const SwapIcon = (props) => {
   return <ICSwap />;
+};
+
+// Warning icon with native 16px size
+export const Warning_16 = (props) => {
+  return <WarningYield 
+    height={props.size || 16} 
+    width={props.size || 16} 
+  />;
 };
