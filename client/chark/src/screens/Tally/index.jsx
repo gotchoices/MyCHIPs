@@ -165,13 +165,17 @@ const Tally = props => {
     }
   }, [chitTrigger]);
 
-  const totalNet = useMemo(() => {
-    let total = tallies.reduce((acc, current) => {
+  // Calculate total units
+  const totalNetUnits = useMemo(() => {
+    return tallies.reduce((acc, current) => {
       return acc + Number(current?.net ?? 0);
     }, 0);
-
-    return unitsToFormattedChips(total);
   }, [tallies]);
+  
+  // Format for display (for backward compatibility)
+  const totalNet = useMemo(() => {
+    return unitsToFormattedChips(totalNetUnits);
+  }, [totalNetUnits]);
 
   const totalPendingNet = useMemo(() => {
     let total = tallies.reduce((acc, current) => {
@@ -226,6 +230,7 @@ const Tally = props => {
         ListHeaderComponent={
           <TallyHeader
             totalNet={totalNet}
+            totalNetUnits={totalNetUnits}
             totalPendingNet={totalPendingNet}
             totalNetDollar={totalNetDollar}
             currencyCode={preferredCurrency.code}

@@ -1,15 +1,13 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
-import { StyleSheet, FlatList, View, Text, Image, ActivityIndicator, TouchableOpacity, RefreshControl } from "react-native";
+import { StyleSheet, FlatList, View, Text, ActivityIndicator, TouchableOpacity, RefreshControl } from "react-native";
 
 import useSocket from "../../../hooks/useSocket";
-import mychips from '../../../../assets/mychips-large.png';
-import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import { fetchChitHistory } from "../../../services/tally";
-import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from "../../../utils/common";
+import { round, unitsToChips, unitsToFormattedChips } from "../../../utils/common";
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
-import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
+import ChipValue from "../../../components/ChipValue";
 import { formatDate } from "../../../utils/format-date";
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
@@ -81,54 +79,77 @@ const ChitHistory = (props) => {
   }
 
   const ChitItem = ({ item, index }) => {
-    const net = unitsToFormattedChips(item?.net ?? 0);
-    const isNetNegative = (item?.net ?? 0) < 0;
+    const formattedDate = formatDate({ date: item.chit_date, format: dateFormats.dateTime });
+    
+    // Get chit type for display
+    const chitType = item.chit_type || 'lift';
+    const chitTypeText = chitMeText?.col?.chit_type?.values?.find(v => v.value === chitType)?.title || chitType;
+    
+    // Check if reference and memo have content
+    const hasReference = item.reference && 
+                         item.reference !== 'null' && 
+                         item.reference !== '{}' &&
+                         JSON.stringify(item.reference) !== '{}';
+                         
+    const hasMemo = item.memo && item.memo.trim() !== '';
+    
+    // ChipValue component now handles currency conversion internally
+    // No need to calculate conversion values here
 
-    const runningBalance = unitsToFormattedChips(item?.runningBalance ?? 0);
-    const isRunningBalnceNeg = runningBalance < 0;
-
-    const formatedDate = formatDate({ date: item.chit_date, format: dateFormats.dateTime });
-
-    return <TouchableOpacity
-      style={styles.chitItem}
-      onPress={() => { onChipClick(item, index) }}
-    >
-      <View>
-        {
-          item?.action && <View style={{ backgroundColor: 'red', width: "100%", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 }}>
-            <Text style={{ color: 'white', fontSize: 12 }}>
-              {chitMeText?.col?.action?.title ?? ''}
-            </Text>
+    return (
+      <TouchableOpacity
+        style={styles.chitItem}
+        onPress={() => { onChipClick(item, index) }}
+      >
+        {/* Transaction type (smaller font, left justified) */}
+        <Text style={styles.transactionTypeText}>
+          {chitTypeText}
+        </Text>
+        
+        {/* Main row: Date, Amount, Total */}
+        <View style={styles.mainRow}>
+          {/* Date (indented) */}
+          <Text style={styles.dateText}>{formattedDate}</Text>
+          
+          {/* Chit amount (center) */}
+          <View style={styles.amountContainer}>
+            <ChipValue 
+              units={item?.net ?? 0}
+              size="small"
+              showIcon={true}
+              iconSize={{width: 12, height: 12}}
+            />
           </View>
-        }
-      </View>
-      <View style={{ ...styles.chitItem, flexDirection: 'row' }}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { marginTop: 6 }]}>{formatedDate}</Text>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-            <Text style={{ color: 'black' }}>Running Balance:  </Text>
-            <View style={styles.row}>
-              <Image source={isRunningBalnceNeg ? mychipsNeg : mychips} style={styles.image} resizeMode='contain' />
-              <Text style={isRunningBalnceNeg ? styles.negativeText : styles.positiveText}>{runningBalance}</Text>
-            </View>
+          
+          {/* Running balance (right) */}
+          <View style={styles.balanceContainer}>
+            <ChipValue 
+              units={item?.runningBalance ?? 0}
+              size="small"
+              showIcon={false}
+              iconSize={{width: 10, height: 10}}
+            />
           </View>
-
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.reference?.title ?? ''}: {JSON.stringify(item.reference) ?? 'not added'} </Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.memo?.title ?? ''}: {item.memo ?? 'not added'}</Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.state?.title ?? ''}: {item.state}</Text>
-          <Text style={{ color: 'black', marginTop: 4 }}>{chitMeText?.col?.action?.title ?? ''}: {item.action?.toString()}</Text>
         </View>
-
-        <View style={{ width: 8 }} />
-        <View style={isNetNegative ? styles.debidBg : styles.creditBg}>
-          <ChitIcon color={isNetNegative ? colors.red : colors.green} height={14} width={14} />
-          <Text style={isNetNegative ? styles.negativeText : styles.positiveText}>
-            {net}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity >
+        
+        {/* Memo and reference (if they exist) */}
+        {(hasMemo || hasReference) && (
+          <View style={styles.detailsContainer}>
+            {hasMemo && (
+              <Text style={styles.memoText} numberOfLines={2} ellipsizeMode="tail">
+                {item.memo}
+              </Text>
+            )}
+            
+            {hasReference && (
+              <Text style={styles.referenceText} numberOfLines={1} ellipsizeMode="tail">
+                {typeof item.reference === 'string' ? item.reference : JSON.stringify(item.reference)}
+              </Text>
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
   }
 
   const ItemSeparator = () => {
@@ -178,25 +199,59 @@ const styles = StyleSheet.create({
   },
   chitItem: {
     backgroundColor: 'white',
-    padding: 12,
-    alignItems: 'flex-start',
+    padding: 10,
+    paddingBottom: 8,
     borderRadius: 8,
-    justifyContent: 'space-between'
+    overflow: 'hidden'
+  },
+  transactionTypeText: {
+    fontSize: 10,
+    color: colors.gray500,
+    marginBottom: 2,
+    fontStyle: 'italic'
+  },
+  mainRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginLeft: 8
+  },
+  dateText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.gray700,
+    flex: 1
+  },
+  amountContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center'
+  },
+  balanceContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    minWidth: 80
+  },
+  detailsContainer: {
+    marginTop: 6,
+    marginLeft: 16,
+    marginRight: 8
+  },
+  memoText: {
+    fontSize: 13,
+    color: colors.black100,
+    marginBottom: 3
+  },
+  referenceText: {
+    fontSize: 11,
+    color: colors.gray500,
+    marginBottom: 2,
+    fontStyle: 'italic'
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
-  },
-  image: {
-    height: 14,
-    width: 14
-  },
-  positiveText: {
-    color: 'green'
-  },
-  negativeText: {
-    color: 'red',
   },
   title: {
     fontSize: 14,
@@ -208,29 +263,12 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   spacer: {
-    height: 12,
+    // Reduced spacing between items by 50%
+    height: 6,
   },
   label: {
     color: colors.gray500,
     fontSize: 12,
-  },
-  creditBg: {
-    backgroundColor: '#EEF2F5',
-    borderRadius: 30,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  debidBg: {
-    backgroundColor: "#FEF0EF",
-    borderRadius: 30,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center'
   }
 });
 

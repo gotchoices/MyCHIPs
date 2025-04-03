@@ -119,19 +119,12 @@ We have successfully implemented:
    - Red for invalid signature (error)
    - Use appropriate icons for each level
 
-4. Standardize chip/units conversion:
-   - Refactor TallyItem to use standard conversion utilities (unitsToChips, chipsToUnits)
-   - Replace manual division by 1000 with unitsToChips function
-   - Replace manual multiplication by 1000 with chipsToUnits function
-   - Ensure consistent formatting using formatChipValue where appropriate
-   - Fix any other instances of manual unit conversion throughout the app
-
-5. Consider chit validation as a future enhancement:
+4. Consider chit validation as a future enhancement:
    - Apply similar validation pattern to chits
    - Verify chit signatures
    - Validate the hash chain integrity
 
-6. Add testing:
+5. Add testing:
    - Create unit tests for validation functions
    - Test with different tally scenarios (valid, invalid, key mismatch)
    - Manual testing with real-world tallies
@@ -166,11 +159,11 @@ We have successfully implemented:
   - [x] 1.5.2 Confirmed `hold_sig` is the correct signature field
   - [x] 1.5.3 Added correct field list to tally fetching
 
-- [ ] 1.6 Standardize chip/units conversion:
-  - [ ] 1.6.1 Replace manual division by 1000 with unitsToChips function in TallyItem
-  - [ ] 1.6.2 Replace manual multiplication by 1000 with chipsToUnits function
-  - [ ] 1.6.3 Use formatChipValue for consistent CHIP value display
-  - [ ] 1.6.4 Audit other components for manual unit conversion
+- [x] 1.6 Improve error handling for validation:
+  - [x] 1.6.1 Properly handle type differences in validation comparison
+  - [x] 1.6.2 Add clear error reporting for validation failures
+  - [x] 1.6.3 Ensure proper handling of missing fields during validation
+  - [x] 1.6.4 Test with various tally formats and data
 
 #### Phase 2: Basic UI Integration
 - [x] 2.1 Create a reusable validity indicator component:

@@ -11,6 +11,7 @@ import { colors } from '../../../config/constants';
 import useSocket from "../../../hooks/useSocket";
 import { getCurrency } from '../../../services/currency';
 import { setPreferredCurrency } from '../../../redux/profileSlice';
+import { getCurrencyRate } from '../../../redux/chipCurrencySlice';
 import useMessageText from '../../../hooks/useMessageText';
 
 const Currency = (props) => {
@@ -36,20 +37,31 @@ const Currency = (props) => {
 
   const onSave = () => {
     if(currency === '') {
+      // Clear the preferred currency
       dispatch(setPreferredCurrency({
         name: '',
         code: '',
-      }))
+      }));
       AsyncStorage.setItem("preferredCurrency", JSON.stringify({ cur_name: '', cur_code: '' }));
       props.onCancel();
       return;
     }
+    
     const found = currencies.find((cur) => cur.cur_code === currency);
     if (found) {
+      // Update the preferred currency in Redux and AsyncStorage
       dispatch(setPreferredCurrency({
         name: found?.cur_name,
         code: found?.cur_code,
-      }))
+      }));
+      
+      // Also fetch and update the currency conversion rate
+      dispatch(getCurrencyRate({
+        wm,
+        currencyCode: found?.cur_code
+      }));
+      
+      // Save the preference
       AsyncStorage.setItem("preferredCurrency", JSON.stringify(found));
       props.onCancel();
     }

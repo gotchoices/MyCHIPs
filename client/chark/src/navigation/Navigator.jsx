@@ -13,6 +13,7 @@ import {
   fetchPersonalAndCurrency,
   setShowCreateSignatureModal,
 } from "../redux/profileSlice";
+import { getCurrencyRate } from '../redux/chipCurrencySlice';
 import { hasNotification } from "../redux/activitySlice";
 import { colors, toastVisibilityTime } from "../config/constants";
 import { showError } from '../utils/error';
@@ -239,12 +240,26 @@ const Navigator = () => {
   const charkText = messageText?.chark?.msg;
 
   // Separate useEffect specifically for user-related data fetching
+  // Get the current preferred currency from state
+  const { preferredCurrency } = useSelector(state => state.profile);
+  
   useEffect(() => {
     if (user_ent && wm) {
       dispatch(fetchAvatar({ wm, user_ent }));
       dispatch(fetchPersonalAndCurrency({ wm, user_ent }));
     }
   }, [user, wm, dispatch]); // Using the full user object ensures proper dependency tracking
+  
+  // Fetch currency rate when preferredCurrency changes
+  useEffect(() => {
+    if (wm && preferredCurrency?.code) {
+      console.log('Fetching currency rate in Navigator for:', preferredCurrency.code);
+      dispatch(getCurrencyRate({ 
+        wm, 
+        currencyCode: preferredCurrency.code 
+      }));
+    }
+  }, [preferredCurrency?.code, wm, dispatch]);
   
   // Keep the original useEffect for other initialization tasks
   useEffect(() => {

@@ -1,17 +1,17 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import {useSelector} from 'react-redux';
 
 import {colors} from '../../../config/constants';
-import {round, unitsToChips, formatChipValue, unitsToFormattedChips} from '../../../utils/common';
+import {unitsToFormattedChips, unitsToChips, round} from '../../../utils/common';
 
 import Avatar from '../../../components/Avatar';
-import {ChitIcon, Warning_16} from '../../../components/SvgAssets/SvgAssets';
+import ChipValue from '../../../components/ChipValue';
+import {Warning_16} from '../../../components/SvgAssets/SvgAssets';
 import {needsWarningIndicator} from '../../../utils/tally-verification';
 import {formatRandomString} from '../../../utils/format-string';
 import useMessageText from '../../../hooks/useMessageText';
-import {getDecimalValue, getIntegerValue} from '../../../utils/user';
 
 const TallyItem = props => {
   const tally = props.tally;
@@ -22,12 +22,7 @@ const TallyItem = props => {
   // Use the Redux status if available, otherwise fall back to the tally's direct status
   const validityStatus = reduxValidityStatus || tally.validityStatus;
   
-  // Get net amount as number for calculations
-  const net = unitsToChips(tally?.net ?? 0);
-  // Get formatted string with fixed 3 decimal places for display
-  const formattedNet = unitsToFormattedChips(tally?.net ?? 0);
-  const pendingNet = unitsToFormattedChips(tally?.net_pc ?? 0);
-  const convertedNet = round(net * props.conversionRate, 2);
+  // Get the tally's partner certificate
   const partCert = tally?.part_cert;
   const partName =
     partCert?.type === 'o'
@@ -71,27 +66,15 @@ const TallyItem = props => {
             </Text>
           </View>
         )}
-
-        {!!props.currency && (
-          <Text style={convertedNet < 0 ? styles.dollarNeg : styles.dollar}>
-            {props.currency} {convertedNet}
-          </Text>
-        )}
-
-        <View style={styles.mychips}>
-          <ChitIcon
-            color={net < 0 ? colors.red : colors.green}
-            height={18}
-            width={12}
-          />
-          <Text style={net < 0 ? styles.mychipsNetNeg : styles.mychipsNet}>
-            {getIntegerValue(formattedNet)}
-          </Text>
-
-          <Text style={net < 0 ? styles.negDecimal : styles.decimal}>
-            {getDecimalValue(formattedNet)}
-          </Text>
-        </View>
+        
+        {/* Using the new ChipValue component with internal currency conversion */}
+        <ChipValue 
+          units={tally?.net ?? 0}
+          size="medium"
+          showIcon={true}
+          showCurrency={true}
+          iconSize={{width: 18, height: 18}}
+        />
       </View>
     </View>
   );
@@ -99,15 +82,6 @@ const TallyItem = props => {
 
 const font = {
   fontFamily: 'inter',
-};
-
-const mychipsNet = {
-  fontSize: 22,
-  lineHeight: 22,
-  fontWeight: '600',
-  color: colors.green,
-  fontFamily: 'inter',
-  marginHorizontal: 2,
 };
 
 const styles = StyleSheet.create({
@@ -143,50 +117,18 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: colors.gray700,
   },
-  mychips: {
-    flexDirection: 'row',
-  },
-  mychipsNet,
-  mychipsNetNeg: {
-    ...mychipsNet,
-    color: colors.red,
-  },
-  dollar: {
-    ...font,
-    color: colors.gray300,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  dollarNeg: {
-    ...font,
-    color: colors.gray300,
-    fontSize: 10,
-    fontWeight: '600',
-  },
   pendingView: {
     backgroundColor: colors.white200,
     padding: 5,
     borderRadius: 10,
-    marginBottom:2
-  },
-  decimal: {
-    color: colors.green,
-    fontSize: 12,
-    lineHeight: 12,
-    textDecorationLine: 'underline',
-  },
-  negDecimal: {
-    fontSize: 12,
-    lineHeight: 12,
-    textDecorationLine: 'underline',
-    color: colors.red,
-  },
+    marginBottom: 2
+  }
 });
 
 TallyItem.propTypes = {
   tally: PropTypes.object.isRequired,
-  conversionRate: PropTypes.number.isRequired,
-  currency: PropTypes.string,
+  conversionRate: PropTypes.number, // Still included for backward compatibility
+  currency: PropTypes.string, // Still included for backward compatibility
 };
 
 export default TallyItem;

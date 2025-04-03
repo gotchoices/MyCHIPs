@@ -1,24 +1,22 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { useSelector } from 'react-redux';
 
 import { colors } from "../../../../config/constants";
-import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from "../../../../utils/common";
+import { round, unitsToChips, unitsToFormattedChips } from "../../../../utils/common";
 import { getCurrency } from "../../../../services/user";
-import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
-import { formatDate } from "../../../../utils/format-date";
 import Avatar from "../../../../components/Avatar";
+import ChipValue from "../../../../components/ChipValue";
 import useMessageText from "../../../../hooks/useMessageText";
 
 const ChistHistoryHeader = (props) => {
-  const { part_name, cuid, date, net, wm, avatar, net_pc } = props.args ?? {};
+  const { part_name, cuid, net, wm, avatar, net_pc } = props.args ?? {};
   const { preferredCurrency } = useSelector(state => state.profile);
   const [conversionRate, setConversionRate] = useState(undefined);
   const currencyCode = preferredCurrency.code;
 
   const { messageText } = useMessageText();
   const chitMeText = messageText?.chits_v_me?.col;
-  const talliesMeText = messageText?.tallies_v_me?.col;
 
   useEffect(() => {
     if (currencyCode) {
@@ -44,52 +42,57 @@ const ChistHistoryHeader = (props) => {
     return chitMeText?.status?.values?.find(s => s.value === 'pend');
   }, [chitMeText?.status?.values])
 
-  const isNetNegative = net < 0;
+  // Calculate pending amount (difference between pending and current)
+  const pendingAmount = useMemo(() => {
+    if (net_pc !== undefined && net !== undefined) {
+      const pendingValue = Number(net_pc);
+      const currentValue = Number(net);
+      const difference = pendingValue - currentValue;
+      
+      // Only return a value if there's a non-zero difference
+      if (difference !== 0) {
+        return unitsToFormattedChips(difference);
+      }
+    }
+    return null;
+  }, [net_pc, net]);
 
-  return <View>
+  return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        <View style={{ alignItems: 'flex-start' }}>
-          <Text style={[styles.label, { fontWeight: 'bold' }]}>{talliesMeText?.net?.title ?? ''}</Text>
-
-          <Text style={{ marginTop: 8 }}>
-            {pendingText?.title ?? ''} {net_pc}
-          </Text>
-
-          <View style={[styles.row, { alignItems: 'center', justifyContent: 'center', marginTop: 4 }]}>
-
-            <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
-
-            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{unitsToFormattedChips(net ?? 0)}</Text>
+      <View style={styles.layout}>
+        {/* Left side - User info with avatar */}
+        <View style={styles.userInfoContainer}>
+          <Avatar
+            style={styles.profileImage}
+            avatar={avatar}
+          />
+          <View style={styles.userTextContainer}>
+            <Text style={styles.userName}>{part_name}</Text>
+            <Text style={styles.userId}>Client ID: {cuid}</Text>
           </View>
-
-          {!!conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}
         </View>
-        <Text style={styles.label}>{formatDate(date)}</Text>
-      </View >
 
-      <View style={[styles.row, { marginTop: 12 }]}>
-        <Avatar
-          style={styles.profileImage}
-          avatar={avatar}
-        />
-        <View style={{ flex: 1, marginStart: 12, justifyContent: 'center' }}>
-          <Text style={styles.title}>{part_name}</Text>
-          <Text style={[styles.sub, { marginTop: 4 }]}>Client ID: {cuid}</Text>
+        {/* Right side - CHIP values */}
+        <View style={styles.valueContainer}>
+          {/* Show pending amount only if there's a non-zero difference */}
+          {pendingAmount && (
+            <Text style={styles.pendingText}>
+              {pendingText?.title ?? 'Pending'}: {pendingAmount}
+            </Text>
+          )}
+          
+          {/* Tally total */}
+          <ChipValue 
+            value={unitsToFormattedChips(net ?? 0)}
+            currencyValue={totalNetDollar}
+            currencyCode={currencyCode}
+            size="large"
+            iconSize={{ width: 24, height: 28 }}
+          />
         </View>
       </View>
-    </View >
-    <Text style={[
-      styles.title,
-      {
-        color: '#14396C',
-        fontWeight: 'bold',
-        marginBottom: 12
-      }
-    ]}>
-      Latest Chits
-    </Text>
-  </View >
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -99,36 +102,46 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
-  label: {
-    color: colors.gray700,
-    fontSize: 16,
-  },
-  balance: {
-    fontSize: 26,
-    fontWeight: '500',
-  },
-  title: {
-    fontSize: 18,
-    color: colors.gray700
-  },
-  sub: {
-    fontSize: 14,
-    color: colors.gray700
-  },
-  row: {
+  layout: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  currency: {
-    fontSize: 14,
-    color: colors.gray700,
-    fontWeight: "bold",
-    margin: 4,
+  userInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userTextContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  valueContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    minWidth: 120,
   },
   profileImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
   },
-})
+  userName: {
+    fontSize: 18,
+    color: colors.gray700,
+    fontWeight: '500',
+  },
+  userId: {
+    fontSize: 14,
+    color: colors.gray500,
+    marginTop: 4,
+  },
+  pendingText: {
+    fontSize: 12,
+    color: colors.gray700,
+    marginBottom: 4,
+    fontStyle: 'italic',
+  },
+});
+
 export default ChistHistoryHeader;

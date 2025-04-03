@@ -14,13 +14,12 @@ import useMessageText from '../../../hooks/useMessageText';
 
 import Header from '../Header';
 import Avatar from '../../../components/Avatar';
+import ChipValue from '../../../components/ChipValue';
 import {
-  ChitIcon,
   FilterSecondIcon,
   VisualIcon,
 } from '../../../components/SvgAssets/SvgAssets';
 import Activity from '../Activity';
-import { getDecimalValue, getIntegerValue } from '../../../utils/user';
 
 const Banner = props => {
   const {avatar, personal} = useSelector(state => state.profile);
@@ -41,7 +40,6 @@ const Banner = props => {
     return chitMeText?.status?.values?.find(s => s.value === 'pend');
   }, [chitMeText?.status?.values]);
 
-  const isNetNegative = props.totalNet < 0;
   const hasPendingTotal =
     !isNil(props.totalPendingNet) &&
     props.totalPendingNet != 0.0 &&
@@ -81,50 +79,19 @@ const Banner = props => {
         </TouchableOpacity>
 
         <View style={styles.textWrapper}>
-          {/* {hasPendingTotal && (
-            <Text style={styles.pending}>
-              {pendingText?.title ?? ''} {props.totalPendingNet}
-            </Text>
-          )} */}
-
-          {!!props.currencyCode && (
-            <Text style={styles.amount}>
-              {props.currencyCode} {props.totalNetDollar}
-            </Text>
-          )}
-
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <ChitIcon color={isNetNegative ? colors.red : colors.green} />
-            <Text
-              style={isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet}>
-              {getIntegerValue(props.totalNet)}
-            </Text>
-            <Text
-              style={[
-                isNetNegative ? styles.mychipsNetNeg : styles.mychipsNet,
-                {
-                  textDecorationLine: 'underline',
-                  lineHeight: 16,
-                  fontSize: 16,
-                  paddingBottom: 10,
-                },
-              ]}>
-              {getDecimalValue(props.totalNet)}
-            </Text>
-          </View>
+          {/* Using the new ChipValue component for tally total */}
+          <ChipValue 
+            units={props.totalNetUnits} // Use raw units value
+            size="large"
+            showIcon={true}
+            showCurrency={true}
+            iconSize={{width: 24, height: 24}} 
+            style={styles.chipValue}
+          />
         </View>
       </View>
     </View>
   );
-};
-
-const mychipsNet = {
-  marginLeft: 5,
-  fontSize: 32,
-  fontWeight: '500',
-  color: colors.green,
-  maxWidth: Dimensions.get('window').width * 0.5,
-  fontFamily: 'inter',
 };
 
 const font = {
@@ -147,11 +114,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  mychipsNet,
-  mychipsNetNeg: {
-    ...mychipsNet,
-    color: colors.red,
-  },
   name: {...font, paddingTop: 15, fontSize: 16, fontWeight: '600'},
   avatarWrapper: {marginTop: 20},
   textWrapper: {
@@ -160,10 +122,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'flex-end',
   },
-  amount: {
-    ...font,
-    fontSize: 16,
-    color: colors.gray300,
+  chipValue: {
+    marginBottom: 5,
   },
   pending: {
     ...font,
