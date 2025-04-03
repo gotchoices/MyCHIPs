@@ -17,7 +17,7 @@ import RejectButton from './RejectButton';
 import { colors } from '../../../config/constants';
 import { getCurrencyRate } from '../../../redux/chipCurrencySlice';
 import useSocket from '../../../hooks/useSocket';
-import { round } from '../../../utils/common';
+import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from '../../../utils/common';
 import useMessageText from '../../../hooks/useMessageText';
 
 const PendingChitDetail = (props) => {
@@ -34,7 +34,7 @@ const PendingChitDetail = (props) => {
 
   const { preferredCurrency } = useSelector((state) => state.profile);
   const { conversionRate } = useSelector((state) => state.chipCurrency);
-  const net_pc = (chit.net ?? 0) / 1000;
+  const net_pc = unitsToFormattedChips(chit.net ?? 0);
   let convertedNet = 0;
 
   const commonText = {

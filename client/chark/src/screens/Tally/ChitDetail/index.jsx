@@ -4,7 +4,7 @@ import { colors, toastVisibilityTime } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
 import { fetchChitHistory, fetchTallies, updateChitState } from "../../../services/tally";
 import Button from "../../../components/Button";
-import { round } from "../../../utils/common";
+import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from "../../../utils/common";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
@@ -36,9 +36,9 @@ const ChitDetail = (props) => {
   const totalChitNet = useMemo(() => {
     const net = chit?.net;
     if (net) {
-      return round(net / 1000, 3)
+      return unitsToFormattedChips(net);
     }
-    return 0;
+    return '0.000';
   }, [chit?.net]);
 
   // Function to extract partner name from a tally

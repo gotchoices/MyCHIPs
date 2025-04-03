@@ -6,7 +6,7 @@ import useSocket from "../../../hooks/useSocket";
 import mychips from '../../../../assets/mychips-large.png';
 import mychipsNeg from '../../../../assets/mychips-red-large.png';
 import { fetchChitHistory } from "../../../services/tally";
-import { round } from "../../../utils/common";
+import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from "../../../utils/common";
 import ChistHistoryHeader from "./ChitHistoryHeader";
 import { colors, dateFormats } from "../../../config/constants";
 import { ChitIcon } from "../../../components/SvgAssets/SvgAssets";
@@ -39,9 +39,11 @@ const ChitHistory = (props) => {
           'part_cuid', 'chit_ent', 'chit_idx', 'chit_uuid', 'chit_seq', 'chit_type', 'issuer', 'net', 
           'crt_date', 'chit_date', 'reference', 'memo', 'status', 'state', 'chain_idx', 'action'
         ],
-        where: {
-          tally_uuid: tally_uuid,
-        },
+        where: [
+          `tally_uuid = ${tally_uuid}`,
+          "status = good",
+          "chit_type != set"
+        ],
         order: [
           {
             field: 'action',
@@ -79,10 +81,10 @@ const ChitHistory = (props) => {
   }
 
   const ChitItem = ({ item, index }) => {
-    const net = round((item?.net ?? 0) / 1000, 3);
-    const isNetNegative = net < 0;
+    const net = unitsToFormattedChips(item?.net ?? 0);
+    const isNetNegative = (item?.net ?? 0) < 0;
 
-    const runningBalance = round((item?.runningBalance ?? 0) / 1000, 3);
+    const runningBalance = unitsToFormattedChips(item?.runningBalance ?? 0);
     const isRunningBalnceNeg = runningBalance < 0;
 
     const formatedDate = formatDate({ date: item.chit_date, format: dateFormats.dateTime });

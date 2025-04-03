@@ -36,12 +36,12 @@ export const chipsToUnits = (chipValue) => {
  */
 export const formatChipValue = (chipValue) => {
   if (chipValue === null || chipValue === undefined || chipValue === '') {
-    return '';
+    return '0.000';
   }
   
   const value = parseFloat(chipValue);
   if (isNaN(value)) {
-    return '';
+    return '0.000';
   }
   
   return value.toFixed(CHIP_DECIMAL_PLACES);
@@ -64,6 +64,16 @@ export const unitsToChips = (units) => {
   
   // Convert from units to CHIPs
   return value / CHIP_UNIT_FACTOR;
+}
+
+/**
+ * Converts integer units to a formatted CHIP string with fixed decimal places
+ * @param {number|string} units - Integer units value
+ * @returns {string} Formatted CHIP value with exactly 3 decimal places
+ */
+export const unitsToFormattedChips = (units) => {
+  const chipValue = unitsToChips(units);
+  return formatChipValue(chipValue);
 }
 
 export const random = () => {

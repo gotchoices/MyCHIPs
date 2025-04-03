@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from "react-native"
 import { useSelector } from 'react-redux';
 
 import { colors } from "../../../../config/constants";
-import { round, unitsToChips } from "../../../../utils/common";
+import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from "../../../../utils/common";
 import { getCurrency } from "../../../../services/user";
 import { ChitIcon } from "../../../../components/SvgAssets/SvgAssets";
 import { formatDate } from "../../../../utils/format-date";
@@ -60,7 +60,7 @@ const ChistHistoryHeader = (props) => {
 
             <ChitIcon color={isNetNegative ? colors.red : colors.green} height={28} width={24} />
 
-            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{round((net  ?? 0) / 1000, 3)}</Text>
+            <Text style={[styles.balance, { color: isNetNegative ? colors.red : colors.green }]}>{unitsToFormattedChips(net ?? 0)}</Text>
           </View>
 
           {!!conversionRate && <Text style={styles.currency}>{currencyCode} {totalNetDollar}</Text>}

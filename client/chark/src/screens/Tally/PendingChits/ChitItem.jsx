@@ -15,7 +15,7 @@ import { ChitIcon } from '../../../components/SvgAssets/SvgAssets';
 import HelpText from '../../../components/HelpText';
 
 import { colors } from '../../../config/constants';
-import { round } from '../../../utils/common';
+import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from '../../../utils/common';
 import useMessageText from '../../../hooks/useMessageText';
 
 const ChitItem = (props) => {
@@ -33,7 +33,7 @@ const ChitItem = (props) => {
     accepted: chitsMessageText?.approved,
   }
 
-  const net_pc = round((props?.chit?.net ?? 0) / 1000, 3);
+  const net_pc = unitsToFormattedChips(props?.chit?.net ?? 0);
   const convertedNet = round(net_pc * props.conversionRate, 2);
 
   const chits_msg = messageText?.chits_v_me?.msg;

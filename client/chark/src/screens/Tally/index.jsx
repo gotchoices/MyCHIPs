@@ -9,7 +9,7 @@ import {
 import {useSelector, useDispatch} from 'react-redux';
 
 import useSocket from '../../hooks/useSocket';
-import {round} from '../../utils/common';
+import {round, unitsToChips, formatChipValue, unitsToFormattedChips} from '../../utils/common';
 import {getCurrency} from '../../services/user';
 import {useTalliesMeText, useChitsMeText} from '../../hooks/useLanguage';
 import {
@@ -170,7 +170,7 @@ const Tally = props => {
       return acc + Number(current?.net ?? 0);
     }, 0);
 
-    return round(total / 1000, 3);
+    return unitsToFormattedChips(total);
   }, [tallies]);
 
   const totalPendingNet = useMemo(() => {
@@ -179,12 +179,14 @@ const Tally = props => {
       return acc + Number(pending ?? 0);
     }, 0);
 
-    return round(total / 1000, 3);
+    return unitsToFormattedChips(total);
   }, [tallies]);
 
   const totalNetDollar = useMemo(() => {
     if (conversionRate) {
-      const total = totalNet * conversionRate;
+      // Convert the string formatted value back to number for calculation
+      const chipValue = parseFloat(totalNet); 
+      const total = chipValue * conversionRate;
       return round(total, 2);
     }
 

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {useSelector} from 'react-redux';
 
 import {colors} from '../../../config/constants';
-import {round} from '../../../utils/common';
+import {round, unitsToChips, formatChipValue, unitsToFormattedChips} from '../../../utils/common';
 
 import Avatar from '../../../components/Avatar';
 import {ChitIcon, Warning_16} from '../../../components/SvgAssets/SvgAssets';
@@ -22,8 +22,11 @@ const TallyItem = props => {
   // Use the Redux status if available, otherwise fall back to the tally's direct status
   const validityStatus = reduxValidityStatus || tally.validityStatus;
   
-  const net = round((tally?.net ?? 0) / 1000, 3);
-  const pendingNet = tally?.net_pc ? round(tally.net_pc / 1000, 3) : 0;
+  // Get net amount as number for calculations
+  const net = unitsToChips(tally?.net ?? 0);
+  // Get formatted string with fixed 3 decimal places for display
+  const formattedNet = unitsToFormattedChips(tally?.net ?? 0);
+  const pendingNet = unitsToFormattedChips(tally?.net_pc ?? 0);
   const convertedNet = round(net * props.conversionRate, 2);
   const partCert = tally?.part_cert;
   const partName =
@@ -33,7 +36,10 @@ const TallyItem = props => {
           partCert?.name?.middle ? ' ' + partCert?.name?.middle + ' ' : ''
         } ${partCert?.name?.surname}`;
 
-  const hasPendingChit = !!tally?.net_pc && net != pendingNet;
+  // Convert values to numbers for comparison to handle type differences
+  const netValue = Number(tally?.net ?? 0);
+  const netPcValue = Number(tally?.net_pc ?? 0);
+  const hasPendingChit = !!tally?.net_pc && netValue !== netPcValue;
 
   const {messageText} = useMessageText();
   const chitMeText = messageText?.chits_v_me?.col;
@@ -79,11 +85,11 @@ const TallyItem = props => {
             width={12}
           />
           <Text style={net < 0 ? styles.mychipsNetNeg : styles.mychipsNet}>
-            {getIntegerValue(net)}
+            {getIntegerValue(formattedNet)}
           </Text>
 
           <Text style={net < 0 ? styles.negDecimal : styles.decimal}>
-            {getDecimalValue(net)}
+            {getDecimalValue(formattedNet)}
           </Text>
         </View>
       </View>
