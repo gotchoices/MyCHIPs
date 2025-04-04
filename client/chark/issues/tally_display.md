@@ -70,9 +70,13 @@ The MyCHIPs mobile application displays financial information in various places,
 
 ## Pending Tasks
 
-- [ ] Toggle ordering of chits in history view
-- [ ] Fix running balance display in chit history
-- [ ] Add filtering options to Chit History (similar to home screen)
+- [✅] Toggle ordering of chits in history view
+- [✅] Make running balance display in chit history match the sort direction
+- [🔄] Add filtering options to Chit History (similar to home screen)
+  - [✅] Add basic UI for sort/filter controls
+  - [ ] Implement dedicated filter screen for status filtering
+  - [ ] Store filter/sort preferences in Redux for persistence
+  - [ ] Add date range filtering option
 - [ ] Finish updating remaining components to use the ChipValue component
 - [ ] Provide small and large variants of ChipValue for different screens
 - [ ] Complete audit of manual unit conversion throughout the app

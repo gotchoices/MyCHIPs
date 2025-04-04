@@ -159,12 +159,32 @@ const ChitHistory = (props) => {
       }
     });
     
-    // Calculate running balance
+    // Calculate running balance based on sort direction
     let runningBalance = 0;
-    const chitsWithRunningBalance = sortedChits.map((item) => {
-      runningBalance += item.net;
-      return { ...item, runningBalance };
-    });
+    let chitsWithRunningBalance;
+    
+    if (sortAscending) {
+      // For chronological (oldest first) - start at zero and build up
+      chitsWithRunningBalance = sortedChits.map((item) => {
+        runningBalance += item.net;
+        return { ...item, runningBalance };
+      });
+    } else {
+      // For reverse chronological (newest first) - start with total and work backwards
+      // First calculate the total net value of all chits
+      const totalNet = sortedChits.reduce((sum, item) => sum + item.net, 0);
+      runningBalance = totalNet;
+      
+      // Then assign running balances starting from the total and subtracting each chit's contribution
+      chitsWithRunningBalance = sortedChits.map((item, index) => {
+        // For the first item (newest), runningBalance is the total
+        // For subsequent items, subtract the prior item's net from the running balance
+        if (index > 0) {
+          runningBalance -= sortedChits[index-1].net;
+        }
+        return { ...item, runningBalance };
+      });
+    }
     
     // Update the state
     setChits(chitsWithRunningBalance);
