@@ -37,6 +37,9 @@ const linking = {
           TallyPreview: {
             path: 'tally-preview/:tally_seq',
           },
+          OpenTallyEdit: {
+            path: 'tally-view/:tally_seq',
+          },
         }
       },
       Settings: {

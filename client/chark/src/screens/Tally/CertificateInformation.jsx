@@ -6,9 +6,12 @@ import {
   Text,
   StyleSheet,
   TouchableWithoutFeedback,
+  TouchableOpacity,
 } from 'react-native';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import HelpText from '../../components/HelpText';
+import ValidityIcon from '../../components/ValidityIcon';
 
 import { colors } from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
@@ -27,25 +30,42 @@ const CertificateInformation = (props) => {
 
   return (
     <View style={styles.detailControl}>
-      <HelpText
-        label={props.title}
-        style={styles.heading}
-      />
+      <View style={styles.headingContainer}>
+        <HelpText
+          label={props.title}
+          style={styles.heading}
+        />
+        <View style={styles.iconGroup}>
+          {props.validityStatus && (
+            <ValidityIcon status={props.validityStatus} size={16} />
+          )}
+          {props.validityStatus !== 'valid' && props.onRepair && (
+            <TouchableOpacity 
+              onPress={props.onRepair}
+              style={styles.repairButton}
+            >
+              <FontAwesome name="wrench" size={10} color={colors.white} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
 
       <View style={styles.certInfoWrapper}>
-        <View style={styles.certInfo}>
-          <HelpText
-            label={certValueText?.name?.title ?? 'part_cert_name'}
-            helpText={certValueText?.name?.help?? ''}
-            style={styles.certInfoLabel}
-          />
+        <TouchableWithoutFeedback onPress={props.onViewDetails}>
+          <View style={styles.certWrapperTouchable}>
+            <View style={styles.certInfo}>
+              <HelpText
+                label={certValueText?.name?.title ?? 'part_cert_name'}
+                helpText={certValueText?.name?.help?? ''}
+                style={styles.certInfoLabel}
+              />
 
-          <Text style={styles.certValue}>
-            {props.name}
-          </Text>
-        </View>
+              <Text style={styles.certValue}>
+                {props.name}
+              </Text>
+            </View>
 
-        <View style={styles.certInfo}>
+            <View style={styles.certInfo}>
           <HelpText
             label={certValueText?.chad?.title ?? 'part_chad'}
             helpText={certValueText?.chad?.help}
@@ -70,11 +90,12 @@ const CertificateInformation = (props) => {
             </Text>
           </View>
         )}
-
-        <TouchableWithoutFeedback onPress={props.onViewDetails}>
-          <Text style={styles.certOtherDetails}>
-            {charkText?.more?.title ?? 'view_other_details'}
-          </Text>
+            
+            {/* Chevron icon positioned in the top right of the wrapper */}
+            <View style={styles.chevronContainer}>
+              <FontAwesome name="angle-double-right" size={16} color={colors.blue3} />
+            </View>
+          </View>
         </TouchableWithoutFeedback>
       </View>
     </View>
@@ -82,6 +103,25 @@ const CertificateInformation = (props) => {
 }
 
 const styles = StyleSheet.create({
+  headingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  repairButton: {
+    backgroundColor: colors.blue,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
+  },
   heading: {
     fontSize: 12,
     fontWeight: '500',
@@ -112,19 +152,26 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     color: colors.gray300,
   },
-  certOtherDetails: {
-    color: colors.blue3,
-    textDecorationLine: 'underline',
+  certWrapperTouchable: {
+    width: '100%',
+    position: 'relative',
+  },
+  chevronContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
 })
 
-CertificateInformation.prototype = {
+CertificateInformation.propTypes = {
   title: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   chipAddress: PropTypes.string.isRequired,
-  email: PropTypes.string.isRequired,
+  email: PropTypes.string,
   onViewDetails: PropTypes.func.isRequired,
+  onRepair: PropTypes.func,
   certText: PropTypes.any.isRequired,
+  validityStatus: PropTypes.string
 }
 
 export default CertificateInformation;

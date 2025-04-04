@@ -5,13 +5,18 @@ import {
   StyleSheet,
   TextInput,
   TouchableWithoutFeedback,
+  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import moment from 'moment';
+import { useSelector } from 'react-redux';
 
 import HelpText from '../../components/HelpText';
 import TallyReviewView from '../TallyReview/TallyReviewView';
 import CertificateInformation from './CertificateInformation';
+import ValidityIcon from '../../components/ValidityIcon';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import EyeIcon from '../../../assets/svg/eye_icon.svg';
 import {colors} from '../../config/constants';
@@ -32,6 +37,14 @@ const TallyEditView = props => {
   const setContract = props.setContract;
   const tallyContracts = props.tallyContracts ?? [];
   const canEdit = tally.state === 'draft' || tally.state === 'P.draft';
+  const onReSign = props.onReSign || null; // Function to handle re-signing the tally
+
+  // Get validation status from Redux
+  const validityStatuses = useSelector(state => state.updateTally.validityStatuses || {});
+  const tallyValidityStatus = tally?.tally_uuid ? validityStatuses[tally.tally_uuid] : undefined;
+  
+  // Also check for direct status on the tally object
+  const validityStatus = tallyValidityStatus || tally.validityStatus;
 
   const {messageText} = useMessageText();
 
@@ -166,6 +179,7 @@ const TallyEditView = props => {
               })
             }
             certText={certText ?? {}}
+            validityStatus={validityStatus}
           />
         )}
 
@@ -182,9 +196,68 @@ const TallyEditView = props => {
               })
             }
             certText={certText ?? {}}
+            validityStatus={validityStatus}
+            onRepair={onReSign}
           />
         )}
       </View>
+
+      {/* Holder Signature Section */}
+      {tally.hold_sig && (
+        <View style={styles.detailControl}>
+          <View style={styles.signatureLabelContainer}>
+            <HelpText
+              label={talliesMeText?.hold_sig?.title ?? 'Holder Signature'}
+              helpText={talliesMeText?.hold_sig?.help}
+            />
+            <View style={styles.iconGroup}>
+              {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
+              {validityStatus !== 'valid' && onReSign && (
+                <TouchableOpacity 
+                  onPress={onReSign}
+                  style={styles.repairButton}
+                >
+                  <FontAwesome name="wrench" size={10} color={colors.white} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          
+          <ScrollView 
+            horizontal={true} 
+            style={styles.signatureScrollContainer}
+          >
+            <Text selectable={true} style={styles.signatureText}>
+              {tally.hold_sig}
+            </Text>
+          </ScrollView>
+        </View>
+      )}
+      
+      {/* Partner Signature Section */}
+      {tally.part_sig && (
+        <View style={styles.detailControl}>
+          <View style={styles.signatureLabelContainer}>
+            <HelpText
+              label={talliesMeText?.part_sig?.title ?? 'Partner Signature'}
+              helpText={talliesMeText?.part_sig?.help}
+            />
+            <View style={styles.iconGroup}>
+              {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
+              {/* No repair button for partner signature as user can't fix partner's signature */}
+            </View>
+          </View>
+          
+          <ScrollView 
+            horizontal={true} 
+            style={styles.signatureScrollContainer}
+          >
+            <Text selectable={true} style={styles.signatureText}>
+              {tally.part_sig}
+            </Text>
+          </ScrollView>
+        </View>
+      )}
 
       <View style={styles.detailControl}>
         <HelpText
@@ -293,6 +366,54 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderColor: colors.gray7,
     backgroundColor: colors.gray5,
+  },
+  validityContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: colors.gray5,
+    borderWidth: 1,
+    borderColor: colors.gray7,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  validityLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.black,
+  },
+  signatureLabelContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  signatureScrollContainer: {
+    backgroundColor: colors.gray5,
+    borderWidth: 1,
+    borderColor: colors.gray7,
+    borderRadius: 8,
+    padding: 8,
+    maxHeight: 60,
+  },
+  signatureText: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    color: colors.gray900,
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  repairButton: {
+    backgroundColor: colors.blue,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
   },
 });
 

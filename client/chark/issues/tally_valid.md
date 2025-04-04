@@ -300,3 +300,46 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
 
 1. [WebCrypto API documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
 2. [json-stable-stringify documentation](https://github.com/substack/json-stable-stringify)
+
+## Goals
+
+### UI Consistency Improvements
+- [ ] Rename the component and route to make naming consistent:
+  - Currently `EditOpenTally` component is accessed via `OpenTallyEdit` route
+  - Consider renaming to `OpenTallyView` since it's primarily read-only for open tallies
+
+### Tally Detail View Enhancement
+- [ ] Modify EditOpenTally view presentation
+- [ ] After the banner area graphic, order the items as follows:
+  - [ ] Partner Certificate (show warning icon if key bad/missing)
+    - In compact form, show partner name, truncated public key, truncated signature (with validity indicator icon)
+    - When expanded, include details about partner certificate (chad, phone, email, address, etc.)
+  - [ ] Partner signature with validity indicator icon
+  - [ ] Holder Certificate (rolled up by default)
+    - Show full detail on expansion (like partner certificate)
+    - Display warning icon if key is missing/invalid (same as used in home screen)
+  - [ ] Holder signature with validity indicator icon
+  - [ ] Tally Contract (with existing context help and preview)
+  - [ ] Tally Date
+  - [ ] Tally comment
+  - [ ] Tally UUID
+
+### UX Improvements
+- [ ] Replace English 'More Details' with non-linguistic expand/more icon
+- [ ] Preserve context helps
+- [ ] Eliminate hard-coded English if present
+
+### Recovery Actions
+- [ ] Add floating button to apply current certificate when holder key is missing/invalid
+  - This will eventually call a stored procedure in the backend
+- [ ] Add similar button when holder signature is missing/invalid
+
+### Implementation Phases
+1. [ ] Get UI components to show/function correctly
+2. [ ] Get validity indicators to properly show
+3. [ ] Apply code behind curative buttons
+
+### Notes from Analysis
+- TallyEditView is the shared component behind all tally views
+- Open tallies in EditOpenTally component are read-only (canEdit = false)
+- The component has conditional rendering based on tally state that determines if fields can be edited

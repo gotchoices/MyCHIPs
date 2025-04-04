@@ -6,6 +6,7 @@ import {
   RefreshControl,
 } from "react-native";
 import React, { useEffect, useState, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 import {
   fetchTallies,
@@ -15,6 +16,7 @@ import useSocket from "../../../hooks/useSocket";
 import { colors } from "../../../config/constants";
 import { useTalliesMeText } from "../../../hooks/useLanguage";
 import useTitle from '../../../hooks/useTitle';
+import { updateValidity } from "../../../redux/updateTallySlice";
 
 import CustomText from "../../../components/CustomText";
 import TallyEditView from '../TallyEditView';
@@ -22,6 +24,10 @@ import TallyEditView from '../TallyEditView';
 const EditOpenTally = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
+  const dispatch = useDispatch();
+  
+  // Get validation status from Redux
+  const validityStatuses = useSelector(state => state.updateTally.validityStatuses || {});
 
   const [loading, setLoading] = useState(true);
   const [tally, setTally] = useState();
@@ -62,6 +68,9 @@ const EditOpenTally = (props) => {
         "net",
         'hold_cert',
         'hold_chad',
+        'hold_sig',   // Added for signature display
+        'part_sig',   // Added for signature display
+        'json_core',  // Needed for validation
       ],
       where: {
         tally_ent,
@@ -72,6 +81,11 @@ const EditOpenTally = (props) => {
         if (data?.length) {
           const _tally = data?.[0];
           setTally(_tally);
+          
+          // Update validity status in Redux if needed
+          if (_tally?.tally_uuid) {
+            dispatch(updateValidity(_tally));
+          }
         }
       })
       .catch((e) => {
@@ -93,6 +107,13 @@ const EditOpenTally = (props) => {
 
   const onViewContract = () => {
     props.navigation.navigate("TallyContract", { tally_seq });
+  };
+  
+  // Function to re-sign the tally with the current key
+  const handleReSign = () => {
+    // This will be implemented in Phase 3
+    alert('Re-signing functionality will be implemented in a future update.');
+    // Future implementation will use backend API to re-sign the tally
   };
 
   if (loading) {
@@ -121,28 +142,33 @@ const EditOpenTally = (props) => {
     call: tally.part_terms?.call?.toString(),
   };
 
-  return (
-    <ScrollView
-      style={styles.scrollView}
-      contentContainerStyle={styles.contentContainer}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={
-        <RefreshControl refreshing={loading} onRefresh={fetchTally} />
-      }
-    >
-      <TallyEditView
-        tally={tally}
-        tallyType={tally.tally_type}
-        contract={tally.contract?.source ?? ''}
-        holdTerms={holdTerms}
-        partTerms={partTerms}
-        comment={tally.comment ?? ''}
-        onViewContract={onViewContract}
-        tallyContracts={tallyContracts}
-        navigation={props.navigation}
-      />
+  // Get the tally's validity status from Redux
+  const tallyValidityStatus = tally?.tally_uuid ? validityStatuses[tally.tally_uuid] : undefined;
 
-    </ScrollView >
+  return (
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={fetchTally} />
+        }
+      >
+        <TallyEditView
+          tally={tally}
+          tallyType={tally.tally_type}
+          contract={tally.contract?.source ?? ''}
+          holdTerms={holdTerms}
+          partTerms={partTerms}
+          comment={tally.comment ?? ''}
+          onViewContract={onViewContract}
+          tallyContracts={tallyContracts}
+          navigation={props.navigation}
+          onReSign={handleReSign}
+        />
+      </ScrollView>
+    </View>
   );
 };
 
