@@ -30,11 +30,13 @@ import BottomSheetModal from '../../components/BottomSheetModal';
 import CommentContent from './CommentContent';
 import SuccessContent from '../../components/SuccessContent';
 import TallyEntryModal from './TallyEntryModal';
+import FieldFilterSelector from '../../components/FieldFilterSelector';
 
 import useMessageText from '../../hooks/useMessageText';
 import {useTalliesMeText} from '../../hooks/useLanguage';
 import {fetchTemplates} from '../../redux/workingTalliesSlice';
 import {fetchImagesByDigest} from '../../redux/avatarSlice';
+import {setFilter} from '../../redux/profileSlice';
 import {request} from '../../services/request';
 import {random} from '../../utils/common';
 import {getTallyName} from '../../utils/user';
@@ -121,6 +123,12 @@ const TallyInvite = props => {
       item => item.value === 'draft',
     );
   }, [talliesColText?.request?.values]);
+  
+  // Calculate selected filter values as a memoized value for reactivity
+  const selectedFilterValues = useMemo(() => {
+    if (!filter || Object.keys(filter).length === 0) return [];
+    return Object.keys(filter).filter(key => filter[key]?.selected);
+  }, [filter]);
 
   useEffect(() => {
     if (ws) {
@@ -295,8 +303,54 @@ const TallyInvite = props => {
     );
   };
 
-  const onFilter = () => {
-    props.navigation.navigate('FilterScreen');
+  // Get filter options from message text
+  const getStatusOptions = () => {
+    // Include ALL status options from the message text
+    const allValues = talliesColText?.status?.values || [];
+    
+    // Map all available status values to options
+    return allValues.map(status => ({
+      value: status.value,
+      title: status.title || status.value
+    }));
+  };
+  
+  // Handle status filter change
+  const handleStatusFilterChange = (selectedValues, whereClause) => {
+    // Start with the current filter to preserve structure
+    const newFilter = {...filter};
+    
+    // Update selected status for each key
+    Object.keys(newFilter).forEach(key => {
+      newFilter[key] = {
+        ...newFilter[key],
+        selected: selectedValues.includes(key)
+      };
+    });
+    
+    // Add any new statuses not in the current filter
+    selectedValues.forEach(value => {
+      if (!newFilter[value]) {
+        newFilter[value] = {
+          status: value,
+          selected: true
+        };
+      }
+    });
+    
+    // Update Redux only - let Redux handle persistence if needed
+    dispatch(setFilter(newFilter));
+    
+    // Show toast notification with language-appropriate message
+    Toast.show({
+      type: 'success',
+      text1: charkText?.updated?.title ?? 'Updated',
+      visibilityTime: 3000, // Shorter duration (3 seconds)
+      onPress: () => Toast.hide(), // Allow dismissing by tap
+    });
+    
+    // Refresh templates with new filter
+    getTemplates();
   };
 
   const onReview = (tally_seq, tally_ent) => {
@@ -421,12 +475,16 @@ const TallyInvite = props => {
               {draftLang?.title ?? ''}
             </Text>
 
-            <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
-              <FilterSecondIcon />
-              <Text style={styles.filterText}>
-                {talliesColText?.status?.title ?? ''}
-              </Text>
-            </TouchableOpacity>
+            <FieldFilterSelector
+              fieldName="status"
+              screenId="workingTallies"
+              options={getStatusOptions()}
+              initialSelected={selectedFilterValues}
+              buttonLabel={talliesColText?.status?.title ?? ''}
+              onFilterChange={handleStatusFilterChange}
+              buttonStyle={styles.filterContainer}
+              buttonTextStyle={styles.filterText}
+            />
           </View>
           <CustomTextInput
             placeholder={charkText?.search?.title ?? ''}

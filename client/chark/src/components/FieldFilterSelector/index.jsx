@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { FilterSecondIcon } from '../SvgAssets/SvgAssets';
@@ -22,6 +22,11 @@ const FieldFilterSelector = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedValues, setSelectedValues] = useState(initialSelected);
+  
+  // Update selected values when initialSelected changes
+  useEffect(() => {
+    setSelectedValues(initialSelected);
+  }, [JSON.stringify(initialSelected)]);
   
   // Generate WHERE clause based on selections
   const generateWhereClause = (selections) => {
@@ -49,8 +54,8 @@ const FieldFilterSelector = ({
     setModalVisible(false);
   };
   
-  // Get display text for button
-  const getButtonText = () => {
+  // Get display text for button - using useMemo to ensure it updates correctly
+  const buttonText = useMemo(() => {
     if (selectedValues.length === 0) {
       return buttonLabel || fieldName;
     }
@@ -60,7 +65,7 @@ const FieldFilterSelector = ({
     }
     
     return `${buttonLabel || fieldName} (${selectedValues.length})`;
-  };
+  }, [selectedValues, options, buttonLabel, fieldName]);
   
   return (
     <>
@@ -70,7 +75,7 @@ const FieldFilterSelector = ({
       >
         <FilterSecondIcon />
         <Text style={[styles.filterText, buttonTextStyle]}>
-          {getButtonText()}
+          {buttonText}
         </Text>
       </TouchableOpacity>
       
