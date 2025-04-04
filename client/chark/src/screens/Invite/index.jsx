@@ -25,7 +25,7 @@ import {
   FilterSecondIcon,
   SearchIcon,
 } from '../../components/SvgAssets/SvgAssets';
-import FloatingActionButton from '../../components/FloadingActionButton';
+import FloatingActionButton from '../../components/FloatingActionButton';
 import BottomSheetModal from '../../components/BottomSheetModal';
 import CommentContent from './CommentContent';
 import SuccessContent from '../../components/SuccessContent';

@@ -13,7 +13,7 @@ import RNFS from "react-native-fs";
 import useSocket from "../../../hooks/useSocket";
 import { getContract } from "../../../services/tally";
 
-import FloatingActionButton from "../../../components/FloadingActionButton";
+import FloatingActionButton from "../../../components/FloatingActionButton";
 import { useRef } from "react";
 
 const TallyContract = (props) => {
