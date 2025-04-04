@@ -5,6 +5,7 @@ PLATFORM=${PLATFORM:-android}
 DEBUG=${DEBUG:-false}
 ANDROID_PACKAGE="org.mychips.chark"
 ANDROID_ACTIVITY="org.mychips.chark.MainActivity"
+SCREEN="tally-preview"  # Default screen
 
 # Help function
 show_help() {
@@ -12,6 +13,7 @@ show_help() {
     echo "Options:"
     echo "  -p, --platform <ios|android>  Platform to launch (default: android)"
     echo "  -d, --debug                   Enable debug mode"
+    echo "  -s, --screen <screen_name>    Screen to navigate to (default: tally-preview)"
     echo "  --help                        Show this help message"
 }
 
@@ -21,6 +23,7 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         -p|--platform) PLATFORM="$2"; shift 2 ;;
         -d|--debug) DEBUG=true; shift ;;
+        -s|--screen) SCREEN="$2"; shift 2 ;;
         --help) show_help; exit 0 ;;
         *) TALLY_SEQ="$1"; shift ;;
     esac
@@ -34,7 +37,7 @@ if [ -z "$TALLY_SEQ" ]; then
 fi
 
 # Construct the URL
-URL="https://mychips.org/tally-preview/$TALLY_SEQ"
+URL="https://mychips.org/$SCREEN/$TALLY_SEQ"
 if [ "$DEBUG" = true ]; then
     URL="$URL?debug=true"
 fi
