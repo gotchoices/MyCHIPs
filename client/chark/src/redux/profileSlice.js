@@ -20,7 +20,7 @@ const initialState = {
   personal: undefined,
   addresses: [],
   filter: {},
-  filterTally:{},
+  // filterTally removed - replaced by tallySortSlice
   // For detecting any change on user to trigger asynchronous change that depend on the tally 
   userChangeTrigger: 1,
   // Displaying modal for creating a signature
@@ -162,33 +162,7 @@ export const getFilter = createAsyncThunk('profile/getFilter', async () => {
   }
 })
 
-export const getTallyListFilter = createAsyncThunk('profile/getTallyListFilter', async () => {
-  const data = await AsyncStorage.getItem("filterTallyList")
-  
-  if (data) {
-    let filterTally = {};
-
-    try {
-      filterTally = JSON.parse(data);
-    } catch (err) {
-      console.log(err.message)
-    }
-
-    return filterTally ?? {};
-  } else {
-    const filterTally = {
-      recent: { selected: true, status: 'recent' },
-      ascending: { selected: false, status: 'ascending' },
-      descending: { selected: false, status: 'descending' },
-      absolute: { selected: false, status: 'absolute' },
-      alphabetical: { selected: false, status: 'alphabetical' },
-    }
-
-    await AsyncStorage.setItem("filterTallyList", JSON.stringify(filterTally))
-
-    return filterTally;
-  }
-})
+// getTallyListFilter removed - replaced by tallySortSlice
 
 export const profileSlice = createSlice({
   name: 'profile',
@@ -215,9 +189,7 @@ export const profileSlice = createSlice({
     setFilter: (state, action) => {
       state.filter = action.payload;
     },
-    setFilterTally: (state, action) => {
-      state.filterTally = action.payload;
-    },
+    // setFilterTally removed - replaced by tallySortSlice
     setUserChangeTrigger: (state, action) => {
       const trigger = state.userChangeTrigger ?? 1;
       state.userChangeTrigger = trigger + 1;
@@ -265,9 +237,7 @@ export const profileSlice = createSlice({
       .addCase(getFilter.fulfilled, (state, action) => {
         state.filter = action.payload
       })
-      .addCase(getTallyListFilter.fulfilled, (state, action) => {
-        state.filterTally = action.payload
-      })
+      // getTallyListFilter.fulfilled case removed - replaced by tallySortSlice
   },
 });
 
@@ -276,7 +246,7 @@ export const {
   setFilter,
   setAddress,
   setPersonal,
-  setFilterTally,
+  // setFilterTally removed - replaced by tallySortSlice
   setCommunications,
   setPreferredCurrency,
   setPreferredLanguage,

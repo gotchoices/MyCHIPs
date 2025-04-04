@@ -8,7 +8,6 @@ import useSocket from "../hooks/useSocket";
 import {
   getFilter,
   fetchAvatar,
-  getTallyListFilter,
   getPreferredLanguage,
   fetchPersonalAndCurrency,
   setShowCreateSignatureModal,
@@ -252,7 +251,7 @@ const Navigator = () => {
   useEffect(() => {
     dispatch(getPreferredLanguage(wm));
     dispatch(getFilter());
-    dispatch(getTallyListFilter());
+    // Removed getTallyListFilter() - replaced by tallySortSlice
     dispatch(hasNotification({ wm }));
   }, [wm, dispatch]);
 

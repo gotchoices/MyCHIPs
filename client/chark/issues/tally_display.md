@@ -21,10 +21,27 @@
   - Removed obsolete FilterTallyList screen
   - Added visual indicators for active sorter
 - **Next Focus**: 
-  - Remove old sorting implementation in profileSlice.js (separate PR task)
-  - Evaluate 'set' chit display in ChitHistory
-  - Retrofit remaining filter UIs to use FieldFilterSelector
-  - Update remaining components to use ChipValue
+  - ✅ Evaluated 'set' chit display in ChitHistory - works correctly
+  - Retrofit remaining filter UIs to use FieldFilterSelector:
+    - Activity Screen - Filter for tallies vs chits 
+    - Profile/Address Screen - If multiple address types
+    - Tally/Search component - Add structured filtering
+    - Tally/PendingChits component - Filter options for pending chits
+    - ProfileSlice filter - Migrate from direct AsyncStorage usage
+    - Tally Screen - Ensure consistency with FieldFilterSelector pattern
+    - TallyHeader component - Enhance search logic
+  - Update remaining components to use ChipValue:
+    - ChitDetail screen - Replace manual conversion and display
+    - Profile displays - Audit and update to use ChipValue
+    - Invite/tally creation screens - Replace text with ChipValue
+    - Payment screens - Standardize CHIP value displays
+  - ✅ Removed obsolete language tags related to the old FilterTallyList:
+    - ✅ 'sort.ddate' (used for recent sort)
+    - ✅ 'sort.dbal' (used for ascending sort)
+    - ✅ 'sort.abal' (used for descending sort)
+    - ✅ 'sort.mbal' (used for absolute sort)
+    - ✅ 'sort.dname' (used for alphabetical sort)
+    - ✅ 'sort' (used for the filter button text)
 - **Current Branch**: dev
 - **Related Files**: 
   - src/components/ChipValue/index.jsx (enhanced component)
@@ -170,6 +187,10 @@ The MyCHIPs mobile application displays financial information in various places,
   - Implemented sorting by balance (largest/smallest/absolute value)
   - Added visual indicators for active sorter
   - Connected sorting UI to data rendering
+  - Removed obsolete FilterTallyList screen and related code
+  - Cleaned up old sorting implementation in profileSlice.js
+  - Removed obsolete language tags from database
+  - Verified 'set' chit display works correctly in ChitHistory
 
 ## Components to Update
 - ✅ TallyItem component in home screen - COMPLETED
@@ -178,7 +199,18 @@ The MyCHIPs mobile application displays financial information in various places,
   - Header complete
   - Items updated to use ChipValue
   - Running balance display improved and using ChipValue
-- ❌ ChitDetail display - NOT STARTED
+- 🔄 ChitDetail display - IN PROGRESS
+  - [ ] Replace manual CHIP conversion with ChipValue component
+  - [ ] Update net/amount display with ChipValue component
+  - [ ] Replace hardcoded English strings with messageText references
+    - [ ] "Partner Information" → Use appropriate messageText
+    - [ ] "Chit Details" → Use appropriate messageText
+    - [ ] "Status" → Use appropriate messageText
+    - [ ] "Technical Details" → Use appropriate messageText
+    - [ ] "Refuse" button text → Use appropriate messageText
+    - [ ] "Pay" button text → Use appropriate messageText
+  - [ ] Add proper styling for ChipValue to match rest of screen
+  - [ ] Consider adding currency conversion display option
 - ❌ Profile displays - NOT STARTED
 - ❌ Invite/tally creation screens - NOT STARTED
 - ❌ Payment screens - NOT STARTED
@@ -286,10 +318,10 @@ The MyCHIPs mobile application displays financial information in various places,
      - [✅] Connect components to Redux
      - [✅] Migrate existing sort functionality
      - [✅] Create selectors for computed sorted data
-   - [🔄] Remove obsolete code
+   - [✅] Remove obsolete code
      - [✅] Clean up FilterTallyList screen
      - [✅] Update related navigation code
-     - [ ] Remove old sorting implementation in profileSlice.js (separate PR task)
+     - [✅] Remove old sorting implementation in profileSlice.js
 
 5. **Technical Considerations**
    - Ensure compatibility with existing code
