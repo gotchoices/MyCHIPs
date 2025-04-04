@@ -13,10 +13,9 @@ import { formatDate } from "../../../utils/format-date";
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
 import { 
-  FilterSecondIcon, 
-  SelectedIcon, 
-  UnSelectedIcon
+  FilterSecondIcon
 } from "../../../components/SvgAssets/SvgAssets";
+import FieldFilterSelector from "../../../components/FieldFilterSelector";
 
 const ChitHistory = (props) => {
   const { tally_uuid, digest } = props.route?.params ?? {};
@@ -24,7 +23,15 @@ const ChitHistory = (props) => {
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
   const [sortAscending, setSortAscending] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState('good'); // Default status filter
+  const [statusFilter, setStatusFilter] = useState({
+    values: ['good'], // Default to showing only 'good' status chits
+    whereClause: "status = 'good'"
+  });
+  
+  const [typeFilter, setTypeFilter] = useState({
+    values: ['lift', 'tran'], // Default to showing only transaction chit types, not settings
+    whereClause: "chit_type IN ('lift','tran')"
+  });
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const avatar = imagesByDigest?.[digest];
   const { messageText } = useMessageText();
@@ -35,8 +42,42 @@ const ChitHistory = (props) => {
   // Component for the filter bar above the chit list
   const ChitFilterBar = () => {
     const { messageText } = useMessageText();
-    const talliesMeText = messageText?.tallies_v_me?.msg;
     const chitMeText = messageText?.chits_v_me?.col;
+    
+    // Handle status filter change
+    const handleStatusFilterChange = (selectedValues, whereClause) => {
+      setStatusFilter({
+        values: selectedValues,
+        whereClause
+      });
+    };
+    
+    // Handle chit type filter change
+    const handleTypeFilterChange = (selectedValues, whereClause) => {
+      setTypeFilter({
+        values: selectedValues,
+        whereClause
+      });
+    };
+    
+    // Get status options from the message text
+    const getStatusOptions = () => {
+      const statuses = chitMeText?.status?.values || [];
+      return statuses.map(status => ({
+        value: status.value,
+        title: status.title || status.value
+      }));
+    };
+    
+    // Get chit type options from the message text
+    const getTypeOptions = () => {
+      const types = chitMeText?.chit_type?.values || [];
+      return types.map(type => ({
+        value: type.value,
+        title: type.title || type.value
+      }));
+      // Include all chit types, including 'set'
+    };
     
     return (
       <View style={styles.filterBarContainer}>
@@ -57,21 +98,28 @@ const ChitHistory = (props) => {
           </TouchableOpacity>
         </View>
         
-        {/* Status filter */}
+        {/* Status filter using FieldFilterSelector */}
         <View style={styles.filterSection}>
-          <TouchableOpacity 
-            style={styles.filterButton}
-            onPress={() => {
-              // Toggle between statuses (just UI for now)
-              // Later we'll implement a proper dropdown/modal
-              setSelectedStatus(selectedStatus === 'good' ? 'pend' : 'good');
-            }}
-          >
-            <FilterSecondIcon />
-            <Text style={styles.filterText}>
-              {chitMeText?.status?.title}
-            </Text>
-          </TouchableOpacity>
+          <FieldFilterSelector
+            fieldName="status"
+            screenId="chitHistory"
+            options={getStatusOptions()}
+            initialSelected={statusFilter.values}
+            buttonLabel={chitMeText?.status?.title}
+            onFilterChange={handleStatusFilterChange}
+          />
+        </View>
+        
+        {/* Chit Type filter using FieldFilterSelector */}
+        <View style={styles.filterSection}>
+          <FieldFilterSelector
+            fieldName="chit_type"
+            screenId="chitHistory"
+            options={getTypeOptions()}
+            initialSelected={typeFilter.values}
+            buttonLabel={chitMeText?.chit_type?.title}
+            onFilterChange={handleTypeFilterChange}
+          />
         </View>
       </View>
     );
@@ -81,12 +129,12 @@ const ChitHistory = (props) => {
     _fetchChitHistory();
   }, [tally_uuid])
   
-  // When sort or status filter changes, refetch/reprocess data
+  // When sort or filters change, reprocess data
   useEffect(() => {
     if (chits) {
       processChits(chits);
     }
-  }, [sortAscending, selectedStatus])
+  }, [sortAscending, statusFilter.values, typeFilter.values])
 
   const _fetchChitHistory = () => {
     setLoading(true);
@@ -99,8 +147,7 @@ const ChitHistory = (props) => {
         ],
         where: [
           `tally_uuid = ${tally_uuid}`,
-          // We'll filter by status in our processChits function
-          "chit_type != set"
+          // We'll apply filter criteria in our processChits function
         ],
         order: [
           {
@@ -135,16 +182,18 @@ const ChitHistory = (props) => {
       return;
     }
     
-    // Filter by status if needed
+    // Apply both status and type filters
     const filteredChits = rawChits.filter(chit => {
-      // If "good" is selected, only show good status
-      if (selectedStatus === 'good') {
-        return chit.status === 'good';
-      } 
-      // If "pend" is selected, show all non-good statuses
-      else { 
-        return chit.status !== 'good';
-      }
+      // Status filter
+      const statusMatch = statusFilter.values.length === 0 || 
+                          statusFilter.values.includes(chit.status);
+      
+      // Type filter
+      const typeMatch = typeFilter.values.length === 0 || 
+                        typeFilter.values.includes(chit.chit_type);
+      
+      // Both filters must match
+      return statusMatch && typeMatch;
     });
     
     // Sort by date if needed
@@ -247,7 +296,7 @@ const ChitHistory = (props) => {
           <View style={styles.balanceContainer}>
             <ChipValue 
               units={item?.runningBalance ?? 0}
-              size="xs"
+              size="small"
               showIcon={false}
             />
           </View>
@@ -323,7 +372,8 @@ const styles = StyleSheet.create({
   },
   filterBarContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 8,
     marginBottom: 8,
@@ -331,9 +381,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   filterSection: {
-    flex: 1,
     alignItems: 'flex-start',
-    marginHorizontal: 4,
+    marginRight: 8,
+    marginBottom: 4,
   },
   filterButton: {
     borderWidth: 1,
