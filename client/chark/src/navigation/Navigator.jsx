@@ -25,7 +25,6 @@ import Scanner from "../screens/Scanner";
 import Setting from "../screens/Setting";
 import Profile from "../screens/Profile";
 import Receive from "../screens/Recieve";
-import FilterScreen from "../screens/Filter";
 import ShareTally from "../screens/ShareTally";
 import CustomIcon from "../components/CustomIcon";
 import ChitDetail from "../screens/Tally/ChitDetail";
@@ -162,14 +161,6 @@ function InviteStackScreen() {
           name="Invite"
           component={Invite}
           options={{ headerShown: false }}
-        />
-        <InviteStack.Screen
-          name="FilterScreen"
-          component={FilterScreen}
-          options={{
-            title: "Filters",
-            headerShadowVisible: false,
-          }}
         />
         <InviteStack.Screen
           name="TallyPreview"

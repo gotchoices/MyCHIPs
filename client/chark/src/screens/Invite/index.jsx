@@ -341,14 +341,6 @@ const TallyInvite = props => {
     // Update Redux only - let Redux handle persistence if needed
     dispatch(setFilter(newFilter));
     
-    // Show toast notification with language-appropriate message
-    Toast.show({
-      type: 'success',
-      text1: charkText?.updated?.title ?? 'Updated',
-      visibilityTime: 3000, // Shorter duration (3 seconds)
-      onPress: () => Toast.hide(), // Allow dismissing by tap
-    });
-    
     // Refresh templates with new filter
     getTemplates();
   };

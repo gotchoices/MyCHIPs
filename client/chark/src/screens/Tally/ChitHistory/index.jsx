@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { StyleSheet, FlatList, View, Text, ActivityIndicator, TouchableOpacity, RefreshControl } from "react-native";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -16,22 +16,20 @@ import {
   FilterSecondIcon
 } from "../../../components/SvgAssets/SvgAssets";
 import FieldFilterSelector from "../../../components/FieldFilterSelector";
+import { setSortDirection, setStatusFilter, setTypeFilter } from "../../../redux/chitHistoryFilterSlice";
 
 const ChitHistory = (props) => {
   const { tally_uuid, digest } = props.route?.params ?? {};
   const { wm } = useSocket();
   const [loading, setLoading] = useState(true);
   const [chits, setChits] = useState(undefined);
-  const [sortAscending, setSortAscending] = useState(false);
-  const [statusFilter, setStatusFilter] = useState({
-    values: ['good'], // Default to showing only 'good' status chits
-    whereClause: "status = 'good'"
-  });
+  const dispatch = useDispatch();
   
-  const [typeFilter, setTypeFilter] = useState({
-    values: ['lift', 'tran'], // Default to showing only transaction chit types, not settings
-    whereClause: "chit_type IN ('lift','tran')"
-  });
+  // Get filter state from Redux
+  const { sortAscending, statusFilter, typeFilter } = useSelector(
+    state => state.chitHistoryFilter
+  );
+  
   const { imagesByDigest } = useSelector((state) => state.avatar);
   const avatar = imagesByDigest?.[digest];
   const { messageText } = useMessageText();
@@ -46,18 +44,22 @@ const ChitHistory = (props) => {
     
     // Handle status filter change
     const handleStatusFilterChange = (selectedValues, whereClause) => {
-      setStatusFilter({
+      const newFilter = {
         values: selectedValues,
         whereClause
-      });
+      };
+      
+      dispatch(setStatusFilter(newFilter));
     };
     
     // Handle chit type filter change
     const handleTypeFilterChange = (selectedValues, whereClause) => {
-      setTypeFilter({
+      const newFilter = {
         values: selectedValues,
         whereClause
-      });
+      };
+      
+      dispatch(setTypeFilter(newFilter));
     };
     
     // Get status options from the message text
@@ -85,7 +87,7 @@ const ChitHistory = (props) => {
         <View style={styles.filterSection}>
           <TouchableOpacity 
             style={styles.filterButton}
-            onPress={() => setSortAscending(!sortAscending)}
+            onPress={() => dispatch(setSortDirection(!sortAscending))}
           >
             <Icon 
               name={sortAscending ? "sort-amount-asc" : "sort-amount-desc"} 
@@ -93,7 +95,7 @@ const ChitHistory = (props) => {
               color="#636363" 
             />
             <Text style={styles.filterText}>
-              {chitMeText?.crt_date?.title}
+              {chitMeText?.chit_date?.title || "Date"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -134,7 +136,7 @@ const ChitHistory = (props) => {
     if (chits) {
       processChits(chits);
     }
-  }, [sortAscending, statusFilter.values, typeFilter.values])
+  }, [sortAscending, statusFilter?.values, typeFilter?.values])
 
   const _fetchChitHistory = () => {
     setLoading(true);
@@ -155,7 +157,7 @@ const ChitHistory = (props) => {
             asc: false,
           },
           {
-            field: 'crt_date',
+            field: 'chit_date',
             asc: sortAscending, // Use the current sort direction
           },
         ]
@@ -196,10 +198,10 @@ const ChitHistory = (props) => {
       return statusMatch && typeMatch;
     });
     
-    // Sort by date if needed
+    // Sort by chit_date if needed
     const sortedChits = [...filteredChits].sort((a, b) => {
-      const dateA = new Date(a.crt_date).getTime();
-      const dateB = new Date(b.crt_date).getTime();
+      const dateA = new Date(a.chit_date).getTime();
+      const dateB = new Date(b.chit_date).getTime();
       
       if (sortAscending) {
         return dateA - dateB; // Oldest first

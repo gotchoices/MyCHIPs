@@ -1,19 +1,23 @@
 # Tally and Chit Display Improvements
 
-*Last updated: April 4, 2025*
+*Last updated: April 3, 2025*
 
 ## Current Status Summary
 - **ChipValue Component**: Enhanced to directly handle milliCHIP units with split integer/decimal styling
 - **Internal Currency Conversion**: Implemented in ChipValue with Redux integration
 - **Component Migration**: Banner, TallyItem and ChitHistory updated to use ChipValue (done)
 - **ChitHistory Enhancements**:
-  - Added date sorting toggle with correct running balance calculation
+  - Added date sorting toggle with correct running balance calculation based on chit_date
   - Implemented FieldFilterSelector component for status and chit_type filtering
   - Default to only showing 'good' status and 'lift'/'tran' type chits
   - Improved UI with more compact layout and better visualization
+- **Filter Component Improvements**:
+  - Created reusable FieldFilterSelector with Redux persistence
+  - Replaced separate filter screens with modal approach
+  - Applied to both Working Tallies and ChitHistory screens
 - **Next Focus**: 
   - Evaluate 'set' chit display in ChitHistory
-  - Implement redux persistence for filter preferences
+  - Retrofit remaining filter UIs to use FieldFilterSelector
   - Update remaining components to use ChipValue
 - **Current Branch**: dev
 - **Related Files**: 
@@ -25,6 +29,8 @@
   - src/screens/Tally/ChitHistory/ChitHistoryHeader/index.jsx (updated with ChipValue)
   - src/screens/Tally/index.jsx (modified to pass units)
   - src/redux/chipCurrencySlice.js (enhanced error handling)
+  - src/redux/chitHistoryFilterSlice.js (new slice for filter persistence)
+  - src/screens/Invite/index.jsx (updated with FieldFilterSelector)
 
 ## Background
 
@@ -82,7 +88,7 @@ The MyCHIPs mobile application displays financial information in various places,
 
 - [✅] Toggle ordering of chits in history view
 - [✅] Make running balance display in chit history match the sort direction
-- [🔄] Add filtering options to Chit History (similar to home screen)
+- [✅] Add filtering options to Chit History (similar to home screen)
   - [✅] Add basic UI for sort/filter controls
   - [✅] Implement reusable FieldFilterSelector component
     - Uses a BottomSheetModal approach rather than navigation screen
@@ -93,15 +99,15 @@ The MyCHIPs mobile application displays financial information in various places,
     - Uses "*" to indicate all options selected
   - [✅] Implement for status filtering in ChitHistory
   - [✅] Implement for chit_type filtering in ChitHistory  
-  - [🔄] Store filter/sort preferences in Redux for persistence (basic functionality implemented, needs enhancement)
+  - [✅] Store filter/sort preferences in Redux for persistence
   - [ ] Add date range filtering option
   - [ ] Review 'set' chit display presentation in ChitHistory
   - [ ] Consider disabling running balance display when filtered (future enhancement)
     - Running balance may be misleading if some chits are filtered out
     - Add visual indicator when balance doesn't represent full tally
-  - [ ] Retrofit existing filters to use FieldFilterSelector widget
+  - [🔄] Retrofit existing filters to use FieldFilterSelector widget
     - [ ] Update Tally home screen filter to use FieldFilterSelector
-    - [ ] Update Invite screen filter to use FieldFilterSelector
+    - [✅] Update Invite screen filter to use FieldFilterSelector
     - [ ] Evaluate other filter UI patterns for standardization
 - [ ] Finish updating remaining components to use the ChipValue component
 - [ ] Provide small and large variants of ChipValue for different screens
@@ -136,12 +142,17 @@ The MyCHIPs mobile application displays financial information in various places,
   - Supports both status and chit_type filtering
   - Uses BottomSheetModal for display
 - Enhanced ChitHistory screen with:
-  - Sorting toggle for date (ascending/descending)
+  - Sorting toggle for date (ascending/descending) using chit_date
   - Status filtering (default: 'good')
   - Chit type filtering (default: 'lift', 'tran')
   - Proper running balance calculation based on sort direction
 - Extended ChipValue component to handle units directly
 - Updated ChitHistory items to use ChipValue for running balance
+- Created Redux-based filter persistence:
+  - Added chitHistoryFilterSlice for ChitHistory filters
+  - Replaced default filter screens with FieldFilterSelector
+  - Updated WorkingTallies screen (Invite) with FieldFilterSelector
+  - Safely removed obsolete Filter screen
 
 ## Components to Update
 - ✅ TallyItem component in home screen - COMPLETED
@@ -253,16 +264,16 @@ The MyCHIPs mobile application displays financial information in various places,
   - [✅] Maintain visual hierarchy (date, memo, amounts)
   - [✅] Add pull-to-refresh functionality
 
-- [🔄] Improve filtering capabilities
+- [✅] Improve filtering capabilities
   - [✅] Implement status filter using FieldFilterSelector
   - [✅] Implement chit type filter using FieldFilterSelector
   - [ ] Add date range filtering option
   - [ ] Add amount range filtering option
 
-- [ ] Ensure consistent sorting implementation
-  - [ ] Reuse Redux pattern for sort state management
-  - [ ] Adapt sort utility functions for chit-specific fields
-  - [ ] Implement persistent sorting preferences
+- [✅] Ensure consistent sorting implementation
+  - [✅] Reuse Redux pattern for sort state management
+  - [✅] Adapt sort utility functions to use chit_date
+  - [✅] Implement persistent sorting preferences via Redux
   
 - [✅] Code cleanup and optimization
   - [✅] Refactor ChipValue component to accept units parameter
