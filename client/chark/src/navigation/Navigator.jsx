@@ -40,7 +40,7 @@ import TallyContract from "../screens/Tally/TallyContract";
 import PaymentDetail from "../screens/Tally/PaymentDetail";
 import RequestDetail from "../screens/Tally/RequestDetail";
 import RequestShare from "../screens/Recieve/RequestShare";
-import FilterTallyScreen from '../screens/Tally/FilterTallyList'
+// Removed FilterTallyScreen import - replaced by inline sorters in Banner
 import TradingVariables from "../screens/Tally/TradingVariables";
 import TallyCertificate from "../screens/Tally/TallyCertificate";
 import PendingChitDetail from "../screens/Tally/PendingChits/Detail";
@@ -138,11 +138,7 @@ function HomeStackScreen() {
         component={PendingChitDetail}
         options={{ headerShown: false }}
       />
-      <HomeStack.Screen
-        name="FilterTallyScreen"
-        component={FilterTallyScreen}
-        options={{ headerShown: true, headerTitle: 'Filters' }}
-      />
+      {/* FilterTallyScreen route removed - replaced by inline sorters in Banner */}
       <InviteStack.Screen
         name="TallyContract"
         component={TallyContract}

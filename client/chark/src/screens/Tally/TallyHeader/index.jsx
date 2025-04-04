@@ -22,11 +22,11 @@ const TallyHeader = (props) => {
 
 const styles = StyleSheet.create({
   search: {
-    marginTop: 16,
+    marginTop: 8,  // Reduced from 16 (50% reduction)
     backgroundColor: '#fff',
     paddingHorizontal: 24,
-    paddingVertical: 16,
-    marginBottom: 16,
+    paddingVertical: 12, // Reduced from 16
+    marginBottom: 8,   // Reduced from 16 (50% reduction)
   }
 })
 

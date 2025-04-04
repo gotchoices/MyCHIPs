@@ -3,30 +3,45 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 import {colors} from '../../../config/constants';
 import {isNil} from '../../../utils/common';
 import useMessageText from '../../../hooks/useMessageText';
+import {
+  toggleNameSort, 
+  toggleDateSort, 
+  toggleBalanceSort,
+  selectActiveSorter,
+  selectNameSort,
+  selectDateSort,
+  selectBalanceSort
+} from '../../../redux/tallySortSlice';
 
 import Header from '../Header';
 import Avatar from '../../../components/Avatar';
 import ChipValue from '../../../components/ChipValue';
 import {
-  FilterSecondIcon,
   VisualIcon,
 } from '../../../components/SvgAssets/SvgAssets';
 import Activity from '../Activity';
 
 const Banner = props => {
+  const dispatch = useDispatch();
   const {avatar, personal} = useSelector(state => state.profile);
   const {messageText} = useMessageText();
   const talliesMeMessageText = messageText?.tallies_v_me?.msg;
   const chitMeText = messageText?.chits_v_me?.col;
   const charkText = messageText?.chark?.msg;
+  
+  // Get sorting state from Redux
+  const activeSorter = useSelector(selectActiveSorter);
+  const nameSort = useSelector(selectNameSort);
+  const dateSort = useSelector(selectDateSort);
+  const balanceSort = useSelector(selectBalanceSort);
 
   const navigateToReport = () => {
     props.navigation?.navigate?.('TallyReport');
@@ -44,9 +59,18 @@ const Banner = props => {
     !isNil(props.totalPendingNet) &&
     props.totalPendingNet != 0.0 &&
     props.totalPendingNet != props.totalNet; // If pending net and total net are equal, then the tally does not have pending chits
-
-  const onFilter = () => {
-    props.navigation.navigate('FilterTallyScreen');
+    
+  // Handle sort actions
+  const onNameSort = () => {
+    dispatch(toggleNameSort());
+  };
+  
+  const onDateSort = () => {
+    dispatch(toggleDateSort());
+  };
+  
+  const onBalanceSort = () => {
+    dispatch(toggleBalanceSort());
   };
 
   return (
@@ -78,12 +102,74 @@ const Banner = props => {
         </View>
       </View>
 
-      {/* Future sorters row - placeholder for now */}
+      {/* Sorters row with three sort options */}
       <View style={styles.filtersRow}>
-        <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
-          <FilterSecondIcon />
-          <Text style={styles.filterText}>
-            {talliesMeMessageText?.sort?.title ?? ''}
+        {/* Name Sorter (left) */}
+        <TouchableOpacity 
+          style={[
+            styles.filterContainer, 
+            activeSorter === 'name' && styles.activeFilter
+          ]} 
+          onPress={onNameSort}
+        >
+          <Icon 
+            name={nameSort.direction === 'asc' ? "sort-alpha-asc" : "sort-alpha-desc"} 
+            size={14} 
+            color={activeSorter === 'name' ? colors.primary : "#636363"} 
+          />
+          <Text style={[
+            styles.filterText,
+            activeSorter === 'name' && styles.activeFilterText
+          ]}>
+            {talliesMeMessageText?.part_cert?.title || "Name"}
+          </Text>
+        </TouchableOpacity>
+        
+        {/* Date Sorter (middle) */}
+        <TouchableOpacity 
+          style={[
+            styles.filterContainer, 
+            activeSorter === 'date' && styles.activeFilter
+          ]} 
+          onPress={onDateSort}
+        >
+          <Icon 
+            name={dateSort.direction === 'asc' ? "sort-amount-asc" : "sort-amount-desc"} 
+            size={14} 
+            color={activeSorter === 'date' ? colors.primary : "#636363"} 
+          />
+          <Text style={[
+            styles.filterText,
+            activeSorter === 'date' && styles.activeFilterText
+          ]}>
+            {talliesMeMessageText?.tally_date?.title || "Date"}
+          </Text>
+        </TouchableOpacity>
+        
+        {/* Balance Sorter (right) */}
+        <TouchableOpacity 
+          style={[
+            styles.filterContainer, 
+            activeSorter === 'balance' && styles.activeFilter
+          ]} 
+          onPress={onBalanceSort}
+        >
+          <Icon 
+            name={
+              balanceSort.direction === 'abs' 
+                ? "calculator" 
+                : balanceSort.direction === 'asc' 
+                  ? "sort-numeric-asc" 
+                  : "sort-numeric-desc"
+            } 
+            size={14} 
+            color={activeSorter === 'balance' ? colors.primary : "#636363"} 
+          />
+          <Text style={[
+            styles.filterText,
+            activeSorter === 'balance' && styles.activeFilterText
+          ]}>
+            {talliesMeMessageText?.net?.title || "Balance"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -122,9 +208,9 @@ const styles = StyleSheet.create({
   // Row for filter controls
   filtersRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 5, // Reduced from 10 (50% reduction)
     paddingHorizontal: 10,
   },
   name: {
@@ -150,11 +236,19 @@ const styles = StyleSheet.create({
     borderColor: colors.white100,
     backgroundColor: colors.white200,
   },
+  activeFilter: {
+    borderColor: colors.primary,
+    backgroundColor: colors.white, // Lighter background for active filter
+  },
   filterText: {
     fontSize: 12,
     marginStart: 4,
     color: '#636363',
     fontFamily: 'inter',
+  },
+  activeFilterText: {
+    color: colors.primary,
+    fontWeight: '500',
   },
 });
 

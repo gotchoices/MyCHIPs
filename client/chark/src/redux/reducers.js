@@ -12,6 +12,7 @@ import chipCurrencyReducer  from './chipCurrencySlice';
 import activityReducer from './activitySlice';
 import updateTallyReducer from './updateTallySlice';
 import chitHistoryFilterReducer from './chitHistoryFilterSlice';
+import tallySortReducer from './tallySortSlice';
 
 const rootReducer = combineReducers({
   profile: profileReducer,
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   activity: activityReducer,
   updateTally: updateTallyReducer,
   chitHistoryFilter: chitHistoryFilterReducer,
+  tallySort: tallySortReducer,
 })
 
 export default rootReducer;

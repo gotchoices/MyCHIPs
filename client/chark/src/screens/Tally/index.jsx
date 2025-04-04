@@ -17,6 +17,12 @@ import {
   updateTallyOnChitTransferred,
 } from '../../redux/openTalliesSlice';
 import {fetchImagesByDigest as fetchImages} from '../../redux/avatarSlice';
+import {
+  selectActiveSorter,
+  selectNameSort,
+  selectDateSort,
+  selectBalanceSort
+} from '../../redux/tallySortSlice';
 
 import TallyItem from './TallyItem';
 import TallyHeader from './TallyHeader';
@@ -37,13 +43,19 @@ const connectionStatus = {
 const Tally = props => {
   const {wm, tallyNegotiation, chitTrigger, status} = useSocket();
   const dispatch = useDispatch();
-  const {preferredCurrency, filterTally} = useSelector(state => state.profile);
+  const {preferredCurrency} = useSelector(state => state.profile);
   const {
     imageFetchTrigger,
     tallies: tallies,
     /*imagesByDigest,*/ fetching,
   } = useSelector(state => state.openTallies);
   const {imagesByDigest} = useSelector(state => state.avatar);
+  
+  // Get sort state from Redux
+  const activeSorter = useSelector(selectActiveSorter);
+  const nameSort = useSelector(selectNameSort);
+  const dateSort = useSelector(selectDateSort);
+  const balanceSort = useSelector(selectBalanceSort);
   useTalliesMeText(wm);
   useChitsMeText(wm);
 
@@ -95,27 +107,45 @@ const Tally = props => {
 
   const fetchFilteredTallies = () => {
     if (wm) {
-      const selectedKey = Object.keys(filterTally).find(
-        key => filterTally[key].selected === true,
-      );
-
-      switch (selectedKey) {
-        case 'absolute':
-          return getSortedTallies('mag_p', true);
-
-        case 'ascending':
-          return getSortedTallies('net', true);
-
-        case 'descending':
-          return getSortedTallies('net', false);
-
-        case 'recent':
-          return getSortedTallies('tally_date', true);
-
-        case 'alphabetical':
-          return getTalliesAlphabetically();
-
+      // Use the active sorter from Redux
+      switch (activeSorter) {
+        case 'name':
+          // Handle name sort (alphabetical)
+          if (nameSort.direction === 'asc') {
+            return getTalliesAlphabetically();
+          } else {
+            // For descending, we get alphabetical then reverse
+            const sortedAlpha = sortTalliesAlphabetically(tallies);
+            // Create a copy of the sorted array before reversing
+            const reversedAlpha = [...sortedAlpha].reverse();
+            setSortedTallies(reversedAlpha);
+            setFilteredTallies(reversedAlpha);
+            return;
+          }
+          
+        case 'date':
+          // Handle date sort using tally_date
+          // For date, true = descending (newest first)
+          return getSortedTallies(
+            dateSort.field, 
+            dateSort.direction === 'desc'
+          );
+          
+        case 'balance':
+          // Handle balance sort with 3 modes
+          if (balanceSort.direction === 'abs') {
+            // Absolute value sort - same as old 'absolute' option
+            return getSortedTallies('mag_p', true);
+          } else {
+            // Regular value sort - true = ascending (smallest first)
+            return getSortedTallies(
+              balanceSort.field, 
+              balanceSort.direction === 'asc'
+            );
+          }
+          
         default:
+          // Default to date sort, newest first
           return getSortedTallies('tally_date', true);
       }
     }
@@ -129,7 +159,7 @@ const Tally = props => {
 
   useEffect(() => {
     fetchFilteredTallies();
-  }, [filterTally]);
+  }, [activeSorter, nameSort.direction, dateSort.direction, balanceSort.direction]);
 
   const fetchTallies = () => {
     if (wm) {

@@ -15,7 +15,13 @@
   - Created reusable FieldFilterSelector with Redux persistence
   - Replaced separate filter screens with modal approach
   - Applied to both Working Tallies and ChitHistory screens
+- **Home Screen Sorting**:
+  - Implemented three sorter widgets (name, date, balance) with toggle behavior
+  - Created Redux-based state management with tallySortSlice
+  - Removed obsolete FilterTallyList screen
+  - Added visual indicators for active sorter
 - **Next Focus**: 
+  - Remove old sorting implementation in profileSlice.js (separate PR task)
   - Evaluate 'set' chit display in ChitHistory
   - Retrofit remaining filter UIs to use FieldFilterSelector
   - Update remaining components to use ChipValue
@@ -23,13 +29,15 @@
 - **Related Files**: 
   - src/components/ChipValue/index.jsx (enhanced component)
   - src/components/FieldFilterSelector/* (new reusable filter component)
-  - src/screens/Tally/Banner/index.jsx (updated with ChipValue)
+  - src/screens/Tally/Banner/index.jsx (updated with ChipValue and sort controls)
   - src/screens/Tally/TallyItem/index.jsx (updated with ChipValue)
   - src/screens/Tally/ChitHistory/index.jsx (fully updated with sorting, filtering, and ChipValue)
   - src/screens/Tally/ChitHistory/ChitHistoryHeader/index.jsx (updated with ChipValue)
-  - src/screens/Tally/index.jsx (modified to pass units)
+  - src/screens/Tally/index.jsx (modified to use Redux sorting)
   - src/redux/chipCurrencySlice.js (enhanced error handling)
   - src/redux/chitHistoryFilterSlice.js (new slice for filter persistence)
+  - src/redux/tallySortSlice.js (new slice for home screen sorting)
+  - src/redux/reducers.js (updated to include new slice)
   - src/screens/Invite/index.jsx (updated with FieldFilterSelector)
 
 ## Background
@@ -153,6 +161,15 @@ The MyCHIPs mobile application displays financial information in various places,
   - Replaced default filter screens with FieldFilterSelector
   - Updated WorkingTallies screen (Invite) with FieldFilterSelector
   - Safely removed obsolete Filter screen
+- Implemented Home screen sorting enhancements:
+  - Redesigned Home screen layout with better space utilization
+  - Added three visual sorter controls (name, date, balance)
+  - Created tallySortSlice for Redux-based sort state management
+  - Implemented sorting by name (alphabetical asc/desc)
+  - Implemented sorting by date (newest/oldest first)
+  - Implemented sorting by balance (largest/smallest/absolute value)
+  - Added visual indicators for active sorter
+  - Connected sorting UI to data rendering
 
 ## Components to Update
 - ✅ TallyItem component in home screen - COMPLETED
@@ -229,25 +246,50 @@ The MyCHIPs mobile application displays financial information in various places,
    - Create a dedicated tallySortSlice for persisting sort preferences
    - Store individual sort states and active sorter
    - Ensure persistence across app sessions
+   - Each sorter should toggle between ascending/descending states
+   - Implement mechanisms for displaying the active sorter
 
 4. **Implementation Checklist**
-   - [ ] Redesign Home screen layout
-     - [ ] Move Grand Total to header area
-     - [ ] Create space for sorter row
-     - [ ] Ensure responsive design on different screen sizes
-   - [ ] Implement sorter components
-     - [ ] Create Name Sorter widget
-     - [ ] Create Date Sorter widget
-     - [ ] Create Balance Sorter widget
-     - [ ] Implement UI for indicating active sorter
-   - [ ] Implement Redux integration
-     - [ ] Create tallySortSlice for sort state
-     - [ ] Connect components to Redux
-     - [ ] Migrate existing sort functionality
-   - [ ] Remove obsolete code
-     - [ ] Clean up FilterTallyList screen
-     - [ ] Remove old sorting implementation
-     - [ ] Update related navigation code
+   - [✅] Redesign Home screen layout
+     - [✅] Move Grand Total to header area next to avatar
+     - [✅] Create space for sorter row
+     - [✅] Reduce spacing between UI elements for better space utilization
+     - [✅] Ensure responsive design on different screen sizes
+   - [✅] Implement sorter components
+     - [✅] Create Name Sorter widget (left)
+     - [✅] Create Date Sorter widget (middle)
+     - [✅] Create Balance Sorter widget (right)
+     - [✅] Implement UI for indicating active sorter
+     - [✅] Connect sorters to actual sorting functionality:
+     - [✅] Name sorter should toggle between alphabetical ascending/descending
+     - [✅] Date sorter should toggle between newest first/oldest first
+     - [✅] Balance sorter should cycle through: largest positive first → smallest positive first → absolute value (magnitude)
+   - [✅] Implement Redux integration
+     - [✅] Create tallySortSlice for sort state with following structure:
+       ```javascript
+       {
+         activeSorter: "name" | "date" | "balance", // Currently active sorter
+         nameSort: {
+           direction: "asc" | "desc",
+           field: "part_cert", // Field to sort by
+         },
+         dateSort: {
+           direction: "asc" | "desc",
+           field: "tally_date", // Field to sort by
+         },
+         balanceSort: {
+           direction: "asc" | "desc" | "abs", // abs = absolute value
+           field: "net", // Field to sort by
+         }
+       }
+       ```
+     - [✅] Connect components to Redux
+     - [✅] Migrate existing sort functionality
+     - [✅] Create selectors for computed sorted data
+   - [🔄] Remove obsolete code
+     - [✅] Clean up FilterTallyList screen
+     - [✅] Update related navigation code
+     - [ ] Remove old sorting implementation in profileSlice.js (separate PR task)
 
 5. **Technical Considerations**
    - Ensure compatibility with existing code
@@ -255,6 +297,18 @@ The MyCHIPs mobile application displays financial information in various places,
    - Consider tablet and smaller phone displays
    - Keep internationalization support for sort labels
    - Evaluate potential impacts on pull-to-refresh and FlatList performance
+   
+6. **Implementation Details**
+   - Create a new file src/redux/tallySortSlice.js
+   - Modify src/screens/Tally/Banner/index.jsx to use new sort widgets
+   - Update the sorter icons to reflect current sort state:
+     - Name sorter: sort-alpha-asc ↔ sort-alpha-desc
+     - Date sorter: sort-amount-desc ↔ sort-amount-asc
+     - Balance sorter: sort-numeric-desc → sort-numeric-asc → calculator (for absolute)
+   - Highlight active sorter with different background color
+   - Utilize existing sort functions but connect to new Redux state
+   - Add action creators for toggling each sorter
+   - Use useMemo for memoizing sorted results based on active sort criteria
 
 ## Feedback and Refinements
 
