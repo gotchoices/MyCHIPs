@@ -212,7 +212,7 @@ async function onDisplayNotification(data, dataDict) {
     data: {
       type: 'tally-preview',
       tally_seq: data.sequence?.toString(),
-      link: `mychips://tally-preview/${data.sequence}`,
+      link: `https://mychips.org/tally-preview/${data.sequence}`,
     },
     android: {
       channelId,
