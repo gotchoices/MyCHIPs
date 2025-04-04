@@ -1,11 +1,11 @@
 # Tally and Chit Display Improvements
 
-*Last updated: April 3, 2025*
+*Last updated: April 4, 2025*
 
 ## Current Status Summary
 - **ChipValue Component**: Enhanced to directly handle milliCHIP units with split integer/decimal styling
 - **Internal Currency Conversion**: Implemented in ChipValue with Redux integration
-- **Component Migration**: Banner, TallyItem and ChitHistory updated to use ChipValue (done)
+- **Component Migration**: Banner, TallyItem, ChitHistory and ChitDetail updated to use ChipValue
 - **ChitHistory Enhancements**:
   - Added date sorting toggle with correct running balance calculation based on chit_date
   - Implemented FieldFilterSelector component for status and chit_type filtering
@@ -18,44 +18,69 @@
 - **Home Screen Sorting**:
   - Implemented three sorter widgets (name, date, balance) with toggle behavior
   - Created Redux-based state management with tallySortSlice
-  - Removed obsolete FilterTallyList screen
+  - Removed obsolete FilterTallyList screen and related Redux code
   - Added visual indicators for active sorter
+- **ChitDetail Enhancements**:
+  - Updated to use ChipValue component with currency display
+  - Added display of chain information (chain_idx, chain_prev, chain_dgst)
+  - Removed hardcoded English strings in favor of message texts
+  - Note: Needs comprehensive UI redesign in future for better UX
 - **Next Focus**: 
-  - ✅ Evaluated 'set' chit display in ChitHistory - works correctly
-  - Retrofit remaining filter UIs to use FieldFilterSelector:
-    - Activity Screen - Filter for tallies vs chits 
-    - Profile/Address Screen - If multiple address types
-    - Tally/Search component - Add structured filtering
-    - Tally/PendingChits component - Filter options for pending chits
-    - ProfileSlice filter - Migrate from direct AsyncStorage usage
-    - Tally Screen - Ensure consistency with FieldFilterSelector pattern
-    - TallyHeader component - Enhance search logic
-  - Update remaining components to use ChipValue:
-    - ChitDetail screen - Replace manual conversion and display
-    - Profile displays - Audit and update to use ChipValue
-    - Invite/tally creation screens - Replace text with ChipValue
-    - Payment screens - Standardize CHIP value displays
-  - ✅ Removed obsolete language tags related to the old FilterTallyList:
-    - ✅ 'sort.ddate' (used for recent sort)
-    - ✅ 'sort.dbal' (used for ascending sort)
-    - ✅ 'sort.abal' (used for descending sort)
-    - ✅ 'sort.mbal' (used for absolute sort)
-    - ✅ 'sort.dname' (used for alphabetical sort)
-    - ✅ 'sort' (used for the filter button text)
+  - **Immediate Priority (ChipValue Implementation):**
+    - PendingChits components - Replace formatChipValue with ChipValue:
+      - src/screens/Tally/PendingChits/Detail.jsx
+      - src/screens/Tally/PendingChits/ChitItem.jsx
+    - Invite screen - Use ChipValue for tally limits:
+      - src/screens/Invite/index.jsx
+      - src/screens/Invite/LimitContent/index.jsx
+
+  - **Medium Priority (Filter UI Improvements):**
+    - Retrofit remaining filter UIs to use FieldFilterSelector:
+      - Activity Screen - Filter for tallies vs chits 
+      - Tally/Search component - Add structured filtering
+      - Tally/PendingChits - Filter options for pending chits
+      - ProfileSlice filter - Migrate from direct AsyncStorage usage
+
+  - **Long-term Tasks:**
+    - Complete audit of all CHIP values in app and standardize
+    - Comprehensive redesign of ChitDetail screen:
+      - Improve overall aesthetics and user experience
+      - Better organization of information
+      - More intuitive layout for technical information
+      - Visual indicators for chain integrity
+    - Add date range filtering to ChitHistory
+
+  - **Completed Tasks:**
+    - ✅ ChitDetail screen updated with ChipValue
+    - ✅ Chain information (chain_idx, chain_prev, chain_dgst) added to ChitDetail
+    - ✅ 'set' chit display works correctly in ChitHistory
+    - ✅ Home screen sorting implemented with tallySortSlice
+    - ✅ Removed obsolete FilterTallyList screen and Redux code
+    - ✅ Removed obsolete language tags ('sort.ddate', 'sort.dbal', 'sort.abal', 'sort.mbal', 'sort.dname', 'sort')
 - **Current Branch**: dev
 - **Related Files**: 
-  - src/components/ChipValue/index.jsx (enhanced component)
-  - src/components/FieldFilterSelector/* (new reusable filter component)
-  - src/screens/Tally/Banner/index.jsx (updated with ChipValue and sort controls)
-  - src/screens/Tally/TallyItem/index.jsx (updated with ChipValue)
-  - src/screens/Tally/ChitHistory/index.jsx (fully updated with sorting, filtering, and ChipValue)
-  - src/screens/Tally/ChitHistory/ChitHistoryHeader/index.jsx (updated with ChipValue)
-  - src/screens/Tally/index.jsx (modified to use Redux sorting)
-  - src/redux/chipCurrencySlice.js (enhanced error handling)
-  - src/redux/chitHistoryFilterSlice.js (new slice for filter persistence)
-  - src/redux/tallySortSlice.js (new slice for home screen sorting)
-  - src/redux/reducers.js (updated to include new slice)
-  - src/screens/Invite/index.jsx (updated with FieldFilterSelector)
+  - **Components**:
+    - src/components/ChipValue/index.jsx (enhanced component for CHIP value display)
+    - src/components/FieldFilterSelector/* (new reusable filter component)
+  
+  - **Screens**:
+    - src/screens/Tally/Banner/index.jsx (updated with ChipValue and sort controls)
+    - src/screens/Tally/TallyItem/index.jsx (updated with ChipValue)
+    - src/screens/Tally/ChitHistory/index.jsx (updated with sorting, filtering, and ChipValue)
+    - src/screens/Tally/ChitHistory/ChitHistoryHeader/index.jsx (updated with ChipValue)
+    - src/screens/Tally/ChitDetail/index.jsx (updated with ChipValue and chain information)
+    - src/screens/Tally/index.jsx (modified to use Redux sorting)
+    - src/screens/Invite/index.jsx (updated with FieldFilterSelector)
+  
+  - **Redux**:
+    - src/redux/chipCurrencySlice.js (enhanced error handling)
+    - src/redux/chitHistoryFilterSlice.js (new slice for filter persistence) 
+    - src/redux/tallySortSlice.js (new slice for home screen sorting)
+    - src/redux/profileSlice.js (removed old filter implementation)
+    - src/redux/reducers.js (updated to include new slices)
+  
+  - **Navigation**:
+    - src/navigation/Navigator.jsx (removed obsolete FilterTallyScreen)
 
 ## Background
 
@@ -191,6 +216,8 @@ The MyCHIPs mobile application displays financial information in various places,
   - Cleaned up old sorting implementation in profileSlice.js
   - Removed obsolete language tags from database
   - Verified 'set' chit display works correctly in ChitHistory
+  - Updated ChitDetail screen to use ChipValue component with proper styling
+  - Added chain information display (chain_idx, chain_prev, chain_dgst) to ChitDetail screen
 
 ## Components to Update
 - ✅ TallyItem component in home screen - COMPLETED
@@ -199,18 +226,16 @@ The MyCHIPs mobile application displays financial information in various places,
   - Header complete
   - Items updated to use ChipValue
   - Running balance display improved and using ChipValue
-- 🔄 ChitDetail display - IN PROGRESS
-  - [ ] Replace manual CHIP conversion with ChipValue component
-  - [ ] Update net/amount display with ChipValue component
-  - [ ] Replace hardcoded English strings with messageText references
-    - [ ] "Partner Information" → Use appropriate messageText
-    - [ ] "Chit Details" → Use appropriate messageText
-    - [ ] "Status" → Use appropriate messageText
-    - [ ] "Technical Details" → Use appropriate messageText
-    - [ ] "Refuse" button text → Use appropriate messageText
-    - [ ] "Pay" button text → Use appropriate messageText
-  - [ ] Add proper styling for ChipValue to match rest of screen
-  - [ ] Consider adding currency conversion display option
+- ✅ ChitDetail display - COMPLETED (ChipValue implementation)
+  - [✅] Replace manual CHIP conversion with ChipValue component
+  - [✅] Update net/amount display with ChipValue component
+  - [✅] Remove section titles to simplify UI
+  - [✅] Replace hardcoded button text with messageText references
+    - [✅] "Refuse" button text → liftsPayMeText?.msg?.reject?.title
+    - [✅] "Pay" button text → liftsPayMeText?.msg?.accept?.title
+  - [✅] Add proper styling for ChipValue to match rest of screen
+  - [✅] Add currency conversion display option (showCurrency=true)
+  - [✅] **Added Chain Information:** Implemented display of chain_idx, chain_prev, chain_dgst as per tally_valid.md
 - ❌ Profile displays - NOT STARTED
 - ❌ Invite/tally creation screens - NOT STARTED
 - ❌ Payment screens - NOT STARTED

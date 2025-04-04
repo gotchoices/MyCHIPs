@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, RefreshControl, TouchableOpacity } from "react-native";
 import { colors, toastVisibilityTime } from "../../../config/constants";
 import useSocket from "../../../hooks/useSocket";
 import { fetchChitHistory, fetchTallies, updateChitState } from "../../../services/tally";
 import Button from "../../../components/Button";
-import { round, unitsToChips, formatChipValue, unitsToFormattedChips } from "../../../utils/common";
+import ChipValue from "../../../components/ChipValue";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import useMessageText from '../../../hooks/useMessageText';
 import useTitle from '../../../hooks/useTitle';
@@ -33,13 +33,7 @@ const ChitDetail = (props) => {
 
   useTitle(props.navigation, chitsMeMessageText?.detail?.title)
 
-  const totalChitNet = useMemo(() => {
-    const net = chit?.net;
-    if (net) {
-      return unitsToFormattedChips(net);
-    }
-    return '0.000';
-  }, [chit?.net]);
+  // We no longer need totalChitNet since we'll use the ChipValue component directly
 
   // Function to extract partner name from a tally
   const getPartnerName = (tally) => {
@@ -93,7 +87,7 @@ const ChitDetail = (props) => {
     fetchChitHistory(
       wm,
       {
-        fields: ['net', 'chain_idx', 'signature', 'clean', 'state', 'request', 'status', 'action', 
+        fields: ['net', 'chain_idx', 'chain_prev', 'chain_dgst', 'signature', 'clean', 'state', 'request', 'status', 'action', 
                 'reference', 'memo', 'tally_uuid'],
         where: {
           chit_uuid,
@@ -206,7 +200,7 @@ const ChitDetail = (props) => {
         chit_uuid: chit_uuid,
         memo: chit?.memo,
         reference: chit?.reference,
-        net: totalChitNet,
+        net: chit?.net, // Pass the raw units value instead of formatted string
       }
     });
   }
@@ -231,9 +225,8 @@ const ChitDetail = (props) => {
       {/* Partner Information Section */}
       {tallyDetails && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Partner Information</Text>
           <Text style={styles.text}>
-            <Text style={styles.labelText}>Partner: </Text>
+            <Text style={styles.labelText}>{talliesMeText?.part_cert?.title ?? 'Partner'}: </Text>
             {getPartnerName(tallyDetails)}
           </Text>
           <TouchableOpacity onPress={navigateToTally}>
@@ -247,7 +240,6 @@ const ChitDetail = (props) => {
 
       {/* Chit Details Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Chit Details</Text>
         <Text style={styles.text}>
           <Text style={styles.labelText}>{chitsMeText?.chit_uuid?.title ?? ''}: </Text>
           {chit_uuid}
@@ -256,10 +248,15 @@ const ChitDetail = (props) => {
           <Text style={styles.labelText}>{chitsMeText?.signature?.title ?? ''}: </Text>
           {chit?.signature}
         </Text>
-        <Text style={styles.text}>
-          <Text style={styles.labelText}>{chitsMeText?.net?.title ?? ''}: </Text>
-          {totalChitNet}
-        </Text>
+        <View style={styles.rowContainer}>
+          <Text style={[styles.labelText, styles.labelContainer]}>{chitsMeText?.net?.title ?? ''}: </Text>
+          <ChipValue 
+            units={chit?.net} 
+            showIcon={true} 
+            showCurrency={true}
+            size="medium"
+          />
+        </View>
         <Text style={styles.text}>
           <Text style={styles.labelText}>{chitsMeText?.memo?.title ?? ''}: </Text>
           {chit?.memo}
@@ -268,7 +265,6 @@ const ChitDetail = (props) => {
 
       {/* Status Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Status</Text>
         <Text style={styles.text}>
           <Text style={styles.labelText}>{chitsMeText?.clean?.title ?? ''}: </Text>
           {chit?.clean?.toString()}
@@ -285,11 +281,37 @@ const ChitDetail = (props) => {
           <Text style={styles.labelText}>{chitsMeText?.state?.title ?? ''}: </Text>
           {chit?.state}
         </Text>
+        {/* Chain Information Section */}
+        {chit?.chain_idx !== undefined && (
+          <Text style={styles.text}>
+            <Text style={styles.labelText}>{chitsMeText?.chain_idx?.title ?? 'Chain Index'}: </Text>
+            {chit?.chain_idx}
+          </Text>
+        )}
+        {chit?.chain_prev && (
+          <Text style={styles.text}>
+            <Text style={styles.labelText}>{chitsMeText?.chain_prev?.title ?? 'Previous Chain Hash'}: </Text>
+            <Text style={styles.hashText}>
+              {typeof chit.chain_prev === 'object' 
+                ? JSON.stringify(chit.chain_prev) 
+                : chit.chain_prev}
+            </Text>
+          </Text>
+        )}
+        {chit?.chain_dgst && (
+          <Text style={styles.text}>
+            <Text style={styles.labelText}>{chitsMeText?.chain_dgst?.title ?? 'Chain Digest'}: </Text>
+            <Text style={styles.hashText}>
+              {typeof chit.chain_dgst === 'object' 
+                ? JSON.stringify(chit.chain_dgst) 
+                : chit.chain_dgst}
+            </Text>
+          </Text>
+        )}
       </View>
 
       {/* Technical Details Section (can be collapsed in future) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Technical Details</Text>
         <Text style={styles.text}>
           <Text style={styles.labelText}>{chitsMeText?.reference?.title ?? ''}: </Text>
           {JSON.stringify(chit?.reference ?? {})}
@@ -298,7 +320,7 @@ const ChitDetail = (props) => {
     </ScrollView>
     {chit?.action ? <View style={styles.row}>
       <Button
-        title="Refuse"
+        title={liftsPayMeText?.msg?.reject?.title ?? 'Refuse'}
         onPress={onRefuse}
         style={styles.refuse}
       />
@@ -310,7 +332,7 @@ const ChitDetail = (props) => {
       />
 
       <Button
-        title="Pay"
+        title={liftsPayMeText?.msg?.accept?.title ?? 'Pay'}
         onPress={onPay}
         style={styles.pay}
       />
@@ -358,6 +380,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  labelContainer: {
+    marginRight: 8,
+  },
+  hashText: {
+    fontSize: 13,
+    fontFamily: 'monospace',
+    color: colors.gray400,
+    flexWrap: 'wrap',
   },
   row: {
     flexDirection: 'row',
