@@ -303,41 +303,44 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
 
 ## Goals
 
+### Deep Link Improvements
+- [x] Add `tally-view` deep link route for direct access to open tallies
+- [x] Update app.json and Info.plist for deep link support
+- [x] Fixed deep link scheme to use `mychips://` instead of `https://mychips.org`
+
 ### UI Consistency Improvements
+- [x] Fixed the typo in component name:
+  - Renamed `FloadingActionButton` to `FloatingActionButton`
 - [ ] Rename the component and route to make naming consistent:
   - Currently `EditOpenTally` component is accessed via `OpenTallyEdit` route
   - Consider renaming to `OpenTallyView` since it's primarily read-only for open tallies
 
 ### Tally Detail View Enhancement
-- [ ] Modify EditOpenTally view presentation
-- [ ] After the banner area graphic, order the items as follows:
-  - [ ] Partner Certificate (show warning icon if key bad/missing)
-    - In compact form, show partner name, truncated public key, truncated signature (with validity indicator icon)
-    - When expanded, include details about partner certificate (chad, phone, email, address, etc.)
-  - [ ] Partner signature with validity indicator icon
-  - [ ] Holder Certificate (rolled up by default)
-    - Show full detail on expansion (like partner certificate)
-    - Display warning icon if key is missing/invalid (same as used in home screen)
-  - [ ] Holder signature with validity indicator icon
-  - [ ] Tally Contract (with existing context help and preview)
-  - [ ] Tally Date
-  - [ ] Tally comment
-  - [ ] Tally UUID
+- [x] Modify EditOpenTally view presentation
+- [x] Added proper sections for displaying:
+  - [x] Partner Certificate (with validity indicator icon)
+  - [x] Partner signature with validity indicator icon
+  - [x] Holder Certificate (with validity indicator and repair icon)
+  - [x] Holder signature with validity indicator and repair icon
+  - [x] Tally Contract (with existing context help and preview)
+  - [x] Tally Date
+  - [x] Tally comment
+  - [x] Tally UUID
 
 ### UX Improvements
-- [ ] Replace English 'More Details' with non-linguistic expand/more icon
-- [ ] Preserve context helps
-- [ ] Eliminate hard-coded English if present
+- [x] Replace English 'More Details' with non-linguistic chevron icon
+- [x] Preserve context helps
+- [x] Made button icons visually consistent (wrench in blue circle)
 
 ### Recovery Actions
-- [ ] Add floating button to apply current certificate when holder key is missing/invalid
-  - This will eventually call a stored procedure in the backend
-- [ ] Add similar button when holder signature is missing/invalid
+- [x] Add repair button next to holder certificate when key is missing/invalid
+- [x] Add repair button next to holder signature when signature is invalid
+- [ ] Implement backend functionality for re-signing (Phase 3)
 
 ### Implementation Phases
-1. [ ] Get UI components to show/function correctly
-2. [ ] Get validity indicators to properly show
-3. [ ] Apply code behind curative buttons
+1. [x] Get UI components to show/function correctly
+2. [x] Get validity indicators to properly show
+3. [ ] Apply code behind curative buttons (backend integration)
 
 ### Notes from Analysis
 - TallyEditView is the shared component behind all tally views

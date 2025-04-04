@@ -1,6 +1,10 @@
 # MyCHIPs Mobile App Issues Tracker
 
-This directory contains documentation for various issues, enhancements, and implementation needs.
+This directory contains documentation for various issues, enhancements, upgrades.
+Maintain a line in this file, in the appropriate section, for each issues file.
+When working on an issue, follow the workflow process in ../CONTEXT.md.
+AI Agents: ask the user periodically about issues still marked "In Progress" or
+Future issues that may now be feasible.
 
 ## Issue Status Overview
 
