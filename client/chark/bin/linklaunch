@@ -2,8 +2,8 @@
 # linklaunch: Deep link launcher for MyCHIPs app testing
 # 
 # Usage: 
-#   echo "mychips://some/path" | ./linklaunch [options]
-#   ./linklaunch [options] "mychips://some/path"
+#   echo "https://mychips.org/some/path" | ./linklaunch [options]
+#   ./linklaunch [options] "https://mychips.org/some/path"
 #   ssh admin@server.chip mychips/bin/adminticket -i p1234 -q |
 #     ./linklaunch [options]
 #
@@ -11,10 +11,11 @@
 #   -h, --help     Show this help message
 #   -l, --list     List available devices
 #   -d DEVICE      Specify device/emulator by id
-#   -p PLATFORM    Target platform: 'android' or 'ios' (default: auto-detect)
+#   -p PLATFORM    Target platform: 'android' or 'ios' (default: android)
 
 APP_PACKAGE=org.mychips.chark
 MAIN_ACTIVITY=org.mychips.chark.MainActivity
+PLATFORM=${PLATFORM:-android}
 
 function show_help {
   grep "^# " "$0" | cut -c 3-
@@ -94,74 +95,75 @@ function launch_ios {
   return 0
 }
 
-# Parse arguments
-platform="auto"
-device=""
-link=""
-stdin_is_tty=false
-
-# Check if stdin is a terminal (not piped input)
-if [ -t 0 ]; then
-  stdin_is_tty=true
-fi
-
+# Parse command line arguments
 while [[ $# -gt 0 ]]; do
-  case "$1" in
+  case $1 in
     -h|--help)
       show_help
       ;;
     -l|--list)
-      list_devices
+      echo "Available iOS simulators:"
+      xcrun simctl list devices | grep -v unavailable
+      echo -e "\nAvailable Android devices:"
+      adb devices
+      exit 0
       ;;
     -d)
-      device="$2"
-      shift
+      DEVICE="$2"
+      shift 2
       ;;
     -p)
-      platform="$2"
-      shift
+      PLATFORM="$2"
+      shift 2
       ;;
     *)
-      link="$1"
+      if [[ -z "$URL" ]]; then
+        URL="$1"
+      fi
+      shift
       ;;
   esac
-  shift
 done
 
-# If no link provided as argument and we have piped input, read from stdin
-if [ -z "$link" ] && [ "$stdin_is_tty" = false ]; then
-  read link
-elif [ -z "$link" ]; then
-  # No link provided and no piped input, show help
-  echo "Error: No link provided. Please provide a link as an argument or pipe it to stdin."
-  show_help
+# If no URL provided as argument, try to read from stdin
+if [[ -z "$URL" ]]; then
+  if [ ! -t 0 ]; then
+    URL=$(cat)
+  else
+    echo "Error: No URL provided"
+    show_help
+  fi
 fi
 
-if [ -z "$link" ]; then
-  echo "Error: Empty link provided. Please provide a valid link."
-  show_help
+# Construct the URL based on the input
+if [[ "$URL" == https://* ]]; then
+  # Keep HTTPS URLs as is
+  DEEP_LINK="$URL"
+else
+  # Convert other URLs to HTTPS format
+  DEEP_LINK="https://mychips.org/${URL#mychips://}"
 fi
 
 # Auto-detect platform if not specified
-if [ "$platform" = "auto" ]; then
+if [ "$PLATFORM" = "auto" ]; then
   if command -v adb >/dev/null 2>&1; then
     avdlist="$(adb devices | grep -v 'List of devices' | grep 'device$')"
     if [ -n "$avdlist" ]; then
-      platform="android"
-      if [ -z "$device" ]; then
-        device=$(echo "$avdlist" | head -n 1 | awk '{print $1}')
+      PLATFORM="android"
+      if [ -z "$DEVICE" ]; then
+        DEVICE=$(echo "$avdlist" | head -n 1 | awk '{print $1}')
       fi
     elif command -v xcrun >/dev/null 2>&1; then
-      platform="ios"
-      if [ -z "$device" ]; then
+      PLATFORM="ios"
+      if [ -z "$DEVICE" ]; then
         # Get the first booted simulator ID, if any
         booted_sim=$(xcrun simctl list devices | grep "(Booted)" | head -1 | awk -F"[()]" '{print $2}')
         if [ -n "$booted_sim" ]; then
-          device="$booted_sim"  # Use the specific booted device ID
-          echo "Auto-detected booted iOS simulator: $device"
+          DEVICE="$booted_sim"  # Use the specific booted device ID
+          echo "Auto-detected booted iOS simulator: $DEVICE"
         else
           # No booted simulator found, use generic "booted" identifier
-          device="booted"
+          DEVICE="booted"
           echo "No specific booted simulator found. Using generic 'booted' identifier."
         fi
       fi
@@ -170,16 +172,16 @@ if [ "$platform" = "auto" ]; then
       exit 1
     fi
   elif command -v xcrun >/dev/null 2>&1; then
-    platform="ios"
-    if [ -z "$device" ]; then
+    PLATFORM="ios"
+    if [ -z "$DEVICE" ]; then
       # Get the first booted simulator ID, if any
       booted_sim=$(xcrun simctl list devices | grep "(Booted)" | head -1 | awk -F"[()]" '{print $2}')
       if [ -n "$booted_sim" ]; then
-        device="$booted_sim"  # Use the specific booted device ID
-        echo "Auto-detected booted iOS simulator: $device"
+        DEVICE="$booted_sim"  # Use the specific booted device ID
+        echo "Auto-detected booted iOS simulator: $DEVICE"
       else
         # No booted simulator found, use generic "booted" identifier
-        device="booted"
+        DEVICE="booted"
         echo "No specific booted simulator found. Using generic 'booted' identifier."
       fi
     fi
@@ -191,19 +193,23 @@ fi
 
 # Fix: Get the device ID one more time right before launching
 # This ensures we have the latest booted device even if it was missed earlier
-if [ "$platform" = "ios" ] && [ -z "$device" ]; then
-  device=$(xcrun simctl list devices | grep "(Booted)" | head -1 | awk -F"[()]" '{print $2}')
-  echo "Auto-detected iOS simulator: $device"
+if [ "$PLATFORM" = "ios" ] && [ -z "$DEVICE" ]; then
+  DEVICE=$(xcrun simctl list devices | grep "(Booted)" | head -1 | awk -F"[()]" '{print $2}')
+  echo "Auto-detected iOS simulator: $DEVICE"
 fi
 
 check_dependencies
 
-# Launch on appropriate platform
-if [ "$platform" = "android" ]; then
-  launch_android "$link"
-elif [ "$platform" = "ios" ]; then
-  launch_ios "$link"
-else
-  echo "Error: Unknown platform: $platform"
-  exit 1
-fi
+# Launch based on platform
+case $PLATFORM in
+  ios)
+    launch_ios "$DEEP_LINK"
+    ;;
+  android)
+    launch_android "$DEEP_LINK"
+    ;;
+  *)
+    echo "Error: Unsupported platform: $PLATFORM"
+    exit 1
+    ;;
+esac

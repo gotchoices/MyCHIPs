@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Default values
+PLATFORM=${PLATFORM:-android}
+DEBUG=${DEBUG:-false}
+ANDROID_PACKAGE="org.mychips.chark"
+ANDROID_ACTIVITY="org.mychips.chark.MainActivity"
+
+# Help function
+show_help() {
+    echo "Usage: $0 <tally_seq> [options]"
+    echo "Options:"
+    echo "  -p, --platform <ios|android>  Platform to launch (default: android)"
+    echo "  -d, --debug                   Enable debug mode"
+    echo "  --help                        Show this help message"
+}
+
+# Parse arguments
+TALLY_SEQ=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -p|--platform) PLATFORM="$2"; shift 2 ;;
+        -d|--debug) DEBUG=true; shift ;;
+        --help) show_help; exit 0 ;;
+        *) TALLY_SEQ="$1"; shift ;;
+    esac
+done
+
+# Validate tally_seq
+if [ -z "$TALLY_SEQ" ]; then
+    echo "Error: tally_seq is required"
+    show_help
+    exit 1
+fi
+
+# Construct the URL
+URL="https://mychips.org/tally-preview/$TALLY_SEQ"
+if [ "$DEBUG" = true ]; then
+    URL="$URL?debug=true"
+fi
+
+# Launch based on platform
+case $PLATFORM in
+    ios)
+        xcrun simctl openurl booted "$URL"
+        ;;
+    android)
+        adb shell am start -W -a android.intent.action.VIEW -d "$URL" -n "$ANDROID_PACKAGE/$ANDROID_ACTIVITY" "$ANDROID_PACKAGE"
+        ;;
+    *)
+        echo "Error: Unsupported platform: $PLATFORM"
+        exit 1
+        ;;
+esac 
