@@ -54,6 +54,7 @@ tabtext mychips.tallies	{Tallies}	{Contains an entry for each tally, which is a 
     {void	{Void}			{The tally has been abandoned before being affirmed by both parties}}
     {draft	{Draft}			{The tally has been suggested by one party but not yet accepted by the other party}}
     {open	{Open}			{The tally is affirmed by both parties and can be used for trading chits}}
+    {offer	{Offer}			{The tally has been signed by one party and is offered to the other for acceptance}}
     {close	{Close}			{No further trading can occur on this tally}}
   }}
   {closing	{Closing}		{One of the parties has registered a close request on the tally}}
