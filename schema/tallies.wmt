@@ -160,11 +160,6 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {sort		{Tally Order}		{Control the order in which tallies are listed}}
   {credit	{Credit}		{Trust is extended for this amount}}
   {risk		{Risk}			{A loss may be incurred for this amount}}
-  {sort.ddate	{Most Recent}		{Show tallies with recent activity at the top of the list}}
-  {sort.dbal	{Positive to Negative}	{Show biggest assets at the top, biggest liabilities at the bottom}}
-  {sort.abal	{Negative to Positive}	{Show biggest liabilities at the top, biggest assets at the bottom}}
-  {sort.mbal	{Largest to Smallest}	{Show biggest totals (asset or liability) at the top}}
-  {sort.dname	{Alphabetical}		{Sort alphabetically by partner name}}
   {invited	{Wants to Tally}	{Requests you to offer a new MyCHIPs tally}}
   {nocert	{Invalid Certificate}	{The partner's certificate is missing or invalid}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
