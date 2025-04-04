@@ -59,36 +59,33 @@ const Banner = props => {
         rightIcon={<Activity />}
       />
 
-      <View style={{alignItems: 'center', justifyContent: 'center'}}>
-        <View style={styles.balanceContainer}>
-          <View style={styles.balance}>
-            <View style={styles.avatarWrapper}>
-              <Avatar avatar={avatar} />
-              <Text style={styles.name}>{personal?.cas_name ?? ''}</Text>
-            </View>
-          </View>
+      <View style={styles.headerRow}>
+        {/* Left section: Avatar and name (centered) */}
+        <View style={styles.avatarSection}>
+          <Avatar avatar={avatar} />
+          <Text style={styles.name}>{personal?.cas_name ?? ''}</Text>
+        </View>
+        
+        {/* Right section: Grand total (right-aligned) */}
+        <View style={styles.totalSection}>
+          <ChipValue 
+            units={props.totalNetUnits}
+            size="large"
+            showIcon={true}
+            showCurrency={true}
+            iconSize={{width: 24, height: 24}}
+          />
         </View>
       </View>
 
-      <View style={styles.row}>
+      {/* Future sorters row - placeholder for now */}
+      <View style={styles.filtersRow}>
         <TouchableOpacity style={styles.filterContainer} onPress={onFilter}>
           <FilterSecondIcon />
           <Text style={styles.filterText}>
             {talliesMeMessageText?.sort?.title ?? ''}
           </Text>
         </TouchableOpacity>
-
-        <View style={styles.textWrapper}>
-          {/* Using the new ChipValue component for tally total */}
-          <ChipValue 
-            units={props.totalNetUnits} // Use raw units value
-            size="large"
-            showIcon={true}
-            showCurrency={true}
-            iconSize={{width: 24, height: 24}} 
-            style={styles.chipValue}
-          />
-        </View>
       </View>
     </View>
   );
@@ -102,28 +99,40 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 10,
   },
-  balanceContainer: {
-    ...font,
-    padding: 16,
-    maxWidth: '90%',
-    borderRadius: 25,
-    overflow: 'hidden',
-  },
-  balance: {
+  // New header row with avatar and total
+  headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+    paddingHorizontal: 10,
   },
-  name: {...font, paddingTop: 15, fontSize: 16, fontWeight: '600'},
-  avatarWrapper: {marginTop: 20},
-  textWrapper: {
-    marginBottom: -15,
-    marginRight: 10,
+  // Avatar and name section (left side)
+  avatarSection: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Total section (right side)
+  totalSection: {
     alignItems: 'flex-end',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
   },
-  chipValue: {
-    marginBottom: 5,
+  // Row for filter controls
+  filtersRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  name: {
+    ...font, 
+    paddingTop: 10, 
+    fontSize: 16, 
+    fontWeight: '600',
+    textAlign: 'center',
   },
   pending: {
     ...font,
@@ -146,12 +155,6 @@ const styles = StyleSheet.create({
     marginStart: 4,
     color: '#636363',
     fontFamily: 'inter',
-  },
-  row: {
-    marginLeft: 10,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
   },
 });
 

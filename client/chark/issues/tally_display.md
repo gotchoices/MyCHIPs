@@ -204,6 +204,58 @@ The MyCHIPs mobile application displays financial information in various places,
    - Consider toggling running balance visibility when filters change
    - Optimize performance for large chit histories
 
+## Home Screen Sorting Enhancement Plan
+
+### Current Issues
+- The "Tally Order" filter is hard-coded and uses a separate FilterTallyList screen
+- Limited sorting capabilities (recent, ascending/descending balance, absolute balance, alphabetical)
+- Space constraints in the current layout make it difficult to add more sorting options
+- Inconsistent UI patterns between Home screen and ChitHistory screen
+
+### Proposed Solution
+1. **Layout Reorganization**
+   - Move the Grand Total up next to the avatar and user name
+   - Free up space for a row of sorter widgets
+   - Design a more efficient use of space
+
+2. **Sorting Controls Implementation**
+   - Replace current filter with multiple sorting widgets using the same pattern as ChitHistory
+   - Implement three independent sorters:
+     1. **Name Sorter** (left): Sort alphabetically by partner name (ascending/descending)
+     2. **Date Sorter** (middle): Sort by modification date (most/least recent)
+     3. **Balance Sorter** (right): Sort by tally total (ascending/descending/absolute)
+
+3. **Redux Integration**
+   - Create a dedicated tallySortSlice for persisting sort preferences
+   - Store individual sort states and active sorter
+   - Ensure persistence across app sessions
+
+4. **Implementation Checklist**
+   - [ ] Redesign Home screen layout
+     - [ ] Move Grand Total to header area
+     - [ ] Create space for sorter row
+     - [ ] Ensure responsive design on different screen sizes
+   - [ ] Implement sorter components
+     - [ ] Create Name Sorter widget
+     - [ ] Create Date Sorter widget
+     - [ ] Create Balance Sorter widget
+     - [ ] Implement UI for indicating active sorter
+   - [ ] Implement Redux integration
+     - [ ] Create tallySortSlice for sort state
+     - [ ] Connect components to Redux
+     - [ ] Migrate existing sort functionality
+   - [ ] Remove obsolete code
+     - [ ] Clean up FilterTallyList screen
+     - [ ] Remove old sorting implementation
+     - [ ] Update related navigation code
+
+5. **Technical Considerations**
+   - Ensure compatibility with existing code
+   - Maintain sorting performance for large tally lists
+   - Consider tablet and smaller phone displays
+   - Keep internationalization support for sort labels
+   - Evaluate potential impacts on pull-to-refresh and FlatList performance
+
 ## Feedback and Refinements
 
 ### Existing Design Patterns Analysis
