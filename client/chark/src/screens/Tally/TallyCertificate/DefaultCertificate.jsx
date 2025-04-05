@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, Text, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, Image, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { colors } from '../../../config/constants';
 import Avatar from '../../../components/Avatar';
@@ -9,6 +11,64 @@ import Avatar from '../../../components/Avatar';
 // Enhanced DefaultCertificate component to display complete certificate info with boxes
 const DefaultCertificate = (props) => {
   const { cert } = props;
+  
+  // Function to handle opening links
+  const openLink = (url, type) => {
+    if (!url) return;
+    
+    let fullUrl = url;
+    
+    try {
+      switch (type) {
+        case 'email':
+          fullUrl = `mailto:${url}`;
+          break;
+        case 'phone':
+          // Clean the phone number to only include digits, +, and possibly some formatting
+          fullUrl = `tel:${url.replace(/[^0-9+\-\(\) ]/g, '')}`;
+          break;
+        case 'cell':
+          // For cell phones, launch SMS instead of a call
+          fullUrl = `sms:${url.replace(/[^0-9+\-\(\) ]/g, '')}`;
+          break;
+        case 'web':
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            fullUrl = `https://${url}`;
+          }
+          break;
+        case 'address':
+          // Create a maps URL based on the platform
+          const query = encodeURIComponent(url);
+          if (Platform.OS === 'ios') {
+            fullUrl = `maps://?q=${query}`;
+          } else {
+            fullUrl = `https://maps.google.com/?q=${query}`;
+          }
+          break;
+      }
+      
+      console.log(`Opening URL: ${fullUrl} (original: ${url}, type: ${type})`);
+      
+      Linking.canOpenURL(fullUrl)
+        .then(supported => {
+          if (supported) {
+            return Linking.openURL(fullUrl);
+          } else {
+            console.log(`Cannot open URL: ${fullUrl}`);
+            // If the URL is not supported, try a fallback for some types
+            if (type === 'web' && fullUrl.startsWith('https://')) {
+              // Try http:// if https:// failed
+              return Linking.openURL(fullUrl.replace('https://', 'http://'));
+            }
+          }
+        })
+        .catch(err => {
+          console.error(`Error opening URL (${fullUrl}):`, err);
+        });
+    } catch (error) {
+      console.error('Error processing URL:', error);
+    }
+  };
   
   // Function to find avatar file
   const getAvatarFile = () => {
@@ -34,6 +94,22 @@ const DefaultCertificate = (props) => {
         </View>
       );
     }).filter(item => item !== null); // Remove null items
+  };
+  
+  // Get icon for contact type
+  const getContactIcon = (media) => {
+    switch (media) {
+      case 'email':
+        return <FontAwesome name="envelope" size={16} color={colors.blue} />;
+      case 'phone':
+        return <FontAwesome name="phone" size={16} color={colors.blue} />;
+      case 'cell':
+        return <FontAwesome name="mobile" size={18} color={colors.blue} />;
+      case 'web':
+        return <FontAwesome name="globe" size={16} color={colors.blue} />;
+      default:
+        return <FontAwesome name="comment" size={16} color={colors.blue} />;
+    }
   };
   
   // Generate name field display
@@ -100,10 +176,24 @@ const DefaultCertificate = (props) => {
       {(cert?.connect || []).length > 0 && (
         <SectionBox title="connect">
           {(cert?.connect || []).map((contact, index) => (
-            <View key={`contact-${index}`} style={styles.fieldRow}>
-              <FieldLabel>{`${contact.media}`}</FieldLabel>
-              <FieldValue>{contact.address}</FieldValue>
-            </View>
+            <TouchableOpacity 
+              key={`contact-${index}`} 
+              style={styles.touchableRow}
+              onPress={() => openLink(contact.address, contact.media)}
+            >
+              <View style={styles.contactRow}>
+                <View style={styles.contactIcon}>
+                  {getContactIcon(contact.media)}
+                </View>
+                <View style={styles.contactInfo}>
+                  <FieldLabel>{`${contact.media}`}</FieldLabel>
+                  <FieldValue>{contact.address}</FieldValue>
+                </View>
+                <View style={styles.launchIcon}>
+                  <FontAwesome name="external-link" size={16} color={colors.blue} />
+                </View>
+              </View>
+            </TouchableOpacity>
           ))}
         </SectionBox>
       )}
@@ -118,16 +208,24 @@ const DefaultCertificate = (props) => {
               </View>
               
               {place.address && (
-                <Text style={styles.fieldValue}>{place.address}</Text>
-              )}
-              
-              <Text style={styles.fieldValue}>
-                {place.city ? place.city + ', ' : ''}
-                {place.state || ''} {place.post || ''}
-              </Text>
-              
-              {place.country && (
-                <Text style={styles.fieldValue}>{place.country}</Text>
+                <TouchableOpacity 
+                  style={styles.addressRow}
+                  onPress={() => openLink(`${place.address}, ${place.city}, ${place.state} ${place.post}, ${place.country}`, 'address')}
+                >
+                  <View style={styles.addressContent}>
+                    <Text style={styles.fieldValue}>{place.address}</Text>
+                    <Text style={styles.fieldValue}>
+                      {place.city ? place.city + ', ' : ''}
+                      {place.state || ''} {place.post || ''}
+                    </Text>
+                    {place.country && (
+                      <Text style={styles.fieldValue}>{place.country}</Text>
+                    )}
+                  </View>
+                  <View style={styles.addressIcon}>
+                    <FontAwesome name="map-marker" size={18} color={colors.blue} />
+                  </View>
+                </TouchableOpacity>
               )}
               
               {/* Display any additional place properties that may exist */}
@@ -283,6 +381,40 @@ const styles = StyleSheet.create({
   },
   fieldRow: {
     marginBottom: 8,
+  },
+  touchableRow: {
+    marginBottom: 10,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  contactIcon: {
+    width: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  launchIcon: {
+    width: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addressRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  addressContent: {
+    flex: 1,
+  },
+  addressIcon: {
+    width: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   fieldLabel: {
     fontFamily: 'inter',

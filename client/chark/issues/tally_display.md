@@ -36,10 +36,22 @@
 
   - **Certificate Display Improvements:**
     - Enhance TallyCertificate screen:
-      - Add validation status indicators
-      - Show repair options when applicable
-      - Improve visual organization of certificate details
-      - Ensure consistent style with other tally views
+      - [✅] Improve visual organization of certificate details
+        - [✅] Create section boxes for different certificate components
+        - [✅] Compact address display with unified place box
+        - [✅] Display photo avatar in the file section
+        - [✅] Add JSON-formatted public key display
+        - [✅] Add interactive elements for email, phone, web and address fields
+      - [🔄] Fix remaining display issues:
+        - [✅] Fix address icon display (Using FontAwesome's map-marker instead)
+        - [✅] Fix launch functionality for contacts and addresses
+          - [✅] Implemented openLink function with proper URL formatting
+          - [✅] Added error handling and fallbacks
+          - [✅] Configured different URL types (mailto:, tel:, https://, maps://)
+        - [ ] Fix avatar display in file items (needs ReduxStore imagesByDigest)
+      - [ ] Add validation status indicators
+      - [ ] Show repair options when applicable
+      - [ ] Ensure consistent style with other tally views
 
   - **Medium Priority (Filter UI Improvements):**
     - Retrofit remaining filter UIs to use FieldFilterSelector:
