@@ -442,9 +442,31 @@ This section documents the various ways users can navigate to each tally-related
 - **From Activity Screen**: Filter for pending transactions
 
 
-### TallyCertificate
-- **From Certificate Information**: Click on any certificate display component
-- **From Key Management**: View existing certificates associated with tallies
+### TallyCertificate (src/screens/Tally/TallyCertificate/index.jsx)
+- **Purpose**: Displays detailed certificate information and allows editing in draft tallies.
+- **Functionality**:
+  - Shows complete certificate details for both partner and holder
+  - Provides editing capability for draft tallies
+  - Displays name, CUID, email, and agent information
+  - Handles updating certificate on the backend when changes are made
+  - Uses Redux for certificate state management
+  - Provides biometric authentication for sensitive operations
+- **Subcomponents**:
+  - **DefaultCertificate**: Simple display of certificate basics for non-draft tallies
+  - **CustomCertificateSelection**: Complex editor for draft tallies with selection controls
+  - **CertificateItem**: Reusable component for displaying individual certificate fields
+- **Props**:
+  - `route.params.title`: Certificate title to display in the header
+  - `route.params.cert`: Complete certificate object to display/edit
+  - `route.params.tally_ent`: Entity ID of the tally
+  - `route.params.tally_seq`: Sequence ID of the tally
+  - `route.params.state`: Current tally state (draft or other)
+- **Redux State Used**:
+  - `profile.personal`: User's personal certificate information
+  - `workingTallies`: State for certificate editing (place, birth, state, connect, file)
+- **Navigation Paths**:
+  - **From Certificate Information**: Click on any certificate display component
+  - **From Key Management**: View existing certificates associated with tallies
 
 ### TallyContract
 - **From Tally Detail**: Click on the "eye" icon next to the contract section

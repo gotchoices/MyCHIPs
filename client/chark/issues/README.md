@@ -22,7 +22,7 @@ AI Agents:
 - [QR Code Scanner Compatibility](scanner.md) - Fixed scanner after React Native 0.77 upgrade
 
 ### In Progress
-- [Tally Validity and Verification](tally_valid.md) - Adding cryptographic verification of tallies and chits
+- [Tally Validity and Verification](tally_valid.md) - Adding cryptographic verification of tallies and chits with visual indicators and repair options
 - [Automated Deployment](autodeploy.md) - Fastlane implementation, 90% complete
 - [Payment Processing Improvements](payments.md) - Standardizing units, references, UUIDs and timestamps
 - [Trading Variables Implementation](trading.md) - Fixing and improving trading variables handling

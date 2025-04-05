@@ -34,6 +34,13 @@
       - src/screens/Invite/index.jsx
       - src/screens/Invite/LimitContent/index.jsx
 
+  - **Certificate Display Improvements:**
+    - Enhance TallyCertificate screen:
+      - Add validation status indicators
+      - Show repair options when applicable
+      - Improve visual organization of certificate details
+      - Ensure consistent style with other tally views
+
   - **Medium Priority (Filter UI Improvements):**
     - Retrofit remaining filter UIs to use FieldFilterSelector:
       - Activity Screen - Filter for tallies vs chits 
@@ -48,6 +55,11 @@
       - Better organization of information
       - More intuitive layout for technical information
       - Visual indicators for chain integrity
+    - Enhance TallyCertificate screen:
+      - Add dedicated sections for different certificate components
+      - Improve visual hierarchy of certificate properties
+      - Add validation status indicators and repair options
+      - Ensure consistent style with other tally views
     - Add date range filtering to ChitHistory
 
   - **Completed Tasks:**
@@ -69,6 +81,7 @@
     - src/screens/Tally/ChitHistory/index.jsx (updated with sorting, filtering, and ChipValue)
     - src/screens/Tally/ChitHistory/ChitHistoryHeader/index.jsx (updated with ChipValue)
     - src/screens/Tally/ChitDetail/index.jsx (updated with ChipValue and chain information)
+    - src/screens/Tally/TallyCertificate/index.jsx (needs validation status indicators and improved organization)
     - src/screens/Tally/index.jsx (modified to use Redux sorting)
     - src/screens/Invite/index.jsx (updated with FieldFilterSelector)
   
@@ -164,6 +177,8 @@ The MyCHIPs mobile application displays financial information in various places,
 - [ ] Complete audit of manual unit conversion throughout the app
 - [ ] Further improve visual hierarchy in tally list
 - [ ] Clean up code by removing legacy currency conversion from parent components
+- [ ] Enhance TallyCertificate screen with validation indicators and repair options
+- [ ] Improve organization and visual hierarchy of certificate details
 
 ## Progress
 

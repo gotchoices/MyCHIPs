@@ -124,24 +124,33 @@ We have successfully implemented:
      - "Certificate must be fixed before signature can be repaired" (missing certificate key)
      - "Update certificate with current key before re-signing" (certificate key doesn't match current key)
 
-2. Add tooltips to the warning indicators:
-   - Show a tooltip when hovering over the warning icon
-   - Explain what the warning means (invalid signature, key mismatch)
-   - Include simple instructions on how to address the issue
+2. ✅ Add tooltips to the warning indicators:
+   - ✅ Show a tooltip when hovering over the warning icon
+   - ✅ Use existing language tags 'nocert' and 'nosig' from tallies_v_me
+   - ✅ Made ValidityIcon into a more reusable component with configurable message source
 
 # This item has been removed since TallyReview is no longer a separate screen
 
-3. Create testing scenarios for all possible validation states:
+3. ⏳ Implement chit validation:
+   - Apply similar validation pattern to chits
+   - Add verification functions for chit signatures
+   - Add validation for hash chain integrity
+   - Update ChitHistory UI to show validation status
+   - Update ChitDetail screen to display validation information
+
+4. ⏳ Complete repair functionality implementation:
+   - Implement repair functions in backend
+   - Ensure async messages coming back are handled correctly for tally updates in Redux
+   - Test having both partners re-validate an existing, invalid tally
+
+# Future Work
+
+5. Create testing scenarios for all validation states:
    - Contrive and test a situation with a matching key but corrupted/missing signature
    - Verify that validation correctly identifies these edge cases
    - Ensure the UI correctly displays appropriate repair options
 
-4. Consider chit validation as a future enhancement:
-   - Apply similar validation pattern to chits
-   - Verify chit signatures
-   - Validate the hash chain integrity
-
-5. Add testing:
+6. Add testing:
    - Create unit tests for validation functions
    - Test with different tally scenarios (valid, invalid, key mismatch)
    - Manual testing with real-world tallies
@@ -384,9 +393,9 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
      - [x] Added light grey horizontal divider lines between sections
      - [x] Standardized divider style with the existing ChitDetail screen
      - [x] Moved repair button (wrench) to appear to the left of the warning icon
-   - [ ] Evaluate tally review page for potential improvements
-   - [ ] Add validation dependency check: disable re-signing if certificate is invalid
+   - [✅] Add validation dependency check: disable re-signing if certificate is invalid
    - [ ] Document how to remove and/or selectively disable repair functionality in the future
+   - [ ] **Note: Certificate detail screen improvements moved to [tally_display.md](tally_display.md)**
 
 ### Backend Communication Fixes
 - Fixed an issue with the API calls for repair operations:
