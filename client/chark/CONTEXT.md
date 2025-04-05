@@ -53,7 +53,8 @@
     - Build regression test (if applicable)
     - Implement incremental change
     - Test, adjust until working, then clean, optimize, re-test
-    - Update issues file, commit code
+    - Update issues file
+    - Commit code (developer will typically do manually)
     - Iterate through checklist
   - Document possible future enhancements for this issue
   - Identify other modules that may benefit from enhancements (new issues?)

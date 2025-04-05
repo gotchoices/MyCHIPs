@@ -331,12 +331,12 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
 ### UI Consistency Improvements
 - [x] Fixed the typo in component name:
   - Renamed `FloadingActionButton` to `FloatingActionButton`
-- [ ] Rename the component and route to make naming consistent:
-  - Currently `EditOpenTally` component is accessed via `OpenTallyEdit` route
-  - Consider renaming to `OpenTallyView` since it's primarily read-only for open tallies
+- [x] Rename the component and route to make naming consistent:
+  - Previously `EditOpenTally` component was accessed via `OpenTallyEdit` route
+  - Renamed to `OpenTallyView` with corresponding route name since it's primarily read-only for open tallies
 
 ### Tally Detail View Enhancement
-- [x] Modify EditOpenTally view presentation
+- [x] Modify tally view presentation
 - [x] Added proper sections for displaying:
   - [x] Partner Certificate (with validity indicator icon)
   - [x] Partner signature with validity indicator icon

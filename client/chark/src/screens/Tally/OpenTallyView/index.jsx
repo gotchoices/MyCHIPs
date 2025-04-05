@@ -22,7 +22,7 @@ import { repairTallySignature, repairTallyCertificate } from "../../../utils/tal
 import CustomText from "../../../components/CustomText";
 import TallyEditView from '../TallyEditView';
 
-const EditOpenTally = (props) => {
+const OpenTallyView = (props) => {
   const { tally_seq, tally_ent } = props.route?.params ?? {};
   const { wm } = useSocket();
   const dispatch = useDispatch();
@@ -240,4 +240,4 @@ const styles = StyleSheet.create({
 
 })
 
-export default EditOpenTally;
+export default OpenTallyView;

@@ -35,7 +35,7 @@ This document analyzes the tally-related components in the MyCHIPs mobile applic
   - Provides search functionality
   - Shows pending transactions total
 
-#### `EditOpenTally` (src/screens/Tally/EditOpenTally/index.jsx)
+#### `OpenTallyView` (src/screens/Tally/OpenTallyView/index.jsx)
 - **Purpose**: Screen container for viewing details of an open tally.
 - **Functionality**:
   - Fetches complete tally data by tally_seq and tally_ent
@@ -143,7 +143,7 @@ Tally (screens/Tally/index.jsx)
 │   └── useMessageText (hook)
 └── PayModal (screens/Pay)
 
-EditOpenTally (screens/Tally/EditOpenTally/index.jsx)
+OpenTallyView (screens/Tally/OpenTallyView/index.jsx)
 ├── useSocket (hook)
 ├── Redux
 │   ├── updateValidity (from updateTallySlice)
@@ -226,7 +226,7 @@ The MyCHIPs app provides several different ways to view and interact with tallie
   - Quick indicators for validity and pending chits
 
 ### 2. Tally Detail View
-- **Component**: `EditOpenTally` (container) with `TallyEditView` (presentation)
+- **Component**: `OpenTallyView` (container) with `TallyEditView` (presentation)
 - **Purpose**: Comprehensive view of a single tally
 - **Features**:
   - Certificate and signature details with validity status
@@ -264,7 +264,7 @@ The MyCHIPs app provides several different ways to view and interact with tallie
   - `isVisible`: Controls payment modal visibility
   - `conversionRate`: Currency conversion rate
   
-### EditOpenTally (Tally Detail Container)
+### OpenTallyView (Tally Detail Container)
 - **Props**:
   - `route.params`: Contains tally_seq and tally_ent for fetching the tally
   - `navigation`: For navigating between screens
@@ -409,7 +409,7 @@ This section documents the various ways users can navigate to each tally-related
 - **Home Navigation Tab**: Click on the Home tab in the bottom navigation
 - **Deep Link**: `mychips://tally-list` 
 
-### EditOpenTally (Tally Detail)
+### OpenTallyView (Tally Detail)
 - **From Tally List**: Click on any open tally in the tally list
 - **Deep Link**: `mychips://tally-view/{tally_seq}` 
 - **From Notifications**: Clicking on a tally-related notification

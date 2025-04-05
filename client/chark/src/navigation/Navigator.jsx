@@ -34,7 +34,7 @@ import ProfileEdit from "../screens/Profile/ProfileEdit";
 import TallyRequest from "../screens/Tally/TallyRequest";
 import PendingChits from "../screens/Tally/PendingChits";
 import InviteProvider from "../components/InviteProvider";
-import EditOpenTally from "../screens/Tally/EditOpenTally";
+import OpenTallyView from "../screens/Tally/OpenTallyView";
 import TallyContract from "../screens/Tally/TallyContract";
 import PaymentDetail from "../screens/Tally/PaymentDetail";
 import RequestDetail from "../screens/Tally/RequestDetail";
@@ -83,8 +83,8 @@ function HomeStackScreen() {
         options={{ headerShown: false }}
       />
       <HomeStack.Screen
-        name="OpenTallyEdit"
-        component={EditOpenTally}
+        name="OpenTallyView"
+        component={OpenTallyView}
         options={{ title: "Open Tally" }}
       />
       <HomeStack.Screen

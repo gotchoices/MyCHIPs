@@ -31,7 +31,7 @@ const PayModal = (props) => {
   const onViewTally = () => {
     props.onClose()
 
-    props.navigation.navigate('OpenTallyEdit', {
+    props.navigation.navigate('OpenTallyView', {
       tally_seq: props.tally.tally_seq,
       tally_ent:  props.tally.tally_ent,
     });
