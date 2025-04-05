@@ -229,6 +229,7 @@ const TallyCertificate = (props) => {
         cuid={cuid}
         email={email}
         agent={agent}
+        cert={cert}
       />
     )}
 
