@@ -230,6 +230,10 @@ const TallyCertificate = (props) => {
         email={email}
         agent={agent}
         cert={cert}
+        // Pass the tally identifiers for validity status lookup
+        tallyUuid={props.route?.params?.tally_uuid}
+        tallyEnt={tally_ent}
+        tallySeq={tally_seq}
       />
     )}
 

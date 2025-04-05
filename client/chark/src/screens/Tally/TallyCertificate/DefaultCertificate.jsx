@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, Image, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
@@ -8,13 +8,52 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { colors } from '../../../config/constants';
 import Avatar from '../../../components/Avatar';
+import { WarningIcon, Warning_16 } from '../../../components/SvgAssets/SvgAssets';
+import { checkKeyMatch } from '../../../utils/tally-verification';
 import ValidityIcon from '../../../components/ValidityIcon';
 
 // Enhanced DefaultCertificate component to display complete certificate info with boxes
 const DefaultCertificate = (props) => {
-  const { cert } = props;
-  // Access the Redux store to get cached images by digest
+  const { cert, tallyUuid, tallyEnt, tallySeq } = props;
+  // Access the Redux store to get cached images by digest and validity statuses
   const { imagesByDigest } = useSelector((state) => state.avatar);
+  const validityStatuses = useSelector(state => state.updateTally.validityStatuses || {});
+  
+  // State to check if certificate has a public key and if it matches current key
+  const [hasPublicKey, setHasPublicKey] = useState(!!cert?.public);
+  const [keyMatches, setKeyMatches] = useState(null);
+  
+  // Get the tally validity status from Redux if available
+  // First try with tally_uuid, then fall back to composite key
+  const tallyValidityStatus = tallyUuid ? 
+    validityStatuses[tallyUuid] : 
+    (tallyEnt && tallySeq ? validityStatuses[`${tallyEnt}-${tallySeq}`] : undefined);
+  
+  // Check for public key and key match when certificate changes
+  useEffect(() => {
+    setHasPublicKey(!!cert?.public);
+    
+    // Create a tally-like object for key checking
+    const checkObject = {
+      tally_type: 'stock', // Doesn't matter for our test
+      json_core: {
+        stock: {
+          cert: cert
+        }
+      }
+    };
+    
+    const checkKeyStatus = async () => {
+      if (cert?.public) {
+        const matches = await checkKeyMatch(checkObject);
+        setKeyMatches(matches);
+      } else {
+        setKeyMatches(false);
+      }
+    };
+    
+    checkKeyStatus();
+  }, [cert]);
   
   // Function to handle opening links
   const openLink = (url, type) => {
@@ -258,9 +297,57 @@ const DefaultCertificate = (props) => {
         </SectionBox>
       )}
       
-      {/* Public Key Box */}
-      {cert?.public && (
-        <SectionBox title="public">
+      {/* Public Key Box - Always show this section */}
+      <SectionBox 
+        title="public"
+        rightContent={
+          <View style={styles.keyStatusIndicator}>
+            {/* Use tallyValidityStatus if available, otherwise fall back to key-based validation */}
+            {tallyValidityStatus ? (
+              <ValidityIcon 
+                status={tallyValidityStatus} 
+                size={20}
+                showTooltip={true}
+                msgView="tallies_v_me"
+                msgTag={!hasPublicKey ? "nocert" : (keyMatches === false ? "diffkey" : "valid")}
+              />
+            ) : (
+              <>
+                {!hasPublicKey && (
+                  <ValidityIcon 
+                    status="invalid" 
+                    size={20}
+                    showTooltip={true}
+                    msgView="tallies_v_me"
+                    msgTag="nocert"
+                  />
+                )}
+                
+                {hasPublicKey && keyMatches === false && (
+                  <ValidityIcon 
+                    status="warning" 
+                    size={20}
+                    showTooltip={true}
+                    msgView="tallies_v_me"
+                    msgTag="diffkey"
+                  />
+                )}
+                
+                {hasPublicKey && keyMatches === true && (
+                  <ValidityIcon 
+                    status="valid" 
+                    size={20}
+                    showTooltip={true}
+                    msgView="tallies_v_me"
+                    msgTag="valid"
+                  />
+                )}
+              </>
+            )}
+          </View>
+        }
+      >
+        {cert?.public ? (
           <ScrollView
             horizontal={false}
             style={styles.codeBlock}
@@ -269,8 +356,12 @@ const DefaultCertificate = (props) => {
               {JSON.stringify(cert.public, null, 2)}
             </Text>
           </ScrollView>
-        </SectionBox>
-      )}
+        ) : (
+          <View style={styles.emptyKeyContainer}>
+            <FontAwesome name="key" size={24} color={colors.gray300} />
+          </View>
+        )}
+      </SectionBox>
       
       {/* File Information Box */}
       {cert?.file && cert.file.length > 0 && (
@@ -321,11 +412,12 @@ const DefaultCertificate = (props) => {
 };
 
 // Helper component for boxed sections
-const SectionBox = ({ children, title }) => (
+const SectionBox = ({ children, title, rightContent }) => (
   <View style={styles.sectionBox}>
     {title && (
       <View style={styles.sectionTitleRow}>
         <Text style={styles.sectionTitle}>{title}</Text>
+        {rightContent}
       </View>
     )}
     {children}
@@ -342,6 +434,29 @@ const FieldValue = ({ children, ...props }) => (
 );
 
 const styles = StyleSheet.create({
+  boxHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  keyStatusContainer: {
+    alignItems: 'flex-end',
+  },
+  iconWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    backgroundColor: colors.gray7,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  iconText: {
+    fontFamily: 'inter',
+    fontSize: 12,
+    color: colors.gray900,
+    marginLeft: 4,
+  },
   sectionBox: {
     backgroundColor: colors.gray5,
     borderWidth: 1,
@@ -351,6 +466,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: colors.gray7,
     paddingBottom: 8,
@@ -509,6 +627,29 @@ const styles = StyleSheet.create({
     color: colors.gray300,
     marginTop: 10,
     textAlign: 'center',
+  },
+  publicKeyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 10,
+  },
+  keyStatusIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  emptyKeyContainer: {
+    backgroundColor: colors.gray7,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 100,
+  },
+  emptyKeyText: {
+    fontFamily: 'inter',
+    fontSize: 14,
+    color: colors.gray500,
+    fontStyle: 'italic',
   }
 });
 
@@ -518,6 +659,9 @@ DefaultCertificate.propTypes = {
   email: PropTypes.string,
   agent: PropTypes.string.isRequired,
   cert: PropTypes.object,
+  tallyUuid: PropTypes.string,
+  tallyEnt: PropTypes.string,
+  tallySeq: PropTypes.number,
 };
 
 export default DefaultCertificate;
