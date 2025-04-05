@@ -20,9 +20,10 @@ AI Agents:
 - [React useEffect Dependency Arrays](use_effect.md)
 - [Crypto Service Implementation](crypto_service.md) - Centralized crypto service using QuickCrypto
 - [QR Code Scanner Compatibility](scanner.md) - Fixed scanner after React Native 0.77 upgrade
+- [Tally Display Improvements](tally_display.md) - Enhanced certificate display with interactive elements and image support
+- [Tally Validity and Verification](tally_valid.md) - Added cryptographic verification of tallies with visual indicators and repair options
 
 ### In Progress
-- [Tally Validity and Verification](tally_valid.md) - Adding cryptographic verification of tallies and chits with visual indicators and repair options
 - [Automated Deployment](autodeploy.md) - Fastlane implementation, 90% complete
 - [Payment Processing Improvements](payments.md) - Standardizing units, references, UUIDs and timestamps
 - [Trading Variables Implementation](trading.md) - Fixing and improving trading variables handling

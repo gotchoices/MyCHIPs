@@ -1,11 +1,13 @@
 # Tally and Chit Display Improvements
 
-*Last updated: April 4, 2025*
+*Last updated: April 5, 2025*
 
 ## Current Status Summary
 - **ChipValue Component**: Enhanced to directly handle milliCHIP units with split integer/decimal styling
 - **Internal Currency Conversion**: Implemented in ChipValue with Redux integration
 - **Component Migration**: Banner, TallyItem, ChitHistory and ChitDetail updated to use ChipValue
+- **Certificate Detail Screen**: Completely redesigned with sectioned layout, interactive elements, and validation status indicators
+- **Certificate Image Display**: Updated to show rectangular images for certificate photos instead of circular avatars
 - **ChitHistory Enhancements**:
   - Added date sorting toggle with correct running balance calculation based on chit_date
   - Implemented FieldFilterSelector component for status and chit_type filtering
@@ -31,6 +33,9 @@
   - Implemented interactive elements (clickable email, phone, web, address links)
   - Connected to Redux store for image display
   - Added proper error handling and fallbacks for all features
+  - Implemented rectangular image display for certificate photos
+  - Added validation status indicators for public keys (missing, mismatched, valid)
+  - Integrated with existing ValidityIcon component for consistent display
 - **Next Focus**: 
   - **Immediate Priority (ChipValue Implementation):**
     - PendingChits components - Replace formatChipValue with ChipValue:
@@ -60,8 +65,13 @@
           - [✅] Used existing Avatar component with correct props (avatar not source)
           - [✅] Added fallback placeholder when images aren't in cache
           - [✅] Maintained digest display for debugging purposes
-      - [ ] Add validation status indicators
-      - [ ] Show repair options when applicable
+      - [✅] Add validation status indicators
+        - [✅] Implemented key validation indicators for certificate display
+        - [✅] Used existing ValidityIcon component with tooltips
+        - [✅] Added proper message tags (nocert, diffkey, valid)
+        - [✅] Always show public key section with appropriate status indicator
+        - [✅] Made certificate images display as rectangles instead of circles for document context
+      - [ ] Show repair options when applicable (Note: repair options added in TallyEditView already, functionality complete)
         
       - [🔄] Enhance the existing avatar management system with a reusable DigestResource component:
         - [ ] Create a new component that leverages existing Redux infrastructure:

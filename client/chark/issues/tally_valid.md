@@ -1,6 +1,6 @@
 # Tally Validity and Verification Implementation
 
-*Last updated: April 2, 2025*
+*Last updated: April 5, 2025*
 
 ## Background
 
@@ -103,7 +103,7 @@ Currently, the application does not verify the cryptographic validity of tallies
   - Different informative messages based on certificate status
   - Asynchronously checks if tally's public key matches user's current key
 
-### 🔄 Current Progress and Remaining Work
+### ✅ Completed Work (Tally Validation)
 
 We have successfully implemented:
 - Proper Redux integration for tally validation
@@ -115,33 +115,32 @@ We have successfully implemented:
 - Created modular, maintainable utility functions for repairs
 - Fixed communication with backend for repair operations
 - Improved UI organization and presentation for certificates and signatures
+- Added public key validation to certificate detail screen
+- Made certificate images display in rectangular format for document context
+- Created comprehensive documentation for disabling/removing repair functionality
 
-### Next Steps
+### ✅ Completed Dependencies Between Validations
+- ✅ Disabled signature repair button if certificate is invalid or if the key doesn't match
+- ✅ Added context-specific messages about fixing certificate first:
+  - "Certificate must be fixed before signature can be repaired" (missing certificate key)
+  - "Update certificate with current key before re-signing" (certificate key doesn't match current key)
 
-1. ✅ Add dependency validation between certificates and signatures:
-   - ✅ Disable signature repair button if certificate is invalid or if the key doesn't match
-   - ✅ Show context-specific messages about fixing certificate first:
-     - "Certificate must be fixed before signature can be repaired" (missing certificate key)
-     - "Update certificate with current key before re-signing" (certificate key doesn't match current key)
+### ✅ Tooltip and Warning Integration
+- ✅ Added tooltip support when hovering over warning icons
+- ✅ Used existing language tags 'nocert', 'nosig', and 'diffkey' from tallies_v_me
+- ✅ Made ValidityIcon into a more reusable component with configurable message source
 
-2. ✅ Add tooltips to the warning indicators:
-   - ✅ Show a tooltip when hovering over the warning icon
-   - ✅ Use existing language tags 'nocert' and 'nosig' from tallies_v_me
-   - ✅ Made ValidityIcon into a more reusable component with configurable message source
+### ⏳ Future: Chit Validation Implementation
+- Apply similar validation pattern to chits
+- Add verification functions for chit signatures
+- Add validation for hash chain integrity
+- Update ChitHistory UI to show validation status
+- Update ChitDetail screen to display validation information
 
-# This item has been removed since TallyReview is no longer a separate screen
-
-3. ⏳ Implement chit validation:
-   - Apply similar validation pattern to chits
-   - Add verification functions for chit signatures
-   - Add validation for hash chain integrity
-   - Update ChitHistory UI to show validation status
-   - Update ChitDetail screen to display validation information
-
-4. ⏳ Complete repair functionality implementation:
-   - Implement repair functions in backend
-   - Ensure async messages coming back are handled correctly for tally updates in Redux
-   - Test having both partners re-validate an existing, invalid tally
+### ⏳ Future: Backend Repair Functionality
+- Implement repair functions in backend
+- Ensure async messages coming back are handled correctly for tally updates in Redux
+- Test having both partners re-validate an existing, invalid tally
 
 # Future Work
 
@@ -394,8 +393,59 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
      - [x] Standardized divider style with the existing ChitDetail screen
      - [x] Moved repair button (wrench) to appear to the left of the warning icon
    - [✅] Add validation dependency check: disable re-signing if certificate is invalid
-   - [ ] Document how to remove and/or selectively disable repair functionality in the future
-   - [ ] **Note: Certificate detail screen improvements moved to [tally_display.md](tally_display.md)**
+   - [✅] Document how to remove and/or selectively disable repair functionality in the future (see section below)
+   - [✅] **Note: Certificate detail screen improvements moved to [tally_display.md](tally_display.md)**
+
+### Disabling or Removing Repair Functionality
+The tally repair functionality has been designed with modularity in mind and can be disabled or removed using the following approaches:
+
+1. **Complete Removal**:
+   - Delete the `src/utils/tally-repair.js` utility file
+   - Remove the repair button handlers from the `TallyEditView` component
+   - Remove the `onRepair` and `onReSign` props from relevant components
+
+2. **Selective Disabling via Configuration**:
+   - Add a configuration flag in `src/config/constants.js`:
+     ```javascript
+     export const features = {
+       ENABLE_TALLY_REPAIR: false,
+     };
+     ```
+   - Modify the repair utility functions to check this flag:
+     ```javascript
+     export const reassertCertificate = (wm, tally_seq) => {
+       if (!features.ENABLE_TALLY_REPAIR) return Promise.reject(new Error('Repair functionality disabled'));
+       // Existing code...
+     }
+     ```
+   - Conditionally render repair buttons based on the flag:
+     ```jsx
+     {validityStatus !== 'valid' && onRepair && features.ENABLE_TALLY_REPAIR && (
+       <TouchableOpacity onPress={onRepair} style={styles.repairButton}>
+         <FontAwesome name="wrench" size={10} color={colors.white} />
+       </TouchableOpacity>
+     )}
+     ```
+
+3. **Environment-Based Control**:
+   - Make repair functionality available only in development builds:
+     ```javascript
+     export const features = {
+       ENABLE_TALLY_REPAIR: __DEV__, // true in development, false in production
+     };
+     ```
+
+4. **Role-Based Access**:
+   - Only show repair options to users with admin/developer privileges
+   - Requires backend to provide role information with user data
+   - Update UI conditionally based on user role:
+     ```jsx
+     {validityStatus !== 'valid' && onRepair && (user.role === 'admin' || user.role === 'developer') && (
+       <TouchableOpacity onPress={onRepair} style={styles.repairButton}>
+         <FontAwesome name="wrench" size={10} color={colors.white} />
+       </TouchableOpacity>
+     )}
+     ```
 
 ### Backend Communication Fixes
 - Fixed an issue with the API calls for repair operations:
