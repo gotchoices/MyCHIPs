@@ -37,9 +37,6 @@ const CertificateInformation = (props) => {
           style={styles.heading}
         />
         <View style={styles.iconGroup}>
-          {props.validityStatus && (
-            <ValidityIcon status={props.validityStatus} size={16} />
-          )}
           {props.validityStatus !== 'valid' && props.onRepair && (
             <TouchableOpacity 
               onPress={props.onRepair}
@@ -47,6 +44,9 @@ const CertificateInformation = (props) => {
             >
               <FontAwesome name="wrench" size={10} color={colors.white} />
             </TouchableOpacity>
+          )}
+          {props.validityStatus && (
+            <ValidityIcon status={props.validityStatus} size={16} />
           )}
         </View>
       </View>
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 4,
+    marginRight: 4,
   },
   heading: {
     fontSize: 12,

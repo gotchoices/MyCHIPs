@@ -31,6 +31,20 @@ export const needsWarningIndicator = (status) => {
 };
 
 /**
+ * Check if a tally's certificate has a valid public key
+ * @param {Object} tally - The tally object to check
+ * @returns {boolean} - True if the certificate has a valid public key
+ */
+export const hasCertificatePublicKey = (tally) => {
+  if (!tally || !tally.hold_cert) {
+    return false;
+  }
+  
+  // Check if the holder certificate has a public key
+  return !!tally.hold_cert?.public;
+};
+
+/**
  * Verify the signature of a tally
  * @param {Object} tally - The tally object containing json_core and hold_sig
  * @returns {Promise<boolean>} - True if signature is valid

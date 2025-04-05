@@ -8,6 +8,10 @@ AI Agents:
 - Maintain each issue file with enough information to fully restore your context if needed
 - Ask the user periodically about issues still marked "In Progress" or Future issues that may now be feasible.
 
+## Important Documentation Files
+
+- [Tally Component Dependencies](tally_deps.md) - Comprehensive analysis of tally-related components, their relationships, and navigation paths. **Keep this file updated whenever modifying tally components**.
+
 ## Issue Status Overview
 
 ### Completed
@@ -18,20 +22,10 @@ AI Agents:
 - [QR Code Scanner Compatibility](scanner.md) - Fixed scanner after React Native 0.77 upgrade
 
 ### In Progress
+- [Tally Validity and Verification](tally_valid.md) - Adding cryptographic verification of tallies and chits
 - [Automated Deployment](autodeploy.md) - Fastlane implementation, 90% complete
-  - Basic functionality working for all platforms
-  - Added automatic external testing group distribution for TestFlight (untested)
-  - Remaining: Test App Store production release
 - [Payment Processing Improvements](payments.md) - Standardizing units, references, UUIDs and timestamps
-  - Added centralized constants and utility functions for unit conversions
-  - Improved UUID and timestamp generation for payment chits
-  - Standardized reference object handling
-  - Remaining: Memo field validation and additional testing
 - [Trading Variables Implementation](trading.md) - Fixing and improving trading variables handling
-  - Fixed data type conversion for trading parameters
-  - Added request status to settings chits
-  - Identified improvements needed for web-based trading form
-  - Remaining: Units conversion and UI improvements
 
 ### Future (Priority Order)
 - [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API

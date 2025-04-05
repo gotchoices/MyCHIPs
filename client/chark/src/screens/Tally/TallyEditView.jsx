@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import EyeIcon from '../../../assets/svg/eye_icon.svg';
 import {colors} from '../../config/constants';
 import useMessageText from '../../hooks/useMessageText';
 import {promptBiometrics} from '../../services/biometrics';
+import { hasCertificatePublicKey, checkKeyMatch } from '../../utils/tally-verification';
 
 const TallyEditView = props => {
   const tally = props.tally;
@@ -46,6 +47,21 @@ const TallyEditView = props => {
   
   // Also check for direct status on the tally object
   const validityStatus = tallyValidityStatus || tally.validityStatus;
+  
+  // State to track if the key matches (initially null, will be set asynchronously)
+  const [keyMatches, setKeyMatches] = useState(null);
+  
+  // Check if the tally's key matches the user's current key
+  useEffect(() => {
+    const checkIfKeyMatches = async () => {
+      if (tally) {
+        const matches = await checkKeyMatch(tally);
+        setKeyMatches(matches);
+      }
+    };
+    
+    checkIfKeyMatches();
+  }, [tally]);
 
   const {messageText} = useMessageText();
 
@@ -244,17 +260,38 @@ const TallyEditView = props => {
                   helpText={talliesMeText?.hold_sig?.help}
                 />
                 <View style={styles.iconGroup}>
-                  {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
                   {validityStatus !== 'valid' && onReSign && (
-                    <TouchableOpacity 
-                      onPress={onReSign}
-                      style={styles.repairButton}
-                    >
-                      <FontAwesome name="wrench" size={10} color={colors.white} />
-                    </TouchableOpacity>
+                    <>
+                      {/* Only enable signature repair if certificate has a matching key */}
+                      {hasCertificatePublicKey(tally) && keyMatches ? (
+                        <TouchableOpacity 
+                          onPress={onReSign}
+                          style={styles.repairButton}
+                        >
+                          <FontAwesome name="wrench" size={10} color={colors.white} />
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={[styles.repairButton, styles.disabledButton]}>
+                          <FontAwesome name="wrench" size={10} color={colors.gray300} />
+                        </View>
+                      )}
+                    </>
                   )}
+                  {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
                 </View>
               </View>
+              
+              {/* Show appropriate warning message based on certificate state */}
+              {validityStatus !== 'valid' && !hasCertificatePublicKey(tally) && (
+                <Text style={styles.warningMessage}>
+                  Certificate must be fixed before signature can be repaired
+                </Text>
+              )}
+              {validityStatus !== 'valid' && hasCertificatePublicKey(tally) && !keyMatches && (
+                <Text style={styles.warningMessage}>
+                  Update certificate with current key before re-signing
+                </Text>
+              )}
               
               <ScrollView 
                 horizontal={true} 
@@ -473,7 +510,18 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 4,
+    marginRight: 4,
+  },
+  disabledButton: {
+    backgroundColor: colors.gray100,
+    borderWidth: 1,
+    borderColor: colors.gray300,
+  },
+  warningMessage: {
+    color: colors.orange,
+    fontSize: 12,
+    marginBottom: 6,
+    fontStyle: 'italic',
   },
   // New styles for grouped layout
   entityGroup: {

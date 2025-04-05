@@ -92,39 +92,59 @@ Currently, the application does not verify the cryptographic validity of tallies
 - Fixed reactivity issues with asyncronous validation and UI updates
 - Ensured validation results persist through app state updates
 - Made warning indicators show only for tallies with actual issues
+- Added repair buttons for certificates and signatures with invalid status
+- Created a dedicated utility file (src/utils/tally-repair.js) for repair functions
+- Fixed API calls to backend for repair operations
+- Reorganized the TallyEditView to group related information logically
+- Improved certificate display with cleaner formatting and better readability
+- Added section dividers to improve visual organization
+- Implemented sophisticated validation hierarchy:
+  - Signature repair requires a valid certificate with a matching key
+  - Different informative messages based on certificate status
+  - Asynchronously checks if tally's public key matches user's current key
 
-### 🔄 Current Progress
+### 🔄 Current Progress and Remaining Work
+
 We have successfully implemented:
 - Proper Redux integration for tally validation
 - Fixed the reactivity issue with asynchronous validation
 - Separated validation logic to make it maintainable
 - Created a pattern for validation that can be reused for chits
 - Ensured warnings only show for tallies with actual issues
+- Added repair buttons with appropriate security measures
+- Created modular, maintainable utility functions for repairs
+- Fixed communication with backend for repair operations
+- Improved UI organization and presentation for certificates and signatures
 
 ### Next Steps
 
-1. Add tooltips to the warning indicators:
+1. ✅ Add dependency validation between certificates and signatures:
+   - ✅ Disable signature repair button if certificate is invalid or if the key doesn't match
+   - ✅ Show context-specific messages about fixing certificate first:
+     - "Certificate must be fixed before signature can be repaired" (missing certificate key)
+     - "Update certificate with current key before re-signing" (certificate key doesn't match current key)
+
+2. Add tooltips to the warning indicators:
    - Show a tooltip when hovering over the warning icon
    - Explain what the warning means (invalid signature, key mismatch)
    - Include simple instructions on how to address the issue
 
-2. Add detailed validity information to the tally detail screen:
-   - Create a dedicated section showing validity status
-   - Show both signature validity and key match status separately
-   - Include explanation of what each status means
-   - Add potential actions (e.g., re-sign with current key)
+3. Evaluate the TallyReview screen:
+   - Apply the same validation indicators consistently
+   - Ensure repair buttons are available where needed
+   - Follow the same UI patterns established in TallyEditView
 
-3. Implement different warning levels based on severity:
-   - Yellow for key mismatch (warning)
-   - Red for invalid signature (error)
-   - Use appropriate icons for each level
+4. Create testing scenarios for all possible validation states:
+   - Contrive and test a situation with a matching key but corrupted/missing signature
+   - Verify that validation correctly identifies these edge cases
+   - Ensure the UI correctly displays appropriate repair options
 
-4. Consider chit validation as a future enhancement:
+5. Consider chit validation as a future enhancement:
    - Apply similar validation pattern to chits
    - Verify chit signatures
    - Validate the hash chain integrity
 
-5. Add testing:
+6. Add testing:
    - Create unit tests for validation functions
    - Test with different tally scenarios (valid, invalid, key mismatch)
    - Manual testing with real-world tallies
@@ -366,26 +386,33 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
      - [x] Add section separators to group content logically without English text
      - [x] Added light grey horizontal divider lines between sections
      - [x] Standardized divider style with the existing ChitDetail screen
+     - [x] Moved repair button (wrench) to appear to the left of the warning icon
    - [ ] Evaluate tally review page for potential improvements
    - [ ] Add validation dependency check: disable re-signing if certificate is invalid
    - [ ] Document how to remove and/or selectively disable repair functionality in the future
 
-### Backend Communication Issues
-- Review how stored procedures are called in the codebase
-- Verify proper structure for `execute` action in Wyseman
-- Check if `proc` parameter is correctly formatted
-- Add logging to track request flow
-- Consider using a different API pattern matching other functions in the codebase
+### Backend Communication Fixes
+- Fixed an issue with the API calls for repair operations:
+  - Initial implementation used incorrect format (`execute` action with `proc` parameter)
+  - Updated to match codebase conventions (`select` action with `table` parameter)
+  - Added proper `view` property to provide context to the backend
+  - Both `reassertCertificate` and `reassertSignature` functions now follow consistent patterns
 
-#### Debugging Steps
-1. Add console logging before and after the Wyseman request to confirm it's being called
-2. Check server logs to see if the request is reaching the backend
-3. Try different formats for the stored procedure call:
-   - Using `base.curr_eid()` as a reference (in user.js)
-   - Try `select` action instead of `execute`
-   - Try specifying the procedure in different ways (e.g., with/without schema)
-4. Verify the Wyseman connection is active when making the call
-5. Compare with other examples of backend procedure calls in the codebase
+#### Final API Format (for reference)
+```javascript
+// Correct format for calling stored procedures
+export const reassertCertificate = (wm, tally_seq) => {
+  const spec = {
+    view: 'mychips.tallies_v_me',
+    table: 'mychips.reassert_cert',
+    params: [tally_seq],
+  }
+
+  return request(wm, '_reassert_cert_' + random(), 'select', spec);
+}
+```
+
+This matches the pattern used elsewhere in the codebase for calling stored procedures, particularly in user.js with the `base.curr_eid()` function.
 
 ### Notes from Analysis
 - TallyEditView is the shared component behind all tally views
