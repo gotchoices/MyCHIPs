@@ -161,7 +161,8 @@ tabtext mychips.tallies_v_me {My Tallies}	{View containing the tallies pertainin
   {credit	{Credit}		{Trust is extended for this amount}}
   {risk		{Risk}			{A loss may be incurred for this amount}}
   {invited	{Wants to Tally}	{Requests you to offer a new MyCHIPs tally}}
-  {nocert	{Invalid Certificate}	{The partner's certificate is missing or invalid}}
+  {nocert	{Bad Certificate}	{The certificate is missing or invalid}}
+  {nosig	{Bad Signature}		{The digital signature is missing or invalid}}
   {invite	{Invite to Tally}	{Create a new invitation to tally for a prospective partner}}
     {invite.reuse	{Reusable}	{Create a tally template that can be reused over again with any number of trading partners}}
     {invite.format	{Format}	{Determines which type of invitation is generated}}

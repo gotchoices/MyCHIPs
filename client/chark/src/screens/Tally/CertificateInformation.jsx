@@ -46,7 +46,13 @@ const CertificateInformation = (props) => {
             </TouchableOpacity>
           )}
           {props.validityStatus && (
-            <ValidityIcon status={props.validityStatus} size={16} />
+            <ValidityIcon 
+              status={props.validityStatus} 
+              size={16}
+              showTooltip={true}
+              msgView="tallies_v_me"
+              msgTag="nocert"
+            />
           )}
         </View>
       </View>

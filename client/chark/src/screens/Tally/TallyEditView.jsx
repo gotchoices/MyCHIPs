@@ -211,7 +211,13 @@ const TallyEditView = props => {
                   helpText={talliesMeText?.part_sig?.help}
                 />
                 <View style={styles.iconGroup}>
-                  {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
+                  {validityStatus && <ValidityIcon 
+                    status={validityStatus} 
+                    size={16}
+                    showTooltip={true}
+                    msgView="tallies_v_me"
+                    msgTag="nosig"
+                  />}
                   {/* No repair button for partner signature as user can't fix partner's signature */}
                 </View>
               </View>
@@ -277,7 +283,13 @@ const TallyEditView = props => {
                       )}
                     </>
                   )}
-                  {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
+                  {validityStatus && <ValidityIcon 
+                    status={validityStatus} 
+                    size={16}
+                    showTooltip={true}
+                    msgView="tallies_v_me"
+                    msgTag="nosig"
+                  />}
                 </View>
               </View>
               
