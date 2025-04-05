@@ -359,6 +359,10 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
      - [x] Make chad display horizontally scrollable to show only the beginning by default
      - [x] Remove email display from certificate information
      - [x] Standardize date format to ISO-8601 UTC format (YYYY-MM-DDTHH:mm:ss.SSSZ)
+     - [x] Improve whitespace and grouping:
+       - [x] Group partner certificate and signature tightly together
+       - [x] Group holder certificate and signature tightly together
+       - [x] Add larger spacing between partner and holder sections
      - [ ] Add section headers to group content logically
    - [ ] Evaluate tally review page for potential improvements
    - [ ] Add validation dependency check: disable re-signing if certificate is invalid

@@ -167,98 +167,107 @@ const TallyEditView = props => {
           <Text style={styles.inputValue}>{contract}</Text>
         )}
 
-        {/* Partner Certificate Section */}
-        {hasPartCert && (
-          <CertificateInformation
-            title={talliesMeText?.part_cert?.title ?? ''}
-            name={partName}
-            chipAddress={partChipAddress}
-            onViewDetails={() =>
-              onViewCertificate({
-                title: talliesMeText?.part_cert?.title ?? '',
-                cert: tally?.part_cert ?? {},
-              })
-            }
-            certText={certText ?? {}}
-            validityStatus={validityStatus}
-          />
-        )}
-        
-        {/* Partner Signature Section */}
-        {tally.part_sig && (
-          <View style={styles.detailControl}>
-            <View style={styles.signatureLabelContainer}>
-              <HelpText
-                label={talliesMeText?.part_sig?.title ?? 'Partner Signature'}
-                helpText={talliesMeText?.part_sig?.help}
-              />
-              <View style={styles.iconGroup}>
-                {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
-                {/* No repair button for partner signature as user can't fix partner's signature */}
-              </View>
-            </View>
-            
-            <ScrollView 
-              horizontal={true} 
-              style={styles.signatureScrollContainer}
-            >
-              <Text selectable={true} style={styles.signatureText}>
-                {tally.part_sig}
-              </Text>
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Holder Certificate Section */}
-        {!!tally?.hold_cert && (
-          <CertificateInformation
-            title={talliesMeText?.hold_cert?.title ?? ''}
-            name={holdName}
-            chipAddress={holdChipAddress}
-            onViewDetails={() =>
-              onViewCertificate({
-                title: charkMsgText?.certopts?.title,
-                cert: tally?.hold_cert ?? {},
-              })
-            }
-            certText={certText ?? {}}
-            validityStatus={validityStatus}
-            onRepair={onUpdateCert}
-          />
-        )}
-      </View>
-
-      {/* Holder Signature Section */}
-      {tally.hold_sig && (
-        <View style={styles.detailControl}>
-          <View style={styles.signatureLabelContainer}>
-            <HelpText
-              label={talliesMeText?.hold_sig?.title ?? 'Holder Signature'}
-              helpText={talliesMeText?.hold_sig?.help}
+        {/* Partner Group with tighter spacing */}
+        <View style={styles.entityGroup}>
+          {/* Partner Certificate Section */}
+          {hasPartCert && (
+            <CertificateInformation
+              title={talliesMeText?.part_cert?.title ?? ''}
+              name={partName}
+              chipAddress={partChipAddress}
+              onViewDetails={() =>
+                onViewCertificate({
+                  title: talliesMeText?.part_cert?.title ?? '',
+                  cert: tally?.part_cert ?? {},
+                })
+              }
+              certText={certText ?? {}}
+              validityStatus={validityStatus}
             />
-            <View style={styles.iconGroup}>
-              {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
-              {validityStatus !== 'valid' && onReSign && (
-                <TouchableOpacity 
-                  onPress={onReSign}
-                  style={styles.repairButton}
-                >
-                  <FontAwesome name="wrench" size={10} color={colors.white} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          )}
           
-          <ScrollView 
-            horizontal={true} 
-            style={styles.signatureScrollContainer}
-          >
-            <Text selectable={true} style={styles.signatureText}>
-              {tally.hold_sig}
-            </Text>
-          </ScrollView>
+          {/* Partner Signature Section */}
+          {tally.part_sig && (
+            <View style={styles.signatureSection}>
+              <View style={styles.signatureLabelContainer}>
+                <HelpText
+                  label={talliesMeText?.part_sig?.title ?? 'Partner Signature'}
+                  helpText={talliesMeText?.part_sig?.help}
+                />
+                <View style={styles.iconGroup}>
+                  {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
+                  {/* No repair button for partner signature as user can't fix partner's signature */}
+                </View>
+              </View>
+              
+              <ScrollView 
+                horizontal={true} 
+                style={styles.signatureScrollContainer}
+              >
+                <Text selectable={true} style={styles.signatureText}>
+                  {tally.part_sig}
+                </Text>
+              </ScrollView>
+            </View>
+          )}
         </View>
-      )}
+
+        {/* Spacer between partner and holder sections */}
+        <View style={styles.sectionSpacer} />
+
+        {/* Holder Group with tighter spacing */}
+        <View style={styles.entityGroup}>
+          {/* Holder Certificate Section */}
+          {!!tally?.hold_cert && (
+            <CertificateInformation
+              title={talliesMeText?.hold_cert?.title ?? ''}
+              name={holdName}
+              chipAddress={holdChipAddress}
+              onViewDetails={() =>
+                onViewCertificate({
+                  title: charkMsgText?.certopts?.title,
+                  cert: tally?.hold_cert ?? {},
+                })
+              }
+              certText={certText ?? {}}
+              validityStatus={validityStatus}
+              onRepair={onUpdateCert}
+            />
+          )}
+          
+          {/* Holder Signature Section */}
+          {tally.hold_sig && (
+            <View style={styles.signatureSection}>
+              <View style={styles.signatureLabelContainer}>
+                <HelpText
+                  label={talliesMeText?.hold_sig?.title ?? 'Holder Signature'}
+                  helpText={talliesMeText?.hold_sig?.help}
+                />
+                <View style={styles.iconGroup}>
+                  {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
+                  {validityStatus !== 'valid' && onReSign && (
+                    <TouchableOpacity 
+                      onPress={onReSign}
+                      style={styles.repairButton}
+                    >
+                      <FontAwesome name="wrench" size={10} color={colors.white} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+              
+              <ScrollView 
+                horizontal={true} 
+                style={styles.signatureScrollContainer}
+              >
+                <Text selectable={true} style={styles.signatureText}>
+                  {tally.hold_sig}
+                </Text>
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      </View>
 
       <View style={styles.detailControl}>
         <HelpText
@@ -415,6 +424,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 4,
+  },
+  // New styles for grouped layout
+  entityGroup: {
+    marginVertical: 0, // No extra margin within a group
+  },
+  signatureSection: {
+    marginTop: 8, // Tight spacing between certificate and signature
+    marginBottom: 4,
+  },
+  sectionSpacer: {
+    height: 24, // Larger space between partner and holder sections
+    marginVertical: 8,
   },
 });
 

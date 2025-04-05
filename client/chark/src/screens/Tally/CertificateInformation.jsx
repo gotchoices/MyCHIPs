@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   detailControl: {
-    marginVertical: 10
+    marginBottom: 4 // Reduced vertical margin to keep certificate tight with signature
   },
   certInfoWrapper: {
     backgroundColor: colors.gray5,
