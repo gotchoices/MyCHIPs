@@ -38,7 +38,7 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {add		{Add}			{Add a new record}}
   {enter	{Please Enter}		{The user is asked to enter a value}}
   {confirm	{Please Confirm}	{The user is asked to re-enter a value for confirmation}}
-  {certopts	{Certificate Options}	{Select what information is contained in a certificate}}
+  {certopts	{Certificate Contents}	{Select what information is contained in a certificate}}
   {certshare	{Certificate Sharing}	{Decide what personal information will you share with the other party.  You can create a custom certificate or use one from any existing draft tallies you might have.}}
   {certtpts	{Template Certificates}	{Select a certificate from an existing tally template}}
   {keys		{Manage Keys}		{A cryptographic key pair (public and private) is required in order to digitally sign tallies and transactions.  Once generated, make sure you export and save your key and save it in a safe place or you will lose the ability to transact on existing tallies.}}

@@ -16,6 +16,26 @@ const DefaultCertificate = (props) => {
     return cert.file.find(f => f.media === 'photo');
   };
   
+  // Function to get place properties
+  const getPlaceProperties = (place) => {
+    if (!place) return [];
+    
+    // Get all properties of the place object
+    return Object.entries(place).map(([key, value]) => {
+      // Skip rendering these fields individually since we display them in their own fields
+      if (['type', 'address', 'city', 'state', 'post', 'country'].includes(key)) {
+        return null;
+      }
+      
+      return (
+        <View key={key} style={styles.fieldRow}>
+          <FieldLabel>{`${key}`}</FieldLabel>
+          <FieldValue>{typeof value === 'object' ? JSON.stringify(value) : String(value)}</FieldValue>
+        </View>
+      );
+    }).filter(item => item !== null); // Remove null items
+  };
+  
   // Generate name field display
   const getNameFields = () => {
     if (!cert?.name) return [];
@@ -32,19 +52,8 @@ const DefaultCertificate = (props) => {
     <View>
       {/* Basic Information Box */}
       <SectionBox>
-        <View style={styles.basicHeader}>
-          <View style={styles.nameRow}>
-            {getNameFields()}
-          </View>
-          
-          {getAvatarFile() && (
-            <View style={styles.avatarContainer}>
-              <Avatar 
-                source={{ uri: `data:image/jpeg;base64,${getAvatarFile().digest}` }} 
-                size={60}
-              />
-            </View>
-          )}
+        <View style={styles.nameRow}>
+          {getNameFields()}
         </View>
         
         <View style={styles.divider} />
@@ -99,35 +108,34 @@ const DefaultCertificate = (props) => {
         </SectionBox>
       )}
       
-      {/* Address Information Boxes */}
-      {cert?.place && cert.place.length > 0 && cert.place.map((place, index) => (
-        <SectionBox key={`place-${index}`} title={`place[${index}] - ${place.type}`}>
-          <View style={styles.fieldRow}>
-            <FieldLabel>address</FieldLabel>
-            <FieldValue>{place.address}</FieldValue>
-          </View>
-          
-          <View style={styles.fieldRow}>
-            <FieldLabel>city</FieldLabel>
-            <FieldValue>{place.city}</FieldValue>
-          </View>
-          
-          <View style={styles.fieldRow}>
-            <FieldLabel>state</FieldLabel>
-            <FieldValue>{place.state}</FieldValue>
-          </View>
-          
-          <View style={styles.fieldRow}>
-            <FieldLabel>post</FieldLabel>
-            <FieldValue>{place.post}</FieldValue>
-          </View>
-          
-          <View style={styles.fieldRow}>
-            <FieldLabel>country</FieldLabel>
-            <FieldValue>{place.country}</FieldValue>
-          </View>
+      {/* Address Information Box */}
+      {cert?.place && cert.place.length > 0 && (
+        <SectionBox title="place">
+          {cert.place.map((place, index) => (
+            <View key={`place-${index}`} style={styles.placeContainer}>
+              <View style={styles.placeHeader}>
+                <Text style={styles.placeType}>{place.type}</Text>
+              </View>
+              
+              {place.address && (
+                <Text style={styles.fieldValue}>{place.address}</Text>
+              )}
+              
+              <Text style={styles.fieldValue}>
+                {place.city ? place.city + ', ' : ''}
+                {place.state || ''} {place.post || ''}
+              </Text>
+              
+              {place.country && (
+                <Text style={styles.fieldValue}>{place.country}</Text>
+              )}
+              
+              {/* Display any additional place properties that may exist */}
+              {getPlaceProperties(place)}
+            </View>
+          ))}
         </SectionBox>
-      ))}
+      )}
       
       {/* Identity Information Box */}
       {cert?.identity && (
@@ -162,42 +170,40 @@ const DefaultCertificate = (props) => {
         </SectionBox>
       )}
       
-      {/* File Information Boxes */}
-      {cert?.file && cert.file.length > 0 && cert.file.map((file, index) => (
-        <SectionBox key={`file-${index}`} title={`file[${index}] - ${file.media}`}>
-          {file.format && (
-            <View style={styles.fieldRow}>
-              <FieldLabel>format</FieldLabel>
-              <FieldValue>{file.format}</FieldValue>
+      {/* File Information Box */}
+      {cert?.file && cert.file.length > 0 && (
+        <SectionBox title="file">
+          {cert.file.map((file, index) => (
+            <View key={`file-${index}`} style={styles.fileContainer}>
+              <Text style={styles.fileType}>{file.media}</Text>
+              
+              {file.format && (
+                <Text style={styles.fileProperty}>format: {file.format}</Text>
+              )}
+              
+              {file.comment && (
+                <Text style={styles.fileProperty}>comment: {file.comment}</Text>
+              )}
+              
+              {/* Display avatar for photo media */}
+              {file.media === 'photo' && file.digest && (
+                <View style={styles.avatarContainer}>
+                  <Avatar 
+                    source={{ uri: `data:image/jpeg;base64,${file.digest}` }}
+                    size={120}
+                  />
+                </View>
+              )}
+              
+              {file.digest && (
+                <Text style={styles.digestText} numberOfLines={1} ellipsizeMode="middle">
+                  digest: {file.digest}
+                </Text>
+              )}
             </View>
-          )}
-          
-          {file.comment && (
-            <View style={styles.fieldRow}>
-              <FieldLabel>comment</FieldLabel>
-              <FieldValue>{file.comment}</FieldValue>
-            </View>
-          )}
-          
-          {file.digest && (
-            <View style={styles.fieldRow}>
-              <FieldLabel>digest</FieldLabel>
-              <FieldValue numberOfLines={1} ellipsizeMode="middle">{file.digest}</FieldValue>
-            </View>
-          )}
-          
-          {/* Display image preview for photo media */}
-          {file.media === 'photo' && file.digest && (
-            <View style={styles.imagePreviewContainer}>
-              <Image 
-                source={{ uri: `data:image/jpeg;base64,${file.digest}` }}
-                style={styles.imagePreview}
-                resizeMode="contain"
-              />
-            </View>
-          )}
+          ))}
         </SectionBox>
-      ))}
+      )}
     </View>
   );
 };
@@ -249,15 +255,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray7,
     marginVertical: 10,
   },
-  basicHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
   nameRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    flex: 1,
     marginRight: 8,
   },
   nameField: {
@@ -277,7 +277,9 @@ const styles = StyleSheet.create({
     color: colors.black,
   },
   avatarContainer: {
-    marginLeft: 'auto',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
   },
   fieldRow: {
     marginBottom: 8,
@@ -293,6 +295,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.black,
     fontWeight: '400',
+    marginBottom: 3,
   },
   codeBlock: {
     backgroundColor: colors.gray7,
@@ -305,16 +308,46 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.darkGray,
   },
-  imagePreviewContainer: {
-    marginTop: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  placeContainer: {
+    backgroundColor: colors.gray7,
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 10,
   },
-  imagePreview: {
-    width: 200,
-    height: 200,
-    borderRadius: 4,
+  placeHeader: {
+    marginBottom: 5,
   },
+  placeType: {
+    fontFamily: 'inter',
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.blue3,
+  },
+  fileContainer: {
+    backgroundColor: colors.gray7,
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 10,
+  },
+  fileType: {
+    fontFamily: 'inter',
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.blue3,
+    marginBottom: 5,
+  },
+  fileProperty: {
+    fontFamily: 'inter',
+    fontSize: 13,
+    color: colors.black,
+    marginBottom: 3,
+  },
+  digestText: {
+    fontFamily: 'inter',
+    fontSize: 12,
+    color: colors.gray300,
+    marginTop: 5,
+  }
 });
 
 DefaultCertificate.propTypes = {
