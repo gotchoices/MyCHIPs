@@ -44,6 +44,7 @@ tabtext mychips.chark {Chark Text}	{Pseudo view to provide language tags for cha
   {keys		{Manage Keys}		{A cryptographic key pair (public and private) is required in order to digitally sign tallies and transactions.  Once generated, make sure you export and save your key and save it in a safe place or you will lose the ability to transact on existing tallies.}}
   {keygen	{Generate Key}		{Generate a new keypair for signing tallies and transactions}}
   {nokey	{No Signing Key}	{You have not yet created a digital signing key.  Proceed to create one.}}
+  {diffkey	{Key Mismatch}		{The key does not match your currently loaded signing key.  Operations on the tally not possible.}}
   {keywarn	{Overwrite Key?}	{Generating or importing a key pair will discard your existing key.  If you have open tallies created with the old key, you will not be able to transact on those tallies.}}
   {private	{Private Key}		{This part of the key pair must be kept secret and never shared.  You must also never lose it or you will not be able to transact existing tallies created using the key.}}
   {public	{Public Key}		{This part of the key pair is safely shared with your trading partners.  They will use it to validate your tallies and transactons.}}

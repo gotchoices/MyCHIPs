@@ -7,7 +7,6 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { colors } from '../../../config/constants';
-import Avatar from '../../../components/Avatar';
 import { WarningIcon, Warning_16 } from '../../../components/SvgAssets/SvgAssets';
 import { checkKeyMatch } from '../../../utils/tally-verification';
 import ValidityIcon from '../../../components/ValidityIcon';
@@ -378,13 +377,14 @@ const DefaultCertificate = (props) => {
                 <Text style={styles.fileProperty}>comment: {file.comment}</Text>
               )}
               
-              {/* Display avatar for photo media */}
+              {/* Display rectangular image for photo media */}
               {file.media === 'photo' && file.digest && (
-                <View style={styles.avatarContainer}>
+                <View style={styles.imageContainer}>
                   {imagesByDigest[file.digest] ? (
-                    <Avatar 
-                      avatar={imagesByDigest[file.digest]}
-                      size={120}
+                    <Image 
+                      source={{ uri: imagesByDigest[file.digest] }}
+                      style={styles.certificateImage}
+                      resizeMode="cover"
                     />
                   ) : (
                     <View style={styles.placeholderContainer}>
@@ -506,10 +506,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.black,
   },
-  avatarContainer: {
+  imageContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 10,
+  },
+  certificateImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.gray7,
   },
   fieldRow: {
     marginBottom: 8,
