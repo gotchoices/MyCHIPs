@@ -129,22 +129,19 @@ We have successfully implemented:
    - Explain what the warning means (invalid signature, key mismatch)
    - Include simple instructions on how to address the issue
 
-3. Evaluate the TallyReview screen:
-   - Apply the same validation indicators consistently
-   - Ensure repair buttons are available where needed
-   - Follow the same UI patterns established in TallyEditView
+# This item has been removed since TallyReview is no longer a separate screen
 
-4. Create testing scenarios for all possible validation states:
+3. Create testing scenarios for all possible validation states:
    - Contrive and test a situation with a matching key but corrupted/missing signature
    - Verify that validation correctly identifies these edge cases
    - Ensure the UI correctly displays appropriate repair options
 
-5. Consider chit validation as a future enhancement:
+4. Consider chit validation as a future enhancement:
    - Apply similar validation pattern to chits
    - Verify chit signatures
    - Validate the hash chain integrity
 
-6. Add testing:
+5. Add testing:
    - Create unit tests for validation functions
    - Test with different tally scenarios (valid, invalid, key mismatch)
    - Manual testing with real-world tallies

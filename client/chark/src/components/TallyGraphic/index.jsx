@@ -23,7 +23,7 @@ import {
 import {round} from '../../utils/common';
 import IconTooltip from '../../components/IconTooltip';
 
-const TallyReviewView = props => {
+const TallyGraphic = props => {
   const {imagesByDigest} = useSelector(state => state.avatar);
   const partDigest = props.partCert?.file?.[0]?.digest;
   const holdDigest = props.holdCert?.file?.[0]?.digest;
@@ -355,4 +355,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TallyReviewView;
+export default TallyGraphic;

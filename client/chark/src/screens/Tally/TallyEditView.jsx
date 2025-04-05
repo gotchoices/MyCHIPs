@@ -13,7 +13,7 @@ import moment from 'moment';
 import { useSelector } from 'react-redux';
 
 import HelpText from '../../components/HelpText';
-import TallyReviewView from '../TallyReview/TallyReviewView';
+import TallyGraphic from '../../components/TallyGraphic';
 import CertificateInformation from './CertificateInformation';
 import ValidityIcon from '../../components/ValidityIcon';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -133,7 +133,7 @@ const TallyEditView = props => {
 
   return (
     <View style={{paddingHorizontal: 10}}>
-      <TallyReviewView
+      <TallyGraphic
         tallyType={tallyType}
         setTallyType={setTallyType}
         partTerms={partTerms}

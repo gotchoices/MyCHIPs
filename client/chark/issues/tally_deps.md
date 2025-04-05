@@ -63,12 +63,13 @@ This document analyzes the tally-related components in the MyCHIPs mobile applic
   - Opens detailed certificate view
 
 #### `Banner` (src/screens/Tally/Banner/index.jsx)
-- **Purpose**: Provides the top section of the Tally screen with user information and sorting controls.
+- **Purpose**: Provides the top section of the Tally List screen (Home) with user information and sorting controls.
 - **Functionality**:
-  - Displays user avatar and name
-  - Shows total tally balance
+  - Displays user's own avatar and name
+  - Shows total balance across all tallies
   - Provides sorting options (name, date, balance)
   - Manages sort state through Redux
+  - Note: This is NOT used in individual tally views (which use TallyReviewView instead)
 
 #### `TallyPreview` (src/screens/Tally/TallyPreview/index.jsx)
 - **Purpose**: Main container for previewing and editing a draft tally before sharing or offering.
@@ -100,15 +101,17 @@ This document analyzes the tally-related components in the MyCHIPs mobile applic
   - Provides accept/reject functionality for chits
   - Fetches chit data and refreshes on changes
 
-### TallyReview Components
+### Reusable Tally Components
 
-#### `TallyReviewView` (src/screens/TallyReview/TallyReviewView.jsx)
-- **Purpose**: Visual representation of tally relationships and limits.
+#### `TallyGraphic` (src/components/TallyGraphic/index.jsx)
+- **Purpose**: Visual component displayed at the top of tally views showing relationship and limits.
 - **Functionality**:
-  - Visually represents the foil/stock relationship
+  - Displays avatars for both holder and partner
+  - Visually represents the foil/stock relationship with arrows and positioning
   - Shows graphical representation of credit/risk relationship
-  - Allows editing of tally limits
+  - Allows editing of tally limits with input fields
   - Provides a switch button to toggle tally type
+  - Used in both OpenTallyView and TallyPreview screens
 
 ### Utility Files
 
@@ -131,10 +134,11 @@ This document analyzes the tally-related components in the MyCHIPs mobile applic
 ## 2. Hierarchical Dependency Map
 
 ```
-Tally (screens/Tally/index.jsx)
-├── Banner
-│   ├── Avatar
-│   └── Sorting controls
+Tally (screens/Tally/index.jsx) [Tally List / Home]
+├── Banner (For Tally List only)
+│   ├── Avatar (user's own)
+│   ├── Sorting controls
+│   └── Total balance display
 ├── TallyHeader
 ├── TallyItem
 │   ├── Avatar
@@ -143,7 +147,7 @@ Tally (screens/Tally/index.jsx)
 │   └── useMessageText (hook)
 └── PayModal (screens/Pay)
 
-OpenTallyView (screens/Tally/OpenTallyView/index.jsx)
+OpenTallyView (screens/Tally/OpenTallyView/index.jsx) [Individual Tally View]
 ├── useSocket (hook)
 ├── Redux
 │   ├── updateValidity (from updateTallySlice)
@@ -152,12 +156,18 @@ OpenTallyView (screens/Tally/OpenTallyView/index.jsx)
 │   ├── repairTallySignature
 │   └── repairTallyCertificate
 └── TallyEditView
+    ├── TallyReviewView (Top banner with avatars, relationship diagram and limits)
+    ├── Certificate/signature sections
+    └── Contract and other tally details
 
-TallyPreview (screens/Tally/TallyPreview/index.jsx)
+TallyPreview (screens/Tally/TallyPreview/index.jsx) [Draft Tally View/Edit]
 ├── useSocket (hook)
 ├── GenerateKeysDialog
 ├── UpdateHoldCert
 └── TallyEditView
+    ├── TallyReviewView (Top banner with avatars, relationship diagram and limits)
+    ├── Certificate/signature sections
+    └── Contract and other tally details
 
 ChitHistory (screens/Tally/ChitHistory/index.jsx)
 ├── ChitHistoryHeader
@@ -172,15 +182,18 @@ PendingChits (screens/Tally/PendingChits/index.jsx)
 │   └── RejectButton
 └── ChitTypeText
 
-TallyReviewView (screens/TallyReview/TallyReviewView.jsx)
+TallyGraphic (components/TallyGraphic/index.jsx)
 ├── Avatar
 ├── HelpText
 ├── SvgAssets (icons)
 └── IconTooltip
 
-TallyEditView (screens/Tally/TallyEditView.jsx)
+TallyEditView (screens/Tally/TallyEditView.jsx) [Reusable component for both views]
 ├── HelpText
-├── TallyReviewView
+├── TallyGraphic (This is the avatar/relationship banner at the top)
+│   ├── Avatar (for both holder and partner)
+│   ├── HelpText
+│   └── Credit/Risk visualization with arrows
 ├── CertificateInformation
 │   ├── HelpText
 │   ├── ValidityIcon
@@ -235,8 +248,8 @@ The MyCHIPs app provides several different ways to view and interact with tallie
   - Comments and metadata
   - Repair options for invalid tallies
 
-### 3. Tally Review View
-- **Component**: `TallyReviewView`
+### 3. Tally Graphic Component
+- **Component**: `TallyGraphic`
 - **Purpose**: Visual representation of tally relationship
 - **Features**:
   - Graphical representation of foil/stock relationship
@@ -428,9 +441,6 @@ This section documents the various ways users can navigate to each tally-related
 - **From Notifications**: Clicking on a pending chit notification
 - **From Activity Screen**: Filter for pending transactions
 
-### TallyReview
-- **When Creating Tally**: As part of the tally creation flow
-- **When Editing Draft**: Accessing a draft tally for editing
 
 ### TallyCertificate
 - **From Certificate Information**: Click on any certificate display component
