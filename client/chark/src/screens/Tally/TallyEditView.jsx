@@ -212,8 +212,8 @@ const TallyEditView = props => {
           )}
         </View>
 
-        {/* Spacer between partner and holder sections */}
-        <View style={styles.sectionSpacer} />
+        {/* Divider between partner and holder sections */}
+        <View style={styles.sectionDivider} />
 
         {/* Holder Group with tighter spacing */}
         <View style={styles.entityGroup}>
@@ -269,33 +269,42 @@ const TallyEditView = props => {
         </View>
       </View>
 
-      <View style={styles.detailControl}>
-        <HelpText
-          label={talliesMeText?.comment?.title ?? ''}
-          helpText={talliesMeText?.comment?.help}
-        />
-
-        {canEdit ? (
-          <TextInput
-            multiline
-            numberOfLines={4}
-            value={comment}
-            editable={canEdit}
-            style={[styles.input, styles.comment]}
-            onChangeText={onCommentChange}
+      {/* Comments Section */}
+      <View style={styles.sectionDivider} />
+      <View style={styles.commentsSection}>
+        
+        <View style={styles.detailControl}>
+          <HelpText
+            label={talliesMeText?.comment?.title ?? ''}
+            helpText={talliesMeText?.comment?.help}
           />
-        ) : (
-          <Text style={styles.inputValue}>{comment || 'N/A'}</Text>
-        )}
+
+          {canEdit ? (
+            <TextInput
+              multiline
+              numberOfLines={4}
+              value={comment}
+              editable={canEdit}
+              style={[styles.input, styles.comment]}
+              onChangeText={onCommentChange}
+            />
+          ) : (
+            <Text style={styles.inputValue}>{comment || 'N/A'}</Text>
+          )}
+        </View>
       </View>
 
-      <View style={styles.detailControl}>
-        <HelpText
-          label={talliesMeText?.tally_uuid?.title ?? ''}
-          helpText={talliesMeText?.tally_uuid?.help}
-        />
-
-        <Text style={styles.inputValue}>{tally.tally_uuid}</Text>
+      {/* Tally Identity Section */}
+      <View style={styles.sectionDivider} />
+      <View style={styles.identitySection}>
+        
+        <View style={styles.detailControl}>
+          <HelpText
+            label={talliesMeText?.tally_uuid?.title ?? ''}
+            helpText={talliesMeText?.tally_uuid?.help}
+          />
+          <Text style={styles.inputValue}>{tally.tally_uuid}</Text>
+        </View>
       </View>
 
       <View style={styles.detailControl}>
@@ -306,6 +315,47 @@ const TallyEditView = props => {
         <Text style={styles.inputValue}>
           {moment(tally.tally_date).utc().format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z'}
         </Text>
+      </View>
+
+      {/* Trading Variables Section */}
+      <View style={styles.sectionDivider} />
+      <View style={styles.tradingVariablesSection}>
+        
+        {/* Bound field */}
+        <View style={styles.detailControl}>
+          <HelpText
+            label={talliesMeText?.bound?.title ?? 'Bound'}
+            helpText={talliesMeText?.bound?.help}
+          />
+          <Text style={styles.inputValue}>{tally.bound ?? 'N/A'}</Text>
+        </View>
+        
+        {/* Target field */}
+        <View style={styles.detailControl}>
+          <HelpText
+            label={talliesMeText?.target?.title ?? 'Target'}
+            helpText={talliesMeText?.target?.help}
+          />
+          <Text style={styles.inputValue}>{tally.target ?? 'N/A'}</Text>
+        </View>
+        
+        {/* Reward field */}
+        <View style={styles.detailControl}>
+          <HelpText
+            label={talliesMeText?.reward?.title ?? 'Reward'}
+            helpText={talliesMeText?.reward?.help}
+          />
+          <Text style={styles.inputValue}>{tally.reward ?? 'N/A'}</Text>
+        </View>
+        
+        {/* Clutch field */}
+        <View style={styles.detailControl}>
+          <HelpText
+            label={talliesMeText?.clutch?.title ?? 'Clutch'}
+            helpText={talliesMeText?.clutch?.help}
+          />
+          <Text style={styles.inputValue}>{tally.clutch ?? 'N/A'}</Text>
+        </View>
       </View>
     </View>
   );
@@ -433,9 +483,20 @@ const styles = StyleSheet.create({
     marginTop: 8, // Tight spacing between certificate and signature
     marginBottom: 4,
   },
-  sectionSpacer: {
-    height: 24, // Larger space between partner and holder sections
-    marginVertical: 8,
+  sectionDivider: {
+    marginTop: 20,
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.lightgray,
+  },
+  tradingVariablesSection: {
+    marginBottom: 16,
+  },
+  identitySection: {
+    marginBottom: 16,
+  },
+  commentsSection: {
+    marginBottom: 16,
   },
 });
 

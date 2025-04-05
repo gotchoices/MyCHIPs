@@ -363,7 +363,9 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
        - [x] Group partner certificate and signature tightly together
        - [x] Group holder certificate and signature tightly together
        - [x] Add larger spacing between partner and holder sections
-     - [ ] Add section headers to group content logically
+     - [x] Add section separators to group content logically without English text
+     - [x] Added light grey horizontal divider lines between sections
+     - [x] Standardized divider style with the existing ChitDetail screen
    - [ ] Evaluate tally review page for potential improvements
    - [ ] Add validation dependency check: disable re-signing if certificate is invalid
    - [ ] Document how to remove and/or selectively disable repair functionality in the future
