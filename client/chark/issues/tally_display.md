@@ -25,6 +25,12 @@
   - Added display of chain information (chain_idx, chain_prev, chain_dgst)
   - Removed hardcoded English strings in favor of message texts
   - Note: Needs comprehensive UI redesign in future for better UX
+- **Certificate Detail Screen Improvements**:
+  - Completely redesigned certificate detail display with sectioned layout
+  - Added support for all certificate field types (contact, place, identity, public key, files)
+  - Implemented interactive elements (clickable email, phone, web, address links)
+  - Connected to Redux store for image display
+  - Added proper error handling and fallbacks for all features
 - **Next Focus**: 
   - **Immediate Priority (ChipValue Implementation):**
     - PendingChits components - Replace formatChipValue with ChipValue:
@@ -35,20 +41,59 @@
       - src/screens/Invite/LimitContent/index.jsx
 
   - **Certificate Display Improvements:**
-    - Enhance TallyCertificate screen:
+    - [✅] Enhance TallyCertificate screen:
       - [✅] Improve visual organization of certificate details
         - [✅] Create section boxes for different certificate components
         - [✅] Compact address display with unified place box
         - [✅] Display photo avatar in the file section
         - [✅] Add JSON-formatted public key display
         - [✅] Add interactive elements for email, phone, web and address fields
-      - [🔄] Fix remaining display issues:
+      - [✅] Fix remaining display issues:
         - [✅] Fix address icon display (Using FontAwesome's map-marker instead)
         - [✅] Fix launch functionality for contacts and addresses
           - [✅] Implemented openLink function with proper URL formatting
           - [✅] Added error handling and fallbacks
           - [✅] Configured different URL types (mailto:, tel:, https://, maps://)
-        - [ ] Fix avatar display in file items (needs ReduxStore imagesByDigest)
+          - [✅] Created separate handling for phone vs. cell numbers (call vs. text)
+        - [✅] Fix avatar display in file items
+          - [✅] Connected TallyCertificate to Redux imagesByDigest store
+          - [✅] Used existing Avatar component with correct props (avatar not source)
+          - [✅] Added fallback placeholder when images aren't in cache
+          - [✅] Maintained digest display for debugging purposes
+      - [ ] Add validation status indicators
+      - [ ] Show repair options when applicable
+        
+      - [🔄] Enhance the existing avatar management system with a reusable DigestResource component:
+        - [ ] Create a new component that leverages existing Redux infrastructure:
+          - [ ] Implement in components/DigestResource/index.jsx
+          - [ ] Build on top of existing avatarSlice and imagesByDigest Redux store
+          - [ ] Utilize existing services for file fetching:
+              - `tally.js`: fetchTallyFile, getHolderImage for tally-related images
+              - `profile.js`: getFile, uploadImage for user profile images
+          - [ ] Add support for multiple resource types beyond avatars
+          - [ ] Include loading states and error handling
+          - [ ] Support different display modes (avatar, full image, thumbnail)
+          - [ ] Add configurable styling (size, shape, borders)
+        
+        - [ ] Maintain compatibility with existing image fetching pattern:
+          - [ ] Keep working with the current fetchImagesByDigest thunk
+          - [ ] Support the existing AsyncStorage caching mechanism
+          - [ ] Ensure backward compatibility with current components
+        
+        - [ ] Apply enhanced component to certificate display screens:
+          - [ ] Update TallyCertificate screen to use DigestResource for all file types
+          - [ ] Support non-avatar images (identification documents, etc.)
+          - [ ] Refactor CustomCertificateItem to use the same component
+          
+        - [ ] Consolidate avatar displays throughout the app:
+          - [ ] Retrofit TallyGraphic to use the new component
+          - [ ] Update Profile screen avatar displays
+          - [ ] Keep compatibility with existing usage patterns
+          
+        - [ ] Improve the centralized avatar management system:
+          - [ ] Add support for on-demand individual resource fetching
+          - [ ] Enhance caching with expiration and refresh mechanisms
+          - [ ] Optimize image loading with placeholders
       - [ ] Add validation status indicators
       - [ ] Show repair options when applicable
       - [ ] Ensure consistent style with other tally views
@@ -153,11 +198,21 @@ The MyCHIPs mobile application displays financial information in various places,
 3. Add sorting controls for different display orders
 4. Fix running balance calculation and display
 
-### Phase 3: Standardized CHIP Display Component
+### Phase 3: Standardized Display Components
 1. Create reusable component for displaying CHIP values
-2. Style with underlined milliCHIPs for visual distinction
-3. Support different sizes and contexts
-4. Replace existing display patterns with the new component
+   - Style with underlined milliCHIPs for visual distinction
+   - Support different sizes and contexts
+   - Replace existing display patterns with the new component
+
+2. Create reusable DigestResource component for files/images
+   - Handle resources identified by digest checksums
+   - Fetch from backend when needed or use cache
+   - Cache in Redux store with optimized management
+   - Support different resource types (images, documents, etc.)
+   - Provide consistent display across all app screens
+   - Handle multiple image contexts (avatars, IDs, documents)
+   - Support various sizing and styling options (circle avatars, rectangular documents)
+   - Optimize loading with placeholders and error states
 
 ## Pending Tasks
 

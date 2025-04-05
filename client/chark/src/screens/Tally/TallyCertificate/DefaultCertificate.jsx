@@ -1,16 +1,20 @@
 import React from 'react';
 import { View, StyleSheet, Text, Image, ScrollView, TouchableOpacity, Linking, Platform } from 'react-native';
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { colors } from '../../../config/constants';
 import Avatar from '../../../components/Avatar';
+import ValidityIcon from '../../../components/ValidityIcon';
 
 // Enhanced DefaultCertificate component to display complete certificate info with boxes
 const DefaultCertificate = (props) => {
   const { cert } = props;
+  // Access the Redux store to get cached images by digest
+  const { imagesByDigest } = useSelector((state) => state.avatar);
   
   // Function to handle opening links
   const openLink = (url, type) => {
@@ -286,10 +290,20 @@ const DefaultCertificate = (props) => {
               {/* Display avatar for photo media */}
               {file.media === 'photo' && file.digest && (
                 <View style={styles.avatarContainer}>
-                  <Avatar 
-                    source={{ uri: `data:image/jpeg;base64,${file.digest}` }}
-                    size={120}
-                  />
+                  {imagesByDigest[file.digest] ? (
+                    <Avatar 
+                      avatar={imagesByDigest[file.digest]}
+                      size={120}
+                    />
+                  ) : (
+                    <View style={styles.placeholderContainer}>
+                      <FontAwesome name="image" size={40} color={colors.gray300} />
+                      <Text style={styles.placeholderText}>Image not in cache</Text>
+                      <Text style={styles.digestText} numberOfLines={1} ellipsizeMode="middle">
+                        {file.digest}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
               
@@ -479,6 +493,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.gray300,
     marginTop: 5,
+  },
+  placeholderContainer: {
+    width: 120,
+    height: 120,
+    backgroundColor: colors.gray7,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+  },
+  placeholderText: {
+    fontFamily: 'inter',
+    fontSize: 12,
+    color: colors.gray300,
+    marginTop: 10,
+    textAlign: 'center',
   }
 });
 
