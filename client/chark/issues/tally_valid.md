@@ -350,7 +350,16 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
    - [x] Simplify component code by using utility functions
    - [x] Use fire-and-forget pattern for backend operations (like payments)
    - [x] Debug and fix query not reaching backend
-   - [ ] Re-arrange items on the open tally view page for better usability
+   - [x] Re-arrange items on the open tally view page for better usability
+     - [x] Reorder to: partner cert, partner sig, holder cert, holder sig
+     - [x] Remove property names from certificate display and show only values
+     - [x] Use colon separator for chad display with adjusted font sizes
+     - [x] Increase name font size by 25% to emphasize the identity
+     - [x] Make chad text smaller and in gray to make it less prominent
+     - [x] Make chad display horizontally scrollable to show only the beginning by default
+     - [x] Remove email display from certificate information
+     - [x] Standardize date format to ISO-8601 UTC format (YYYY-MM-DDTHH:mm:ss.SSSZ)
+     - [ ] Add section headers to group content logically
    - [ ] Evaluate tally review page for potential improvements
    - [ ] Add validation dependency check: disable re-signing if certificate is invalid
    - [ ] Document how to remove and/or selectively disable repair functionality in the future

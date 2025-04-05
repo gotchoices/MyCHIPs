@@ -58,7 +58,7 @@ const TallyEditView = props => {
 
   const partName = Object.values(tally.part_cert?.name ?? {}).join(' ');
   const partChipAddress = hasPartCert
-    ? `${tally.part_cert?.chad?.cuid ?? ''}-${
+    ? `${tally.part_cert?.chad?.cuid ?? ''}:${
         tally.part_cert?.chad?.agent ?? ''
       }`
     : '';
@@ -75,7 +75,7 @@ const TallyEditView = props => {
 
   const holdName = Object.values(tally.hold_cert?.name ?? {}).join(' ');
   const holdChipAddress = hasHoldCert
-    ? `${tally.hold_cert?.chad?.cuid ?? ''}-${
+    ? `${tally.hold_cert?.chad?.cuid ?? ''}:${
         tally.hold_cert?.chad?.agent ?? ''
       }`
     : '';
@@ -167,12 +167,12 @@ const TallyEditView = props => {
           <Text style={styles.inputValue}>{contract}</Text>
         )}
 
+        {/* Partner Certificate Section */}
         {hasPartCert && (
           <CertificateInformation
             title={talliesMeText?.part_cert?.title ?? ''}
             name={partName}
             chipAddress={partChipAddress}
-            email={partEmail}
             onViewDetails={() =>
               onViewCertificate({
                 title: talliesMeText?.part_cert?.title ?? '',
@@ -183,13 +183,38 @@ const TallyEditView = props => {
             validityStatus={validityStatus}
           />
         )}
+        
+        {/* Partner Signature Section */}
+        {tally.part_sig && (
+          <View style={styles.detailControl}>
+            <View style={styles.signatureLabelContainer}>
+              <HelpText
+                label={talliesMeText?.part_sig?.title ?? 'Partner Signature'}
+                helpText={talliesMeText?.part_sig?.help}
+              />
+              <View style={styles.iconGroup}>
+                {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
+                {/* No repair button for partner signature as user can't fix partner's signature */}
+              </View>
+            </View>
+            
+            <ScrollView 
+              horizontal={true} 
+              style={styles.signatureScrollContainer}
+            >
+              <Text selectable={true} style={styles.signatureText}>
+                {tally.part_sig}
+              </Text>
+            </ScrollView>
+          </View>
+        )}
 
+        {/* Holder Certificate Section */}
         {!!tally?.hold_cert && (
           <CertificateInformation
             title={talliesMeText?.hold_cert?.title ?? ''}
             name={holdName}
             chipAddress={holdChipAddress}
-            email={holdEmail}
             onViewDetails={() =>
               onViewCertificate({
                 title: charkMsgText?.certopts?.title,
@@ -234,31 +259,6 @@ const TallyEditView = props => {
           </ScrollView>
         </View>
       )}
-      
-      {/* Partner Signature Section */}
-      {tally.part_sig && (
-        <View style={styles.detailControl}>
-          <View style={styles.signatureLabelContainer}>
-            <HelpText
-              label={talliesMeText?.part_sig?.title ?? 'Partner Signature'}
-              helpText={talliesMeText?.part_sig?.help}
-            />
-            <View style={styles.iconGroup}>
-              {validityStatus && <ValidityIcon status={validityStatus} size={16} />}
-              {/* No repair button for partner signature as user can't fix partner's signature */}
-            </View>
-          </View>
-          
-          <ScrollView 
-            horizontal={true} 
-            style={styles.signatureScrollContainer}
-          >
-            <Text selectable={true} style={styles.signatureText}>
-              {tally.part_sig}
-            </Text>
-          </ScrollView>
-        </View>
-      )}
 
       <View style={styles.detailControl}>
         <HelpText
@@ -295,7 +295,7 @@ const TallyEditView = props => {
           helpText={talliesMeText?.tally_date?.help}
         />
         <Text style={styles.inputValue}>
-          {moment(tally.tally_date).format('MM/DD/YYYY,hh:mm')}
+          {moment(tally.tally_date).utc().format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z'}
         </Text>
       </View>
     </View>

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
@@ -54,42 +55,22 @@ const CertificateInformation = (props) => {
         <TouchableWithoutFeedback onPress={props.onViewDetails}>
           <View style={styles.certWrapperTouchable}>
             <View style={styles.certInfo}>
-              <HelpText
-                label={certValueText?.name?.title ?? 'part_cert_name'}
-                helpText={certValueText?.name?.help?? ''}
-                style={styles.certInfoLabel}
-              />
-
-              <Text style={styles.certValue}>
+              <Text style={styles.nameValue}>
                 {props.name}
               </Text>
             </View>
 
             <View style={styles.certInfo}>
-          <HelpText
-            label={certValueText?.chad?.title ?? 'part_chad'}
-            helpText={certValueText?.chad?.help}
-            style={styles.certInfoLabel}
-          />
-
-          <Text style={styles.certValue}>
-            {props.chipAddress}
-          </Text>
-        </View>
-
-        {!!props.email && (
-          <View style={styles.certInfo}>
-            <HelpText
-              label={certValueText?.email?.title ?? 'partner_or_holder_email'}
-              helpText={certValueText?.email?.help}
-              style={styles.certInfoLabel}
-            />
-
-            <Text style={styles.certValue}>
-              {props.email}
-            </Text>
-          </View>
-        )}
+              <ScrollView 
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                style={styles.chadScrollContainer}
+              >
+                <Text style={styles.chadValue}>
+                  {props.chipAddress}
+                </Text>
+              </ScrollView>
+            </View>
             
             {/* Chevron icon positioned in the top right of the wrapper */}
             <View style={styles.chevronContainer}>
@@ -137,14 +118,35 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   certInfo: {
-    marginBottom: 12,
+    marginBottom: 8,
     fontFamily: 'inter',
   },
   certValue: {
     color: colors.black,
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '400',
+    fontFamily: 'inter',
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  nameValue: {
+    color: colors.black,
+    fontSize: 18, // Increased by 25% from the base 14px
     fontWeight: '500',
     fontFamily: 'inter',
+    lineHeight: 24,
+    marginBottom: 4,
+  },
+  chadValue: {
+    color: colors.gray500,
+    fontSize: 12,
+    fontWeight: '400',
+    fontFamily: 'inter',
+    lineHeight: 16,
+    marginBottom: 4,
+  },
+  chadScrollContainer: {
+    maxWidth: '100%',
   },
   certInfoLabel: {
     fontWeight: '500',
@@ -167,7 +169,6 @@ CertificateInformation.propTypes = {
   title: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   chipAddress: PropTypes.string.isRequired,
-  email: PropTypes.string,
   onViewDetails: PropTypes.func.isRequired,
   onRepair: PropTypes.func,
   certText: PropTypes.any.isRequired,
