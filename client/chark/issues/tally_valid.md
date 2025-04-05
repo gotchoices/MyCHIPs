@@ -335,14 +335,86 @@ ssh admin@mychips.net "psql mychips admin -c \"select json_core,hold_cert,hold_s
 ### Recovery Actions
 - [x] Add repair button next to holder certificate when key is missing/invalid
 - [x] Add repair button next to holder signature when signature is invalid
-- [ ] Implement backend functionality for re-signing (Phase 3)
+- [x] Implement backend functionality for re-signing (Phase 3)
 
 ### Implementation Phases
 1. [x] Get UI components to show/function correctly
 2. [x] Get validity indicators to properly show
-3. [ ] Apply code behind curative buttons (backend integration)
+3. [x] Apply code behind curative buttons (backend integration)
+   - [x] Call `mychips.reassert_cert(tally_seq)` to update holder certificate with current key
+   - [x] Call `mychips.reassert_sign(tally_seq)` to update holder signature
+   - [x] Handle async notifications to refresh tally after backend updates
+   - [x] Add confirmation dialogs with biometric authentication
+   - [x] Use consistent error handling patterns from existing code
+   - [x] Move repair functions to dedicated utility file (src/utils/tally-repair.js)
+   - [x] Simplify component code by using utility functions
+   - [x] Use fire-and-forget pattern for backend operations (like payments)
+   - [x] Debug and fix query not reaching backend
+   - [ ] Re-arrange items on the open tally view page for better usability
+   - [ ] Evaluate tally review page for potential improvements
+   - [ ] Add validation dependency check: disable re-signing if certificate is invalid
+   - [ ] Document how to remove and/or selectively disable repair functionality in the future
+
+### Backend Communication Issues
+- Review how stored procedures are called in the codebase
+- Verify proper structure for `execute` action in Wyseman
+- Check if `proc` parameter is correctly formatted
+- Add logging to track request flow
+- Consider using a different API pattern matching other functions in the codebase
+
+#### Debugging Steps
+1. Add console logging before and after the Wyseman request to confirm it's being called
+2. Check server logs to see if the request is reaching the backend
+3. Try different formats for the stored procedure call:
+   - Using `base.curr_eid()` as a reference (in user.js)
+   - Try `select` action instead of `execute`
+   - Try specifying the procedure in different ways (e.g., with/without schema)
+4. Verify the Wyseman connection is active when making the call
+5. Compare with other examples of backend procedure calls in the codebase
 
 ### Notes from Analysis
 - TallyEditView is the shared component behind all tally views
 - Open tallies in EditOpenTally component are read-only (canEdit = false)
 - The component has conditional rendering based on tally state that determines if fields can be edited
+
+### Code Organization Note
+- There seems to be an unclear distinction between 'utils' and 'services' folders
+- Database calls are distributed across both folders
+- Consider reviewing and standardizing this organization in a future issue
+- A clear guideline would help with proper placement of new functionality
+
+### UI Improvements for Next Phase
+- Reorganize Tally Edit View layout:
+  - Group certificates and signatures in a single "Security" or "Verification" section
+  - Use collapsible sections for detailed information
+  - Make certificate and signature fields properly truncated with ability to expand
+  - Improve mobile-friendliness of the layout
+  - Consider adding direct access to key management from repair screens
+- Review TallyReview screen:
+  - Ensure validity indicators are consistently applied
+  - Verify proper display of certificate and signature information
+  - Consider adding a dedicated "Verification Status" section
+- Improve user feedback:
+  - Add more descriptive tooltips explaining validation issues
+  - Provide clearer guidance on how to resolve validation problems
+  - Consider adding a help screen specifically for understanding tally validation
+  
+- Enforce proper validation hierarchy:
+  - Disable signature repair button if certificate is invalid
+  - Display informative message explaining that certificate must be fixed first
+  - Add sequential repair guidance in tooltips
+  - Consider adding a "Fix All" option that handles all repairs in the correct order
+  
+### Disabling or Removing Repair Functionality
+- The repair functionality has been designed for modularity and can be disabled or removed:
+  1. **Complete Removal**: Delete the `tally-repair.js` utility file and remove the button handlers from `TallyEditView` component
+  2. **Selective Disabling**: 
+     - Add a configuration flag in `constants.js` (e.g., `ENABLE_TALLY_REPAIR: false`)
+     - Modify the `tally-repair.js` utilities to check this flag before proceeding
+     - For feature-flagging, wrap repair buttons in conditional rendering based on the flag
+  3. **Environment-Based Control**:
+     - Add an environment check to disable in production but enable in development
+     - Use a server-provided capability flag to control visibility
+  4. **Role-Based Access**:
+     - Only show repair options to users with admin/developer roles
+     - Backend would need to provide role information

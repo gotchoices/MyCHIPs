@@ -3,8 +3,10 @@
 This directory contains documentation for various issues, enhancements, upgrades.
 Maintain a line in this file, in the appropriate section, for each issues file.
 When working on an issue, follow the workflow process in ../CONTEXT.md.
-AI Agents: ask the user periodically about issues still marked "In Progress" or
-Future issues that may now be feasible.
+
+AI Agents:
+- Maintain each issue file with enough information to fully restore your context if needed
+- Ask the user periodically about issues still marked "In Progress" or Future issues that may now be feasible.
 
 ## Issue Status Overview
 

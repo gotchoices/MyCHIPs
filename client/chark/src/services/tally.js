@@ -328,3 +328,39 @@ export const comparePublicKey = async (tallyPublicKey) => {
 
   return true;
 }
+
+/**
+ * Re-assert the holder's certificate with the current public key
+ * This function is used to repair a tally with an invalid or missing certificate
+ * 
+ * @param {Object} wm - Wyseman instance
+ * @param {number|string} tally_seq - The sequence number of the tally to repair
+ * @returns {Promise<Object>} - The result of the backend operation
+ */
+export const reassertCertificate = (wm, tally_seq) => {
+  const spec = {
+    view: 'mychips.tallies_v_me',
+    table: 'mychips.reassert_cert',
+    params: [tally_seq],
+  }
+
+  return request(wm, '_reassert_cert_' + random(), 'select', spec);
+}
+
+/**
+ * Re-sign the tally with the current private key
+ * This function is used to repair a tally with an invalid or missing signature
+ * 
+ * @param {Object} wm - Wyseman instance
+ * @param {number|string} tally_seq - The sequence number of the tally to repair
+ * @returns {Promise<Object>} - The result of the backend operation
+ */
+export const reassertSignature = (wm, tally_seq) => {
+  const spec = {
+    view: 'mychips.tallies_v_me',
+    table: 'mychips.reassert_sign',
+    params: [tally_seq],
+  }
+
+  return request(wm, '_reassert_sig_' + random(), 'select', spec);
+}

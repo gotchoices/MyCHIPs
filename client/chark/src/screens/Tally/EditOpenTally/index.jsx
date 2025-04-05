@@ -17,6 +17,7 @@ import { colors } from "../../../config/constants";
 import { useTalliesMeText } from "../../../hooks/useLanguage";
 import useTitle from '../../../hooks/useTitle';
 import { updateValidity } from "../../../redux/updateTallySlice";
+import { repairTallySignature, repairTallyCertificate } from "../../../utils/tally-repair";
 
 import CustomText from "../../../components/CustomText";
 import TallyEditView from '../TallyEditView';
@@ -111,9 +112,16 @@ const EditOpenTally = (props) => {
   
   // Function to re-sign the tally with the current key
   const handleReSign = () => {
-    // This will be implemented in Phase 3
-    alert('Re-signing functionality will be implemented in a future update.');
-    // Future implementation will use backend API to re-sign the tally
+    if (tally && tally.tally_seq) {
+      repairTallySignature(wm, tally.tally_seq);
+    }
+  };
+  
+  // Function to update holder certificate with current key
+  const handleUpdateCert = () => {
+    if (tally && tally.tally_seq) {
+      repairTallyCertificate(wm, tally.tally_seq);
+    }
   };
 
   if (loading) {
@@ -166,6 +174,7 @@ const EditOpenTally = (props) => {
           tallyContracts={tallyContracts}
           navigation={props.navigation}
           onReSign={handleReSign}
+          onUpdateCert={handleUpdateCert}
         />
       </ScrollView>
     </View>

@@ -38,6 +38,7 @@ const TallyEditView = props => {
   const tallyContracts = props.tallyContracts ?? [];
   const canEdit = tally.state === 'draft' || tally.state === 'P.draft';
   const onReSign = props.onReSign || null; // Function to handle re-signing the tally
+  const onUpdateCert = props.onUpdateCert || null; // Function to handle updating the certificate
 
   // Get validation status from Redux
   const validityStatuses = useSelector(state => state.updateTally.validityStatuses || {});
@@ -197,7 +198,7 @@ const TallyEditView = props => {
             }
             certText={certText ?? {}}
             validityStatus={validityStatus}
-            onRepair={onReSign}
+            onRepair={onUpdateCert}
           />
         )}
       </View>

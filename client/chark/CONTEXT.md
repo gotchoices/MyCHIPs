@@ -25,6 +25,7 @@
 ## Language Prompts
 - Any language content must be included in and fetched from the backend data dictionary
 - Don't hard-code English into the app (exception for debugging)
+- If needed, ask the developer if tags are available or new ones should be added
 
 ## Data and State Management
 - Maintain single source of truth for data, model-view-controller
@@ -45,13 +46,22 @@
   - Describe work to be done: bugs, problems, goals, objectives
   - Discover root causes as necessary
   - Plan upgrade strategy
-  - Evaluate effect on, compliance with, other code modules
+  - Compare how similar tasks are handled elsewhere in the app
+  - Evaluate the effect on, compliance with, other code modules
   - Document in issue file detailed checklist of all relevant files,items,tasks
   - Do improvements in small, incremental stages
     - Build regression test (if applicable)
     - Implement incremental change
-    - Test, adjust until working, clean, optimize
-    - Update checklist, commit code
+    - Test, adjust until working, then clean, optimize, re-test
+    - Update issues file, commit code
     - Iterate through checklist
-  - Document possible future enhancements
-  - Document other modules that may benefit from enhancements (new issues?)
+  - Document possible future enhancements for this issue
+  - Identify other modules that may benefit from enhancements (new issues?)
+  - Update issues/README.md
+  - 
+
+## AI Agents
+- You will be asked to read this file at the beginning of a work session
+- Follow the procedures outlined above when working on any issue
+- Review issues/README.md and prepare to work on the current or next issue
+- Tell the developer what you think is next or ask if you don't know
