@@ -13,8 +13,8 @@ const initialState = {
     name: '',
   },
   preferredLanguage: {
-    name: '',
-    code: '',
+    name: 'English',
+    code: 'eng',
   },
   communications: [],
   personal: undefined,
