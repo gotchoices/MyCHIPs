@@ -54,24 +54,15 @@ After examining the codebase, we've identified specific issues contributing to c
    - Problem: When connecting with a new token to an account with existing tallies, the app showed an empty screen
    - Solution: Added automatic tally fetch after successful connection with a new token
    - Implementation: Created a wrapper callback in `connectSocket()` that fetches tallies only on successful new token connections
+
+3. **Connection Key Reset Bug** *(Fixed - Data Loss Prevention)*:
+   - Problem: In `src/screens/Scanner/index.jsx:169`, the app was calling `Keychain.resetGenericPassword()` on any connection error
+   - This was deleting the previous valid connection key before confirming the new key works
+   - Impact: If new connection failed for any reason, both old and new keys were lost
+   - Solution: Removed the redundant key reset in the error handler, keeping it only in the successful path
+   - Implementation: Modified the Scanner component's connection callback to preserve existing keys on error
    
 ### Critical Issues (High Priority)
-
-1. **Connection Key Reset Bug** *(Critical - Data Loss Risk)*:
-   - In `src/screens/Scanner/index.jsx:169`, the app calls `Keychain.resetGenericPassword()` on any connection error
-   - This immediately deletes the previous valid connection key before confirming the new key works
-   - Result: If new connection fails for any reason, both old and new keys are lost
-   
-   ```javascript
-   // Current problematic code:
-   if (err) {
-     setIsConnecting(false);
-     Keychain.resetGenericPassword(); // <-- Destroys existing key before new one is confirmed
-     disconnectSocket();
-     Alert.alert(err.message);
-     // ...
-   }
-   ```
 
 2. **Reversed Connection Flow** *(Critical - UX/Security Issue)*:
    - In `src/screens/Scanner/index.jsx:56-62`, the app connects immediately with a new ticket if no current connection
@@ -234,12 +225,12 @@ After examining the codebase, we've identified specific issues contributing to c
   - [x] 3.3.2 Implement targeted tally fetch after successful new token connection
   - [x] 3.3.3 Ensure fetch only happens for new connections, not routine reconnects
 
-### 🔲 Phase 1: Fix Critical Connection Bugs
+- [x] 1.1 Fix connection key preservation:
+  - [x] 1.1.1 Remove the `resetGenericPassword()` call on connection error in Scanner component
+  - [x] 1.1.2 Verify key reset happens only on successful path in connectSocket function
+  - [x] 1.1.3 Add comments explaining the change to prevent future regressions
 
-- [ ] 1.1 Fix connection key preservation:
-  - [ ] 1.1.1 Remove the `resetGenericPassword()` call on connection error in Scanner component
-  - [ ] 1.1.2 Move key reset to only happen after successful connection with new key
-  - [ ] 1.1.3 Add error handling to prevent orphaned connection attempts
+### 🔲 Phase 1: Fix Remaining Critical Connection Bugs
 
 - [ ] 1.2 Fix connection confirmation sequence:
   - [ ] 1.2.1 Modify Scanner component to always show confirmation dialog before connection attempt

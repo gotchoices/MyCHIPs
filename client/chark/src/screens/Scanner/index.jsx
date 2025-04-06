@@ -166,13 +166,15 @@ const Scanner = props => {
       (err, connected) => {
         if (err) {
           setIsConnecting(false);
-          Keychain.resetGenericPassword();
+          // Previous code was deleting the key on error - removed:
+          // Keychain.resetGenericPassword();
           disconnectSocket();
 
           Alert.alert(err.message);
 
           setTimeout(() => setIsActive(true), 1000);
         } else if (connected) {
+          // Connection successful - existing key was already reset in connectSocket()
           setIsConnecting(false);
           props.navigation.navigate('Home');
         }
