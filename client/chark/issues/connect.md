@@ -61,24 +61,17 @@ After examining the codebase, we've identified specific issues contributing to c
    - Impact: If new connection failed for any reason, both old and new keys were lost
    - Solution: Removed the redundant key reset in the error handler, keeping it only in the successful path
    - Implementation: Modified the Scanner component's connection callback to preserve existing keys on error
+
+4. **Reversed Connection Flow** *(Fixed - UX/Security Improvement)*:
+   - Problem: In `src/screens/Scanner/index.jsx:56-62`, the app was connecting immediately with a new ticket if no current connection
+   - Only if already connected would it show a confirmation dialog first
+   - Impact: No user confirmation before making initial connections
+   - Solution: Always show confirmation alert regardless of current connection state
+   - Implementation: Modified both URL and JSON connection paths to always ask for confirmation
    
 ### Critical Issues (High Priority)
 
-2. **Reversed Connection Flow** *(Critical - UX/Security Issue)*:
-   - In `src/screens/Scanner/index.jsx:56-62`, the app connects immediately with a new ticket if no current connection
-   - Only if already connected does it show a confirmation dialog first
-   - Result: No user confirmation before making initial connections
-
-   ```javascript
-   // Current problematic code:
-   if (status !== connectionStatus.disconnect) {
-     showAlert(obj); // Only shows alert if already connected
-   } else {
-     connect({connect: obj}); // Connects immediately without confirmation
-   }
-   ```
-
-3. **Duplicate Deep Link Handlers** *(Critical - Race Condition)*:
+1. **Duplicate Deep Link Handlers** *(Critical - Race Condition)*:
    - Both `SocketProvider.jsx` (lines 31-43) and `Home/index.jsx` (lines 72-119) handle the same ticket URLs
    - No coordination between these handlers
    - Result: Potential race conditions or duplicate connection attempts
@@ -230,12 +223,12 @@ After examining the codebase, we've identified specific issues contributing to c
   - [x] 1.1.2 Verify key reset happens only on successful path in connectSocket function
   - [x] 1.1.3 Add comments explaining the change to prevent future regressions
 
-### 🔲 Phase 1: Fix Remaining Critical Connection Bugs
+- [x] 1.2 Fix connection confirmation sequence:
+  - [x] 1.2.1 Modify Scanner component to always show confirmation dialog before connection attempt
+  - [x] 1.2.2 Update both URL and JSON connection paths for consistent user confirmation
+  - [x] 1.2.3 Add comments explaining previous behavior and rationale for changes
 
-- [ ] 1.2 Fix connection confirmation sequence:
-  - [ ] 1.2.1 Modify Scanner component to always show confirmation dialog before connection attempt
-  - [ ] 1.2.2 Move connection logic to execute only after user confirms
-  - [ ] 1.2.3 Add timeout/cancellation mechanism to prevent hanging connections
+### 🔲 Phase 1: Fix Remaining Critical Connection Bugs
 
 - [ ] 1.3 Consolidate deep link handling:
   - [ ] 1.3.1 Create centralized link handler utility in deep-links.js
@@ -300,3 +293,15 @@ After examining the codebase, we've identified specific issues contributing to c
 - Create an offline mode with local operations queue that syncs when connection is restored
 - Add connection diagnostics tool for users to troubleshoot issues
 - Cache essential language data for better offline experience
+
+### Known Edge Cases (Future Projects)
+
+- **Key Loss on New Connection Failure**: 
+  - Current behavior: When connecting with a new token, the old key is deleted before confirming the new connection works
+  - Edge case: If user has working connection, scans an expired/invalid token, and confirms connection, they will lose both old and new keys
+  - Impact: Low/Medium - Requires user to deliberately scan and confirm a bad token
+  - Fix complexity: Medium-High - Would require restructuring connection flow to:
+    1. Try connecting with new credentials first without deleting old key
+    2. Only delete old key after confirming new connection is successful
+    3. Handle fallback to old key if new connection fails
+  - Recommendation: Address in future connection flow refactoring rather than as a quick fix

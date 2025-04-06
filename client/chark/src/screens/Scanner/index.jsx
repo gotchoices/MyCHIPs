@@ -54,12 +54,16 @@ const Scanner = props => {
       setIsActive(false);
       if (qrCode.startsWith(LINK_PREFIXES.TICKET)) {
         const obj = parse(qrCode);
-
-        if (status !== connectionStatus.disconnect) {
-          showAlert(obj);
-        } else {
-          connect({connect: obj});
-        }
+        
+        // Always show confirmation alert before connecting, regardless of current connection status
+        showAlert(obj);
+        
+        // Previous code had two different paths:
+        // if (status !== connectionStatus.disconnect) {
+        //   showAlert(obj);  // Show alert only if already connected
+        // } else {
+        //   connect({connect: obj});  // Connect immediately if disconnected
+        // }
       } else if (qrCode.startsWith(LINK_PREFIXES.PAY)) {
         /**
          * Using randomString to re-excute the requestPay function
@@ -126,8 +130,12 @@ const Scanner = props => {
   // Process the connection
   function processConnect(parsed) {
     if (parsed?.connect && parsed?.connect?.user) {
-      connect({connect: parsed.connect});
+      // Show confirmation alert instead of connecting immediately
+      showAlert(parsed.connect);
+      // Previous code directly connected:
+      // connect({connect: parsed.connect});
     } else if (parsed?.connect) {
+      // Username not included, show the username input modal
       setTempQrCode(parsed.connect);
       setIsModalVisible(true);
     }
