@@ -166,7 +166,7 @@ const getSizeStyles = (size) => {
         decimalText: {
           fontSize: 16,
           lineHeight: 16,
-          paddingBottom: 10,
+          paddingBottom: 2,
         },
         iconSize: 18
       };
