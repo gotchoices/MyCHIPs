@@ -3,35 +3,56 @@ tabtext mychips.tallies -lang spa {Recuentos} {Contiene una entrada para cada co
   {tally_seq {Secuencia de conteo} {Un número único entre todas las cuentas propiedad de esta entidad}}
   {tally_uuid {UUID de cuenta} {Un identificador global único para este conteo}}
   {tally_type {Tipo de conteo} {Determina si esta entidad suele ser el acreedor (acción) o el deudor (foil) para este conteo} {
-    {foil {Frustrar} {La entidad a la que pertenece este recuento suele ser el deudor de las transacciones.}}
+    {foil {Contraparte} {La entidad a la que pertenece este recuento suele ser el deudor de las transacciones.}}
     {stock {Existencias} {La entidad a la que pertenece este recuento suele ser el acreedor de las transacciones.}}
   }}
   {tally_date {Fecha de recuento} {La fecha y hora en que se inició este recuento entre las partes.}}
   {version {Versión} {Un número que indica el estándar de formato al que se adhiere esta cuenta}}
-  {comment {Comment} {Cualquier nota que el usuario desee ingresar con respecto a este conteo}}
-  {contract {Contrato} {El identificador hash del contrato estándar en el que se basa este recuento.}}
-  {hold_cert {Titular Certificado} {La estructura JSON de datos de identificación para la entidad que posee/mantiene esta cuenta}}
-  {part_cert {Certificado de socio} {La estructura JSON de los datos de identificación de la otra parte de este recuento}}
+  {revision {Revisión} {Recuento de las veces que se revisó/contraofertó el recuento durante la negociación}}
+  {comment {Comentario} {Cualquier nota que el usuario desee ingresar con respecto a este conteo}}
+  {contract {Contrato} {El contrato que rige este acuerdo de recuento} {
+    {name {Nombre} {El nombre de etiqueta del contrato vigente}}
+    {host {Anfitrión} {El sitio de host del autor del contrato vigente (predeterminado: mychips.org)}}
+    {source {Recurso} {El ID del recurso del contrato vigente}}
+  }}
+  {hold_cert {Titular Certificado} {Mi información de identificación para el recuento} {
+    {chad {Dirección CHIP} {Objeto JSON que describe cómo/dónde otros usuarios comunican transacciones MyCHIPs contigo}}
+    {date {Fecha del Certificado} {Marca de tiempo que muestra cuándo se generaron estos datos de certificado}}
+    {name {Nombre del Titular} {Un registro (o matriz) de los nombres por los que se te conoce}}
+  }}
+  {part_cert {Certificado de socio} {Los datos de identificación de mi socio}}
   {hold_sig {Titular firmado} {La firma digital de la entidad que posee/posee esta cuenta}}
   {part_sig {socio firmado} {La firma digital de la otra parte de este recuento}}
-  {hold_terms {Términos del titular} {Los plazos que el talonario otorga al socio}}
-  {part_terms {Condiciones de socios} {Los plazos que el socio de cómputo otorga al titular}}
-  {digest {resumen de hachís} {Un hash encriptado digitalmente que indica una representación única pero condensada de la información crítica que pertenece al conteo. El originador firmará este hash para que el ascensor sea vinculante.}}
+  {hold_terms {Términos del titular} {Los términos de crédito que el titular del recuento ha ofrecido a su socio} {
+    {limit {Límite de crédito} {Cantidad máxima que el socio tiene derecho a endeudarse conmigo (titular)}}
+    {call {Período de llamada} {Después de que yo (titular) exija el pago de un saldo, se permite al socio esta cantidad de días para cumplir}}
+  }}
+  {part_terms {Condiciones de socios} {Los términos de crédito que el socio ha ofrecido a mí (titular)} {
+    {limit {Límite de crédito} {Cantidad máxima que yo (titular) tengo derecho a endeudarme con mi socio}}
+    {call {Período de llamada} {Después de que el socio exija el pago de un saldo, se me permite (titular) esta cantidad de días para cumplir}}
+  }}
+  {hold_sets {Configuración del titular} {Los términos actuales que el titular ha afirmado en la cuenta.}}
+  {part_sets {Configuración de socios} {Los términos actuales que el socio ha afirmado en la cuenta}}
+  {digest {Resumen criptográfico} {Un hash encriptado digitalmente que indica una representación única pero condensada de la información crítica que pertenece al conteo. El originador firmará este hash para que el ascensor sea vinculante.}}
   {target {Saldo objetivo} {El total ideal de unidades que el administrador de ascensores debería intentar acumular al realizar ascensores. Las subidas/bajadas más allá de este valor pueden estar sujetas a costos de margen.}}
   {reward {Margen de compra} {Un costo asociado con un aumento/disminución a través de este conteo, lo que resultaría en una acumulación de valor para el titular por encima del valor objetivo. Cero significa sin costo. Un porcentaje positivo indica un costo o desincentivo para el comercio. Por ejemplo, 0.01 significa un costo del 1% por hacer un levantamiento. Un número negativo significa que el propietario de la cuenta renunciará a algún valor para realizar los ascensos/descensos.}}
-  {clutch {Margen de venta} {Un costo asociado con una subida/bajada a través de esta cuenta, lo que resultaría en una pérdida de valor para el titular. Cero significa sin costo. Un valor de 1 evitará efectivamente que se realicen más transacciones en esa dirección.}}
+  {clutch {Retención} {Un costo asociado con una subida/bajada a través de esta cuenta, lo que resultaría en una pérdida de valor para el titular. Cero significa sin costo. Un valor de 1 evitará efectivamente que se realicen más transacciones en esa dirección.}}
+  {bound {Límite de comercio} {La cantidad máxima de valor que el titular del recuento está dispuesto a acumular de los ascensores}}
   {request {Pedido} {Próximo estado solicitado para el conteo} {
-    {close {Cerrado} {Una de las partes solicita que se suspenda el comercio adicional en este conteo}}
+    {{} {Ninguno} {Nada que solicitar para el cambio de estado}}
+    {void {Vacío} {Una de las partes ha solicitado negociar antes de que se abra el recuento}}
     {draft {Borrador} {Una de las partes está sugiriendo términos para un conteo}}
     {open {Abierto} {Una de las partes solicita abrir el escrutinio de acuerdo con los términos especificados}}
-    {void {Vacío} {Una de las partes ha solicitado negociar antes de que se abra el recuento}}
+    {close {Cerrado} {Una de las partes solicita que se suspenda el comercio adicional en este conteo}}
   }}
-  {status {} {Estado actual del registro de conteo} {
-    {close {Cerrado} {No se pueden realizar más transacciones en esta cuenta.}}
+  {status {Estado} {Estado actual del registro de conteo} {
+    {void {Vacío} {El recuento ha sido abandonado antes de ser afirmado por ambas partes.}}
     {draft {Borrador} {El conteo ha sido sugerido por una parte pero aún no aceptado por la otra parte}}
     {open {Abierto} {El conteo es confirmado por ambas partes y puede usarse para intercambiar fichas.}}
-    {void {Vacío} {El recuento ha sido abandonado antes de ser afirmado por ambas partes.}}
+    {offer {Oferta} {El recuento ha sido firmado por una parte y se ofrece a la otra para su aceptación}}
+    {close {Cerrado} {No se pueden realizar más transacciones en esta cuenta.}}
   }}
+  {closing {Cierre} {Una de las partes ha registrado una solicitud de cierre en el recuento}}
   {part_ent {Entidad socia} {El número de identificación de la entidad de la otra parte de esta cuenta}}
   {net_c {Unidades buenas firmadas} {Valor total de milliCHIP de fichas asignadas}}
   {net_pc {Firmado Pendiente} {Valor total en milliCHIP de fichas comprometidas y pendientes}}
@@ -39,25 +60,32 @@ tabtext mychips.tallies -lang spa {Recuentos} {Contiene una entrada para cada co
   {part_cuid {ID de CHIP de socio} {Valor en caché de la identificación CHIP del socio del certificado del titular}}
   {hold_agent {Agente titular} {Valor en caché del agente del titular del certificado del titular}}
   {part_agent {Agente asociado} {Valor en caché del agente del socio del certificado del titular}}
-  {hold_sets {Configuración del titular} {Los términos actuales que el titular ha afirmado en la cuenta.}}
-  {part_sets {Configuración de socios} {Los términos actuales que el socio ha afirmado en la cuenta}}
   {chain_conf {Cadena Confirmada} {El índice de la última ficha en la cadena que ha sido confirmada con el par socio}}
-  {chain_stat {Estado de la cadena} {El estado de consenso de la cadena de fichas relacionada con esta cuenta}}
+  {chain_stat {Estado de la cadena} {El estado de consenso del recuento} {
+    {non {Ninguno} {Todavía no hay consenso conocido entre las mitades del recuento}}
+    {aff {Afirmado} {El contraparte del recuento ha encadenado todos los vales conocidos y ha afirmado la suma de comprobación final al existencias}}
+    {pen {Pendiente} {El existencias del recuento ha encadenado todos los vales conocidos y ha sugerido una suma de verificación final al contraparte}}
+    {con {Consensuado} {La suma de verificación de final de cadena ha sido confirmada por la otra parte}}
+    {err {Error} {El recuento ha encontrado un error irreconciliable al intentar consensuar con el otro lado}}
+  }}
+  {_last_chit {Último vale} {Usado internamente para crear nuevos números de índice de registros de vales}}
   {crt_date {Creado} {La fecha en que se creó este registro}}
   {mod_date {Modificado} {La fecha de la última modificación de este registro}}
   {crt_by {Creado por} {El usuario que ingresó este registro.}}
   {mod_by {Modificado Por} {El usuario que modificó por última vez este registro}}
 } -messages {
   {BND {Encuadernado ilegal} {El límite máximo de elevación debe ser mayor o igual a cero}}
-  {CLT {Embrague ilegal} {El embrague de elevación debe estar entre -1 y 1}}
+  {CLT {Retención ilegal} {La retención de elevación debe estar entre -1 y 1}}
   {IST {Cambio de estado ilegal} {La transición de estado ejecutada no está permitida}}
-  {IVR {Invalid Request} {La transicion de estado ejecutada no esta permitida}}
+  {ISR {Solicitud de estado ilegal} {La transición de estado solicitada no está permitida}}
+  {IVR {Solicitud inválida} {La transicion de estado ejecutada no esta permitida}}
   {IVS {Estado inválido} {El valor de estado de conteo no es válido}}
-  {NSP {Mismo ID de socio} {Tally partner must be a separate entity}}
+  {NSP {Mismo ID de socio} {El socio de recuento debe ser una entidad separada}}
   {PAI {Identificación del agente asociado} {Una cuenta abierta debe incluir una ID de agente asociado válida}}
   {PCI {ID de CHIP de socio} {Una cuenta abierta debe incluir una ID de CHIP de socio válida}}
   {PCM {Certificado de socio incorrecto} {Una cuenta abierta debe contener un certificado de socio}}
   {PSM {Firma de socio incorrecto} {Una cuenta abierta debe contener la firma de un socio}}
+  {RCV {Recompensa/Retención inválida} {Si uno de recompensa o retención es negativo, el otro debe ser al menos tan grande positivo}}
   {RWD {Recompensa ilegal} {La recompensa de elevación debe estar entre -1 y 1}}
   {TCM {Contrato de conteo incorrecto} {Una cuenta abierta debe contener un contrato de cuenta válido}}
   {TGT {Objetivo ilegal} {El objetivo de elevación debe ser menor o igual que la cantidad máxima de elevación}}
@@ -67,6 +95,202 @@ tabtext mychips.tallies -lang spa {Recuentos} {Contiene una entrada para cada co
   {UCM {Certificado de usuario incorrecto} {Una cuenta abierta debe contener un certificado de usuario}}
   {USM {Firma de usuario incorrecta} {Una cuenta abierta debe contener una firma de usuario}}
   {VER {Versión de conteo incorrecta} {La versión de Tally debe ser 1 o superior}}
+}
+
+tabtext mychips.chits -lang spa {Vales} {Contiene una entrada para cada transacción de flujo de crédito en cualquier dirección entre las partes del recuento.} {
+  {chit_ent {Entidad de recuento} {ID de entidad del propietario del recuento al que pertenece este vale}}
+  {chit_seq {Secuencia de recuento} {Número de secuencia del recuento al que pertenece este vale}}
+  {chit_idx {Índice de vale} {Un identificador único dentro del recuento, que identifica este vale}}
+  {chit_uuid {UUID de vale} {Un identificador único global para esta transacción}}
+  {chit_type {Tipo de vale} {El tipo de transacción representada por este flujo de crédito} {
+    {lift {Elevación de crédito} {La transacción es parte de una elevación de crédito, por lo que deberían existir múltiples vales con el mismo número de ID, que todos suman cero en su efecto para la entidad relevante}}
+    {tran {Transacción} {El crédito se otorga a cambio de bienes, servicios u otras consideraciones presentes o futuras, posiblemente caritativas.}}
+    {set {Configuración de usuario} {El vale evidencia que una parte (existencias o contraparte) ha afirmado un cambio de ciertos parámetros operativos del recuento}}
+  }}
+  {chit_date {Fecha/Hora} {La fecha y hora en que esta transacción es efectiva}}
+  {issuer {Emisor} {Indica si el titular de existencias o el titular de contraparte creó (y firmó) el vale. Para transacciones y elevaciones de vales, esto indica en qué dirección fluye el valor (del emisor al receptor).}}
+  {units {Unidades} {El monto de la transacción, medido en mili-CHIPs (1/1000 de un CHIP)}}
+  {reference {Referencia} {Cualquier dato JSON arbitrario sobre la transacción, significativo para las partes. Puede hacer referencia a una factura, una orden de compra, un registro, otro documento que evidencie bienes o servicios prestados, y una relación comercial entre las partes. Para vales de configuración, esto contiene las configuraciones que se están afirmando.}}
+  {memo {Memo} {Cualquier otra descripción de texto legible por humanos, contexto o explicación para la transacción}}
+  {digest {Resumen criptográfico} {Un hash de la transacción de vale que será firmado digitalmente}}
+  {signature {Firma} {Firma digital de la parte que autoriza la transacción}}
+  {status {Estado} {El campo de estado indica si el estado ha progresado hasta el punto en que la cantidad del vale puede considerarse pendiente o final} {
+    {draft {Borrador} {El vale se propone o está siendo trabajado pero aún no afecta el valor del recuento}}
+    {pend {Pendiente} {El vale es parte de una elevación cuyo estado de finalización aún no se conoce}}
+    {good {Bueno} {El vale está debidamente firmado y es una obligación válida}}
+    {void {Nulo} {El vale ha sido marcado como inválido y puede ser ignorado}}
+  }}
+  {request {Solicitud} {El algoritmo de transición de estado para vales responde a las solicitudes de transición ingresadas en este campo.} {
+    {{} {Ninguna} {No se solicita ningún cambio}}
+    {draft {Borrador} {El titular solicita que el vale se mueva al estado de borrador}}
+    {good {Bueno} {El titular solicita que el vale se mueva al estado bueno}}
+    {void {Nulo} {El titular solicita que el vale se mueva al estado nulo}}
+  }}
+  {chain_idx {Índice de cadena} {Indica el orden de los registros de vale en la cadena de hash. El primer vale se numera como 1}}
+  {chain_msg {Mensaje de cadena} {Contiene información de encadenamiento para ser comunicada al socio sobre el consenso de vale}}
+  {chain_prev {Cadena anterior} {Una copia del hash del vale anterior en la cadena de hash}}
+  {chain_dgst {Resumen de cadena} {Un resumen hash del registro de vale actual, incluido el hash del registro anterior para formar una cadena de hash}}
+  {lift_seq {Secuencia de elevación} {Si un vale es parte de una transacción de elevación, esto indica a qué registro de recuento pertenecen los vales. Puede haber más de un registro de elevación por elevación en algunos casos.}}
+} -messages {
+  {BRQ {Solicitud de vale incorrecta} {No es un valor válido para una solicitud de vale}}
+  {BCT {Tipo de vale incorrecto} {No es un tipo válido para un vale}}
+  {GDS {Verificación de firma} {Los vales en estado bueno deben incluir una firma}}
+  {BST {Estado de vale incorrecto} {No es un valor válido para el campo de estado}}
+  {BLL {Secuencia de elevación incorrecta} {Solo los vales de elevación deben incluir un número de secuencia de elevación}}
+  {CUU {Vale no único} {El UUID del vale debe ser único para cada recuento}}
+  {ISR {Solicitud de estado ilegal} {La transición de estado solicitada no está permitida}}
+  {IST {Cambio de estado ilegal} {La transición de estado ejecutada no está permitida}}
+  {LIT {Enlace a recuento inválido} {Intento de vincular vale a un recuento inválido}}
+  {ILI {Emisor de vale ilegal} {El usuario intentó ejecutar un vale bueno emitido por el socio}}
+  {MIS {Firma de vale incorrecta} {Un vale marcado como bueno no tiene firma}}
+  {CUN {Unidades de vale incorrectas} {Los vales transaccionales deben tener un valor de unidad. Los vales de configuraciones no deben tenerlo.}}
+}
+
+tabtext mychips.chits_v -lang spa {Vales} {Vista estándar que contiene una entrada para cada vale, que es una transmisión de valor entre dos socios comerciales en un solo recuento.} {
+  {net {Valor neto} {El monto del vale expresado como un número positivo o negativo, dependiendo de cómo se acumule para el titular de esta mitad del recuento.}}
+  {net_g {Valor bueno} {El valor neto de este vale que ha sido debidamente firmado y por lo tanto se considera vinculante.}}
+  {net_p {Valor pendiente} {El valor neto de este vale cuando aún no ha sido firmado. Un valor aquí indica que todavía está pendiente y no es definitivo.}}
+  {state {Estado} {El estado se utiliza para rastrear una transacción en proceso} {
+    {A.good {Activo bueno} {El vale comprometido a ti es vinculante para la otra parte}}
+    {A.pend {Activo pendiente} {Esperas la autorización del vale por la otra parte}}
+    {A.void {Activo nulo} {El vale comprometido a ti está cancelado}}
+    {L.good {Pasivo bueno} {Has autorizado el compromiso de vale a la otra parte}}
+    {L.pend {Pasivo pendiente} {El vale espera tu firma de autorización}}
+    {L.void {Pasivo nulo} {El vale comprometido por ti está cancelado}}
+  }}
+  {action {Acción requerida} {Indica que este recuento requiere algún tipo de acción por parte del usuario, como aceptar, rechazar, confirmar, etc.}}
+  {json_core {Núcleo JSON} {Una representación JSON de las partes de la transacción de vale que serán hash digital y firmadas}}
+  {json {JSON} {Una representación JSON de la transacción de vale, incluido el hash digital}}
+  {chain {Mensaje de cadena} {Datos de consenso de encadenamiento de vales}}
+  {json_chain {JSON con cadena} {Una representación JSON del vale utilizada para mensajes de consenso}}
+  {hash_v {Resumen calculado} {Una versión del resumen hash calculado desde cero cada vez que se recupera (para compararlo con la versión almacenada)}}
+  {clean {Limpio} {Indica que el hash almacenado coincide con el hash calculado. Esta es una indicación de que el registro no ha sido manipulado.}}
+  {cstate {Estado de consenso} {El estado del vale según lo definido por el algoritmo de consenso}}
+}
+
+tabtext mychips.chits_v_me -lang spa {Mis vales} {Vista de todas las transacciones en los recuentos del usuario actual} {
+} -messages {
+  {detail {Detalles del vale} {Mostrar toda la información sobre el vale}}
+  {pending {Vales pendientes} {Vales que están propuestos pero aún no aprobados}}
+  {asset {Activo} {Un vale emitido por tu socio para pagarte}}
+  {liability {Pasivo} {Un vale emitido por ti para pagar a tu socio}}
+  {dirpmt {Pago directo} {Un pago emitido por ti para pagar a tu socio de recuento}}
+  {dirreq {Solicitud directa} {Un pago solicitado por ti de tu socio de recuento}}
+  {approve {Aprobar vale} {Autorizar y firmar el vale solicitado}}
+  {reject {Rechazar vale} {Negarse a realizar el pago del vale solicitado}}
+  {approved {Vale aprobado} {El vale ha sido aprobado y autorizado}}
+  {rejected {Vale rechazado} {El vale ha sido rechazado}}
+  {chits {Historial de vales} {Lista de vales de pago anteriores}}
+}
+
+tabtext mychips.chits_v_chains -lang spa {Cadenas de vales} {Contiene información sobre cadenas vinculadas por hash de registros de transferencia de valor (vales)} {
+  {ent {Entidad} {El ID de entidad del propietario del recuento al que pertenece la cadena}}
+  {seq {Secuencia} {El número de secuencia (recuento) del propietario del recuento al que pertenece la cadena}}
+  {chain_idx {Índice de cadena} {El número de registro en la cadena. El recuento base es -1, el primer vale es 0, el segundo vale es 1...}}
+  {chain_prev {Hash anterior} {Contiene el hash del enlace anterior (vale o recuento) en la cadena}}
+  {prev_ok {Enlaces anteriores} {Es verdadero si este y todos los registros anteriores contienen correctamente el hash copiado del registro anterior}}
+  {hash_ok {Hashes anteriores} {Es verdadero si este y todos los registros anteriores contienen un hash preciso de los datos relevantes en su registro}}
+  {ok {Cadena válida} {Verdadero si todos los hashes se calculan correctamente hasta este registro}}
+  {last {Fin de cadena} {Verdadero si este es el último registro en la cadena}}
+  {length {Longitud} {Indica cuántos vales son parte de la cadena}}
+  {uuids {Lista de UUID} {Contiene una lista de todos los IDs globales para cada uno de los vales (y recuento) en la cadena}}
+}
+
+tabtext mychips.chit_tries -lang spa {Reintentos de vales} {Rastrea cuántas veces el algoritmo de transición de estado del vale ha intentado comunicar una transición a un par} {
+  {ctry_ent {Entidad} {La entidad a la que pertenece el vale/recuento}}
+  {ctry_seq {Secuencia} {El número de secuencia del recuento/vale}}
+  {ctry_idx {Índice} {El número de índice de este vale}}
+  {last {Último intento} {La última vez que lo intentamos}}
+  {tries {Intentos} {Cuántos intentos llevamos}}
+}
+
+tabtext mychips.lifts -lang spa {Elevaciones} {Contiene un registro para cada grupo de vales en un segmento, perteneciente a una transacción de elevación} {
+  {lift_uuid {UUID de elevación} {Un identificador único global para esta elevación. Será el mismo ID en todos los servidores que participen en la misma transacción.}}
+  {lift_seq {Secuencia de elevación} {Una elevación puede cruzar una sola base de datos varias veces. Esto se incrementará para cada nuevo registro de elevación creado a medida que esto suceda.}}
+  {lift_type {Tipo de elevación} {Si/cómo se originó este registro de elevación} {
+    {in {Interna} {La elevación está limitada al interior de una sola base de datos}}
+    {org {Origen} {La elevación se originó dentro de la base de datos local pero se propaga a otros sitios}}
+    {rel {Retransmisión} {La elevación se originó en otro sitio y se propagó a este sitio}}
+  }}
+  {request {Solicitud} {El algoritmo de transición de estado para elevaciones responde a las solicitudes de transición ingresadas en este campo.}}
+  {status {Estado} {El campo de estado indica qué se ha hecho y qué debe suceder a continuación, si es que hay algo}}
+  {tallies {Recuentos} {Una matriz de los ID globales de recuento entre los usuarios/pares en la ruta de nuestro segmento local}}
+  {signs {Elevaciones/Descensos} {Una matriz de números enteros que muestra si la elevación será de existencias a contraparte (-1) o de contraparte a existencias (1)}}
+  {circuit {Usuario de circuito} {Para elevaciones circulares, este es el usuario local inferior en nuestro segmento local. Será la entidad para completar el círculo. Para elevaciones lineales, este campo es nulo.}}
+  {units {Unidades} {El monto de la transacción de elevación, medido en mili-CHIPs (1/1,000)}}
+  {lift_date {Fecha de elevación} {La fecha/hora en que se originó la elevación}}
+  {life {Tiempo de vida} {La cantidad de tiempo antes de que la elevación sea considerada vencida por su árbitro}}
+  {payor_ent {Entidad pagadora} {ID de entidad local que autoriza esta elevación como pago}}
+  {payee_ent {Entidad receptora} {ID de entidad local del destinatario de esta elevación como pago}}
+  {payor_auth {Autorización del pagador} {Detalles de pago de elevación} {
+    {ref {Referencia} {Cualquier dato JSON arbitrario sobre la transacción, significativo para las partes. Puede hacer referencia a una factura, una orden de compra, un registro, otro documento que evidencie bienes o servicios prestados, y una relación comercial entre las partes.}}
+    {memo {Memo} {Descripción de texto legible por humanos, contexto o explicación para la transacción}}
+    {sign {Firma} {Firma digital del pagador que autoriza a su agente a realizar la elevación}}
+  }}
+  {agent_auth {Autorización del agente} {Detalles sobre cómo se autorizó la elevación} {
+    {agent {Agente} {La clave pública del agente que autoriza la elevación}}
+    {sign {Firma} {La firma digital del agente}}
+  }}
+  {signature {Firma} {Firma digital del originador de la elevación que indica que la transacción es vinculante.}}
+  {session {Código de sesión} {Un código único para la sesión de negociación de elevación}}
+  {transact {Transacción} {Resultados de la transacción de negociación de elevación}}
+  {find {Destino} {La dirección CHIP JSON de la entidad que estamos buscando al final de la línea para esta elevación. Para elevaciones circulares, es el par extranjero en la parte inferior de nuestro segmento local.}}
+  {origin {Origen} {Un registro JSON que describe información sobre cómo/dónde se originó la elevación. Algunas partes están encriptadas solo para los ojos del agente de destino.}}
+  {referee {Árbitro} {La dirección CHIP JSON del sitio que decidirá cuándo ha expirado la elevación}}
+  {digest {Hash} {Una firma hash SHA-256 de los datos de elevación}}
+  {crt_date {Creado} {La fecha en que se creó este registro}}
+  {mod_date {Modificado} {La fecha de la última modificación de este registro}}
+  {crt_by {Creado por} {El usuario que ingresó este registro.}}
+  {mod_by {Modificado Por} {El usuario que modificó por última vez este registro}}
+} -messages {
+  {CIF {Fallo de vale} {Una operación falló al crear vales correctamente para una elevación}}
+  {MDA {Agente faltante} {Se proporcionó una dirección CHIP de destino sin especificar una dirección de agente}}
+  {IVR {Solicitud inválida} {Se intentó establecer una solicitud de elevación a un valor no permitido}}
+  {IVS {Estado inválido} {Se intentó establecer un estado de elevación a un valor no permitido}}
+  {IVT {Tipo inválido} {Se intentó crear un registro de elevación con un tipo no permitido}}
+}
+
+tabtext mychips.lifts_v -lang spa {Elevaciones} {Vista estándar que contiene una entrada para cada elevación con campos derivados adicionales útiles} {
+  {state {Estado} {Derivado de las columnas de estado y solicitud para mostrar el estado de transición actual}}
+  {json {JSON} {Una representación JSON de la transacción de elevación, incluido el hash digital}}
+  {json_core {Núcleo JSON} {Una representación JSON de las partes de la transacción de elevación que serán hash digital y firmadas}}
+  {digest_v {Resumen calculado} {Una versión del resumen hash calculado desde cero cada vez que se recupera (para compararlo con la versión almacenada)}}
+  {clean {Limpio} {Indica que el hash almacenado coincide con el hash calculado. Esta es una indicación de que el registro de elevación no ha sido manipulado.}}
+  {expires {Vence} {La fecha/hora en que la elevación será considerada vencida por el árbitro}}
+  {remains {Resta} {La cantidad de tiempo antes del vencimiento, el registro de elevación local fue creado y luego retransmitido}}
+}
+
+tabtext mychips.lifts_v_me -lang spa {Mis elevaciones} {Vista que muestra a los usuarios el efecto neto de elevaciones individuales en sus saldos} {
+  {seqs {Secuencias} {Números de secuencia de los recuentos/vales involucrados en esta elevación}}
+  {idxs {Índices} {Números de índice de los vales involucrados en esta elevación}}
+}
+
+tabtext mychips.lifts_v_dist -lang spa {Elevaciones distribuidas} {Vista estándar que contiene una entrada para cada elevación con campos derivados adicionales útiles aplicables a elevaciones distribuidas (no locales)} {
+  {top_chad {Dirección superior} {Dirección CHIP de la entidad que mantiene el recuento superior (salida) en el segmento local para esta elevación}}
+  {bot_chad {Dirección inferior} {Dirección CHIP de la entidad que mantiene el recuento inferior (entrada) en el segmento local para esta elevación}}
+  {top_tally {Recuento superior} {UUID del recuento superior (salida) en el segmento local para esta elevación}}
+  {bot_tally {Recuento inferior} {UUID del recuento inferior (entrada) en el segmento local para esta elevación}}
+  {origin_v {Plantilla de origen} {Una plantilla predeterminada para la propiedad de origen para una nueva elevación}}
+  {find_v {Plantilla de búsqueda} {Una plantilla predeterminada para la propiedad de destino para una nueva elevación}}
+  {referee_v {Plantilla de árbitro} {Una plantilla predeterminada para la propiedad de árbitro para una nueva elevación}}
+  {out_chad {Dirección de salida} {Dirección CHIP del socio en el recuento superior (salida) en el segmento local para esta elevación}}
+  {inp_chad {Dirección de entrada} {Dirección CHIP del socio en el recuento inferior (entrada) en el segmento local para esta elevación}}
+}
+
+tabtext mychips.lifts_v_pay -lang spa {Pagos por elevación} {Vista que muestra pagos individuales realizados a través de elevaciones} {
+  {ename {Nombre de entidad} {Nombre de la entidad pagadora o receptora}}
+  {chad {Dirección CHIP} {Dirección CHIP del socio que realizó o recibió el pago}}
+  {ent_name {Nombre de la entidad} {Nombre de la entidad receptora o pagadora}}
+}
+
+tabtext mychips.lifts_v_pay_me -lang spa {Mis pagos por elevación} {Vista que muestra pagos individuales realizados a través de elevaciones para el usuario actual} {
+  {date {Fecha} {Fecha y hora en que se realizó el pago}}
+  {state {Estado} {Estado actual del pago}}
+  {pay_ent {Otra entidad} {Entidad con la que se realizó el pago}}
+  {ent_name {Nombre de la entidad} {Nombre de la entidad con la que se realizó el pago}}
+  {units {Unidades} {Cantidad de unidades transferidas}}
+  {action {Acción} {Si fue un pago realizado o recibido}}
+  {memo {Memo} {Descripción de la transacción}}
 }
 
 tabtext mychips.users -lang spa {Usuarios de CHIP} {Entidades que tienen cuentas CHIP en este servidor} {
@@ -84,9 +308,10 @@ tabtext mychips.users -lang spa {Usuarios de CHIP} {Entidades que tienen cuentas
   {user_psig {Clave pública de pares} {La clave pública del par, conocida por otros socios comerciales y utilizada para firmar transacciones.}}
   {user_named {Nombre de nacimiento} {El nombre del par al nacer, utilizado en el registro de identidad del certificado}}
   {user_cmt {Comentarios de Usuarios} {Comentarios administrativos sobre este usuario}}
+  {_lift_check {Última verificación de elevación} {Fecha/hora cuando el sistema intentó por última vez una elevación de compensación para este usuario}}
   {_last_tally {última cuenta} {El nombre de la entidad a la que pertenece este archivo}}
-  {crt_date {Creado } {La fecha en que se creó este registro}}
-  {mod_date {Modificado   } {La fecha de la última modificación de este registro}}
+  {crt_date {Creado} {La fecha en que se creó este registro}}
+  {mod_date {Modificado} {La fecha de la última modificación de este registro}}
   {crt_by {Creado por} {El usuario que ingresó este registro.}}
   {mod_by {Modificado Por} {El usuario que modificó por última vez este registro}}
 } -messages {
@@ -125,4 +350,3 @@ tabtext mychips.users_v -lang spa {Usuarios de CHIP} {Entidades que tienen cuent
   {trade.start {Fecha de Comienzo} {Incluir operaciones a partir de esta fecha}}
   {unlock {Desbloquear cuenta} {Ponga la(s) cuenta(s) especificada(s) en modo funcional, para que pueda ocurrir el comercio normal}}
 }
-
