@@ -44,8 +44,16 @@ MyCHIPs depends on several schema components that need translation:
 4. **Base Schema** (in mychips/../wyselib/schema/language/)
    - Fundamental data types and common structures
    - Files: `base-{lang}.wmt`
-   - Definitions found in mychips/../wyselib/schema/base/*.wms
-   - Includes address, communication, entity, file storage definitions
+   - Original definitions found in mychips/../wyselib/schema/base/*.wmt (not .wms)
+   - Includes key tables:
+     - base.addr - Address information
+     - base.comm - Communication methods
+     - base.ent - Entity definitions
+     - base.file - File storage
+     - base.language - Language handling
+     - base.parm - Parameter settings
+     - base.priv - Privilege management
+     - base.country - Country codes
 
 5. **Wyseman Schema** (in mychips/../wyselib/schema/language/)
    - Schema management system itself
@@ -229,6 +237,54 @@ Regardless of which method is used, the final steps are:
 - MyCHIPs schema translations (mychips-*.wmt, json-*.wmt) belong in mychips/schema/language/
 - Base, Wylib, and Wyseman translations (base-*.wmt, wylib-*.wmt, wm-*.wmt) belong in mychips/../wyselib/schema/language/
 - The STATUS-*.md tracking files should remain in mychips/schema/language/ for all components
+
+#### Finding Schema Definitions
+- **MyCHIPs Core Files**: Located in mychips/schema/*.wmt
+- **Base Schema Files**: Located in mychips/../wyselib/schema/base/*.wmt (not .wms as previously documented)
+- **Wyseman Runtime**: Located in mychips/../wyseman/lib/run_time.wmt
+- **Wylib Files**: Located in mychips/../wyselib/schema/wylib.wmt
+
+When translating for a new language, you should:
+1. First find the original source .wmt file containing English definitions
+2. Examine each table, field, error message, and value that needs translation
+3. Create a properly structured .wmt file for the target language
+
+#### WMT File Format and Structure
+- Use `tabtext table_name -lang xyz` format for table definitions
+- For each table, include the table title and description
+- For each field, include a field name, title, and description
+- For enum values, include each value, title and description
+- For error messages, use the -errors flag
+- Use proper spacing and indentation to maintain readability
+
+#### Session Restoration Guide
+
+When returning to translation work after a session break or context compaction:
+
+1. **Review Status Files First**:
+   - Check STATUS-*.md files to understand what's completed and what remains
+   - Note any terminology decisions already made in the "Translation Decisions" section
+   - Identify priority tasks marked for completion
+
+2. **Examine Existing Translations**:
+   - Look at completed translations in both the current language and Spanish for reference
+   - Check for consistent terminology patterns across related tables
+   - Note any specific formatting or style choices
+
+3. **Compare With English Sources**:
+   - Always refer to the original English definitions when creating new translations
+   - Use the file paths in "Finding Schema Definitions" to locate source files
+   - Ensure you're translating from the most current English schema
+
+4. **Maintain Consistency**:
+   - Re-read the "Terminology Glossary" in the language's STATUS file
+   - Use the same translation for recurring terms (particularly domain-specific terms)
+   - Match formatting styles from previous work
+
+5. **Testing Workflow**:
+   - After creating translations, verify they match the expected format
+   - Follow the integration steps in the "Final Integration" section
+   - Record all completed work in the STATUS file immediately
 
 #### Schema Dependencies
 If the language description for a table/view does not exist, there is nothing to

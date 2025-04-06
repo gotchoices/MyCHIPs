@@ -1,0 +1,102 @@
+#Format WMT ver=1
+
+tabtext json.tally -lang fin {JSON-tilikirjat} {Standardoitu JSON-näkymä tilikirjoista} {
+  {id {Entiteetti-ID} {Käyttäjän sisäinen identiteetti, jolle tämä tilikirja kuuluu}}
+  {seq {Järjestysnumero} {Sisäinen indeksinumero, jota käytetään tämän tilikirjan seurantaan}}
+  {type {Tilikirjan tyyppi} {Onko varasto vai vastakappale tämän käyttäjän hallussa}}
+  {uuid {Tilikirjan ID} {Yksilöllinen tunniste tälle tilikirjalle, joka on yhteinen varastolle ja vastakappaleelle}}
+  {date {Tilikirjan päiväys} {Päivämäärä, jolloin tilikirja toteutettiin}}
+  {comment {Kommentti} {Muut huomautukset, jotka koskevat tätä tilikirjaa}}
+  {agree {Sopimus} {Viittaus sopimukseen, jonka tilikirjan osapuolet ovat hyväksyneet}}
+  {holder {Haltijan varmenne} {Varmennetiedot, joiden avulla tilikirjan haltija tunnistetaan}}
+  {partner {Kumppanin varmenne} {Varmennetiedot, joiden avulla toinen kumppani tunnistetaan}}
+  {hterms {Haltijan ehdot} {Luottoehdot, joihin haltija on sitoutunut}}
+  {pterms {Kumppanin ehdot} {Luottoehdot, joihin toinen kumppani on sitoutunut}}
+}
+
+tabtext json.contract -lang fin {JSON-sopimukset} {Standardoitu JSON-näkymä tilikirjojen sopimuksista} {
+  {json {JSON} {Täydellinen JSON-edustus sopimuksesta}}
+  {sections {Osiot} {Sopimuksen osioiden taulukko}}
+  {recitals {Johdanto} {Sopimuksen johdanto-osio}}
+  {definition {Määritelmä} {Sopimuksen määritelmäosio}}
+  {terms {Ehdot} {Sopimuksen ehdot-osio}}
+  {covenants {Sitoumukset} {Sopimuksen sitoumukset-osio}}
+  {signing {Allekirjoitus} {Sopimuksen allekirjoitustiedot}}
+  {id {Sopimuksen ID} {Sopimuksen yksilöllinen tunniste}}
+  {version {Versio} {Sopimuksen versio}}
+  {tag {Tunnus} {Sopimuksen lyhyt tunniste}}
+  {title {Otsikko} {Sopimuksen otsikko}}
+  {text {Teksti} {Sopimuksen tekstisisältö}}
+  {language {Kieli} {Sopimuksen kieli}}
+  {published {Julkaistu} {Päivämäärä, jolloin sopimus julkaistiin}}
+  {digest {Tiiviste} {Kryptografinen tiiviste sopimuksen sisällöstä}}
+  {signed {Allekirjoitettu} {Päivämäärä, jolloin sopimus allekirjoitettiin}}
+}
+
+tabtext json.cert -lang fin {JSON-varmenne} {JSON-näkymä käyttäjävarmenteista, jotka on tarkoitettu pääasiassa tuontiin/vientiin} {
+  {identity {Identiteetti} {JSON MyCHIPs-identiteettitietue, jossa on valinnaisia osavaltio- ja syntymätietueita}}
+  {chad {CHIP-osoite} {Täydellinen JSON CHIP-osoitetietue käyttäjälle}}
+  {name {Entiteetin nimi} {Entiteetin nimi, joka on esitetty CHIP-varmenteessa}}
+  {type {Entiteetin tyyppi} {Yksittäiskirjainkoodi, joka ilmaisee p:henkilö, o:organisaatio, g:ryhmä}}
+  {public {Julkinen avain} {Julkinen esitys käyttäjän avaimesta CHIP-tapahtumien allekirjoittamiseen}}
+  {connect {Yhteydet} {Puhelin-/verkkotiedot tälle käyttäjälle}}
+  {place {Osoitteet} {Fyysiset/postiosoitteet tälle käyttäjälle}}
+  {file {Datatiedostot} {Tähän käyttäjään liittyvät datatiedostot}}
+  {date {Vientipäivämäärä} {Päivämäärä ja aika, jolloin nämä varmennetiedot luotiin}}
+}
+
+tabtext json.user -lang fin {JSON-käyttäjän tuonti} {JSON-näkymä käyttäjistä, joka on tarkoitettu käyttäjätilien tuontiin} {
+  {cuid {CHIP-käyttäjätunnus} {Nimi, jolla tämä käyttäjä tunnistetaan agentissaan}}
+  {agent {Agentin osoite} {Prosessin nimi ja julkinen avain, joka käsittelee CHIP-tapahtumia tälle käyttäjälle}}
+  {name {Entiteetin nimi} {Sukunimi tai yrityksen nimi CHIP-käyttäjäentiteetille}}
+  {type {Entiteetin tyyppi} {Yksittäiskirjainkoodi, joka ilmaisee p:henkilö, o:organisaatio, g:ryhmä}}
+  {first {Etunimi} {Henkilöentiteetin ensimmäinen annettu nimi}}
+  {middle {Toinen nimi} {Henkilöentiteetin muut annetut nimet}}
+  {prefer {Kutsumanimi} {Henkilöentiteetin yleisesti käytetty etunimi}}
+  {begin {Syntymäaika} {Henkilön syntymäpäivä tai ryhmän tai organisaation perustamispäivä}}
+  {juris {Lainkäyttöalue} {Maa tai osavaltio, jonka alainen henkilö tai ryhmä on}}
+  {taxid {Verotunnus} {Miten maa tai osavaltio tunnistaa henkilön tai organisaation}}
+  {named {Syntymänimi} {Tietue, joka kuvaa, miten käyttäjä nimettiin alun perin tai syntymässä}}
+}
+
+tabtext json.users -lang fin {JSON-käyttäjän vienti} {JSON-näkymä käyttäjistä, joka on tarkoitettu käyttäjätilien vientiin} {
+  {connect {Yhteydet} {Puhelin-/verkkotiedot tälle käyttäjälle}}
+  {place {Osoitteet} {Fyysiset/postiosoitteet tälle käyttäjälle}}
+}
+
+tabtext json.place -lang fin {JSON-sijainnin tuonti} {JSON-näkymä osoitteista, joka on tarkoitettu käyttäjätilien tuontiin} {
+  {id {Käyttäjätunnus} {Sen käyttäjän sisäinen identiteetti, jolle tämä osoite kuuluu}}
+  {seq {Järjestysnumero} {Sisäinen indeksinumero, jota käytetään tämän osoitteen seurantaan}}
+  {address {Osoite} {Katu- tai sijaintiosoitteen rivi(t)}}
+  {type {Osoitteen tyyppi} {Osoitteen laji}}
+  {main {On pääasiallinen} {Tosi, jos tämän osoitteen on tarkoitus olla tärkein tyyppinsä tälle käyttäjälle}}
+  {city {Kaupunki} {Kaupunki, jossa osoite sijaitsee}}
+  {state {Osavaltio} {Osavaltio, jossa osoite sijaitsee}}
+  {post {Postinumero} {Postinumero tälle osoitteelle}}
+  {comment {Kommentti} {Muut huomautukset, jotka koskevat tätä osoitetta}}
+  {prior {Epäaktiivinen} {Tämä osoite ei ole enää ajankohtainen käyttäjälle}}
+  {private {Yksityinen} {Tätä osoitetta ei tulisi jakaa CHIP-varmenteissa tai muuten}}
+}
+
+tabtext json.connect -lang fin {JSON-yhteyden tuonti} {JSON-näkymä puhelin-/verkkoyhteydestä, joka on tarkoitettu käyttäjätilien tuontiin} {
+  {id {Käyttäjätunnus} {Sen käyttäjän sisäinen identiteetti, jolle tämä yhteys kuuluu}}
+  {seq {Järjestysnumero} {Sisäinen indeksinumero, jota käytetään tämän osoitteen seurantaan}}
+  {address {Osoite} {Puhelinnumero, sähköposti, verkko-osoite tälle yhteyspisteelle}}
+  {media {Media} {Yhteyspisteen tyyppi, kuten sähköposti, verkko, puhelin, jne.}}
+  {main {On pääasiallinen} {Tosi, jos tämän yhteyspisteen on tarkoitus olla tärkein tyyppinsä tälle käyttäjälle}}
+  {comment {Kommentti} {Muut huomautukset, jotka koskevat tätä yhteyttä}}
+  {prior {Epäaktiivinen} {Tämä yhteyspiste ei ole enää ajankohtainen käyttäjälle}}
+  {private {Yksityinen} {Tätä yhteyspistettä ei tulisi jakaa CHIP-varmenteissa tai muuten}}
+}
+
+tabtext json.file -lang fin {JSON-tiedoston tuonti} {JSON-näkymä datatiedostoista, joka on tarkoitettu käyttäjätilien tuontiin} {
+  {id {Käyttäjätunnus} {Sen käyttäjän sisäinen identiteetti, jolle tämä yhteys kuuluu}}
+  {seq {Järjestysnumero} {Sisäinen indeksinumero, jota käytetään tämän osoitteen seurantaan}}
+  {data {Data} {Tähän tiedostoon sisältyvät binääritiedot}}
+  {media {Mediatyyppi} {Tiedoston yleinen tyyppi: valokuva, skannaus, laskentataulukko, asiakirja}}
+  {format {Muoto} {Tiedoston muoto: jpg, gif, doc, jne.}}
+  {main {On pääasiallinen} {Tosi, jos tämän tiedoston on tarkoitus olla tärkein tyyppinsä tälle käyttäjälle}}
+  {comment {Kommentti} {Muut huomautukset, jotka koskevat tätä datatiedostoa}}
+  {private {Yksityinen} {Tätä yhteyspistettä ei tulisi jakaa CHIP-varmenteissa tai muuten}}
+  {digest {Tiiviste} {Yksilöllinen tunniste, jota käytetään ulkoisesti viittaamaan tähän asiakirjaan}}
+}

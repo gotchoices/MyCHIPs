@@ -2,118 +2,82 @@
 
 Last synchronized with English: April 6, 2025
 
-## Next Priority Tasks
-- [ ] Create mychips/../wyselib/schema/language/base-fin.wmt for Base schema objects (based on mychips/../wyselib/schema/base/*.wms)
-- [ ] Create mychips/../wyselib/schema/language/wm-fin.wmt for Wyseman schema objects (based on mychips/../wyseman/lib/run_time.wmt)
-- [ ] Complete the core MyCHIPs schema tables (tallies, chits, lifts)
-- [ ] Complete json schema objects for API functionality
+## Completion Status
+✅ Finnish translation is now complete for all MyCHIPs schema components!
+
+## Completed Schema Categories
+- [x] MyCHIPs core schema tables and views (completed April 6, 2025)
+- [x] JSON schema objects for API functionality (completed April 6, 2025)
+- [x] Base schema objects (in mychips/../wyselib/schema/language/base-fin.wmt)
+- [x] Wyseman schema objects (in mychips/../wyselib/schema/language/wm-fin.wmt)
+- [x] UI-visible elements (chark, users_v_me, etc.)
 
 ## Completed Tables/Views
-- [x] mychips.users (partial translation)
-- [x] mychips.users_v (partial translation)
-- [x] wylib.data (partial translation, in wyselib/schema/language/wylib-fin.wmt)
 
-## In Progress
-None currently - waiting for prioritization of schema objects for translation.
-
-## Pending Translation Audit
-
-### MyCHIPs Schema
-- [ ] mychips.addr_v_me
-- [ ] mychips.agents
-- [ ] mychips.agents_v
-- [ ] mychips.chark
-- [ ] mychips.chits
-- [ ] mychips.chits_v
-- [ ] mychips.chits_v_chains
-- [ ] mychips.chits_v_me
-- [ ] mychips.chit_tries
-- [ ] mychips.contracts
-- [ ] mychips.contracts_v
-- [ ] mychips.creds
-- [ ] mychips.creds_v
-- [ ] mychips.file_v_me
-- [ ] mychips.file_v_part
-- [ ] mychips.lifts
-- [ ] mychips.lifts_v
-- [ ] mychips.lifts_v_dist
-- [ ] mychips.lifts_v_me
-- [ ] mychips.lifts_v_pay
-- [ ] mychips.lifts_v_pay_me
-- [ ] mychips.routes
-- [ ] mychips.routes_v
-- [ ] mychips.routes_v_paths
-- [ ] mychips.routes_v_query
-- [ ] mychips.route_tries
-- [ ] mychips.tallies
-- [ ] mychips.tallies_v
-- [ ] mychips.tallies_v_edg
-- [ ] mychips.tallies_v_me
-- [ ] mychips.tallies_v_net
-- [ ] mychips.tallies_v_paths
-- [ ] mychips.tallies_v_sum
-- [ ] mychips.tally_tries
-- [ ] mychips.tokens
-- [ ] mychips.tokens_v
-- [ ] mychips.tokens_v_me
-- [ ] mychips.users_v_flat
-- [ ] mychips.users_v_me
-- [ ] mychips.users_v_tallies
-- [ ] mychips.users_v_tallies_me
-- [ ] mychips.users_v_tallysum
+### Core MyCHIPs Schema
+- [x] mychips.users and related views:
+  - mychips.users, mychips.users_v, mychips.users_v_me, mychips.users_v_flat
+  - mychips.users_v_tallies, mychips.users_v_tallies_me
+  - mychips.users_v_tallysum (deprecated but translated)
+  - mychips.addr_v_me, mychips.comm_v_me
+- [x] mychips.tallies and related views:
+  - mychips.tallies, mychips.tallies_v, mychips.tallies_v_me, mychips.tally_tries
+  - mychips.tallies_v_net, mychips.tallies_v_edg, mychips.tallies_v_paths
+  - mychips.tallies_v_sum (deprecated but translated)
+- [x] mychips.chits and related views:
+  - mychips.chits, mychips.chits_v, mychips.chits_v_me
+  - mychips.chits_v_chains, mychips.chit_tries
+- [x] mychips.lifts and related views:
+  - mychips.lifts, mychips.lifts_v, mychips.lifts_v_me, mychips.lifts_v_dist
+  - mychips.lifts_v_pay, mychips.lifts_v_pay_me
+- [x] mychips.routes and related views:
+  - mychips.routes, mychips.routes_v, mychips.route_tries
+  - mychips.routes_v_paths, mychips.routes_v_query
+- [x] mychips.agents and mychips.agents_v
+- [x] mychips.contracts and mychips.contracts_v
+- [x] mychips.creds and mychips.creds_v
+- [x] mychips.tokens, mychips.tokens_v, mychips.tokens_v_me
+- [x] mychips.file_v_me, mychips.file_v_part
+- [x] mychips.chark (mobile app text elements)
 
 ### JSON Schema Objects
-- [ ] json.cert
-- [ ] json.connect
-- [ ] json.contract
-- [ ] json.file
-- [ ] json.place
-- [ ] json.tally
-- [ ] json.user
-- [ ] json.users
+- [x] json.cert, json.connect, json.contract
+- [x] json.file, json.place
+- [x] json.tally, json.user, json.users
 
-### Wylib Schema Objects
-Note: The following objects are found in mychips/../wyselib/schema/language/wylib-fin.wmt
-- [ ] wylib.data (complete the remaining fields)
-- [ ] wylib.data_v
+### Base Schema Objects (in wyselib/schema/language/base-fin.wmt)
+- [x] base.addr, base.comm, base.ent
+- [x] base.file, base.language, base.parm, base.priv
 
-### Base Schema Objects
-Note: Base schema definitions are found in mychips/../wyselib/schema/base/*.wms
-Translation files should be placed in mychips/../wyselib/schema/language/base-fin.wmt
-- [ ] base.addr
-- [ ] base.comm
-- [ ] base.ent
-- [ ] base.file
-- [ ] base.language
-- [ ] base.parm
-- [ ] base.priv
+### Wyseman Schema Objects (in wyselib/schema/language/wm-fin.wmt)
+- [x] wm.column_text, wm.message_text, wm.table_text, wm.value_text
+- [x] wm.objects, wm.objects_v, wm.objects_v_depth, wm.objects_v_dep
+- [x] wm.table_style, wm.column_style, wm.table_data, wm.column_data
+- [x] wm.column_lang, wm.table_lang, wm.language, wm.releases
 
-### Wyseman Schema Objects
-Note: Wyseman schema definitions are found in mychips/../wyseman/lib/run_time.wmt
-Translation files should be placed in mychips/../wyselib/schema/language/wm-fin.wmt
-- [ ] wm.column_text
-- [ ] wm.message_text
-- [ ] wm.objects
-- [ ] wm.objects_v
-- [ ] wm.table_text
-- [ ] wm.value_text
+### Wylib Schema Objects (in wyselib/schema/language/wylib-fin.wmt)
+- [x] wylib.data, wylib.data_v
 
-## Specific Translation Notes for Finnish
+## Terminology Decisions
 
-## Translation Decisions and Terminology
+### Core Domain Terminology
+- "tally" -> "kirjanpito" (back-translation: "bookkeeping") - A record of transactions
+- "chit" -> "tosite" (back-translation: "voucher") - A document proving a transaction
+- "lift" -> "nosto" (back-translation: "withdrawal") - The act of transferring value in the network
+- "stock" -> "varasto" (back-translation: "stock/inventory")
+- "foil" -> "vastakappale" (back-translation: "counterpart")
+- "circuit" -> "kiertopiiri" (back-translation: "circuit")
+- "digest" -> "tiiviste" (back-translation: "digest/summary")
+- "chain" -> "ketju" (back-translation: "chain")
+- "referee" -> "välimies" (back-translation: "mediator/referee")
 
-The following terminology decisions have been implemented:
-- "CHIP" remains "CHIP" (not translated)
+### General Terminology
+- Technical terms maintained as-is: "CHIP", "GUI", "JSON", "UUID", etc.
 - "user" -> "käyttäjä" (back-translation: "user")
 - "view" -> "näkymä" (back-translation: "view")
 - "entity" -> "entiteetti" (back-translation: "entity")
 - "socket" -> "pistorasia" (back-translation: "socket")
-- "status" -> "tila" (back-translation: "state" or "status")
-- "active" -> "aktiivinen" (back-translation: "active")
-- "locked" -> "lukittu" (back-translation: "locked")
-- "offline" -> "irrotettu" (back-translation: "disconnected")
-- "GUI" remains "GUI" (not translated)
-- "component" -> "komponentti" (back-translation: "component")
+- "status" -> "tila" (back-translation: "state/status")
 - "access" -> "pääsy" (back-translation: "access")
 - "private" -> "yksityinen" (back-translation: "private")
 - "public" -> "julkinen" (back-translation: "public")
@@ -121,41 +85,38 @@ The following terminology decisions have been implemented:
 - "write" -> "kirjoittaa" (back-translation: "to write")
 - "filter" -> "suodattaa" (back-translation: "to filter")
 - "load" -> "ladata" (back-translation: "to load")
-- "reload" -> "ladata" (back-translation: "to load")
 - "visible" -> "näkyvyys" (back-translation: "visibility")
 - "preview" -> "esikatselu" (back-translation: "preview")
 - "summary" -> "yhteenveto" (back-translation: "summary")
 
+### Status Values
+- "active" -> "aktiivinen" (back-translation: "active")
+- "locked" -> "lukittu" (back-translation: "locked")
+- "offline" -> "irrotettu" (back-translation: "disconnected")
+
 ## Terminology Consultation
 
-For non-Finnish speakers reviewing this translation, here are questions about key terminology:
+For non-Finnish speakers reviewing this translation, here are the key terminology options considered:
 
 ### "tally" translation options:
-- **"kirjanpito"** - Back-translation: "bookkeeping" - A record of transactions
+- **"kirjanpito"** [chosen] - Back-translation: "bookkeeping" - A record of transactions
 - **"laskelma"** - Back-translation: "calculation" or "estimate"
 - **"tiliöinti"** - Back-translation: "accounting entry"
 
 ### "chit" translation options:
+- **"tosite"** [chosen] - Back-translation: "voucher" - A document proving a transaction
 - **"kuitti"** - Back-translation: "receipt" - A document showing a transaction
-- **"tosite"** - Back-translation: "voucher" - A document proving a transaction
 
 ### "lift" translation options:
-- **"nosto"** - Back-translation: "withdrawal" or "lifting" (physical)
+- **"nosto"** [chosen] - Back-translation: "withdrawal" or "lifting" (physical)
 - **"siirto"** - Back-translation: "transfer"
 - **"korotus"** - Back-translation: "raise" or "elevation"
 
-## Prioritization Plan
+### "stock/foil" translation options:
+- **"varasto"** [chosen for stock] - Back-translation: "stock" or "inventory"
+- **"vastakappale"** [chosen for foil] - Back-translation: "counterpart"
 
-First priority:
-1. Complete MyCHIPs core tables (tallies, chits, lifts)
-2. Focus on UI-visible elements (chark, users_v_me)
-3. Complete json schema for API functionality
-4. Fill in remaining wylib components
-5. Add base and wyseman schema translations
-
-## Completed Translations
-
-### Initial Work (Pre-April 2025)
-- Basic translation of mychips.users with status values
-- Basic translation of mychips.users_v
-- Partial translation of wylib.data with key UI elements
+## File Location Notes
+- Base schema definitions are found in mychips/../wyselib/schema/base/*.wmt
+- Wyseman schema definitions are found in mychips/../wyseman/lib/run_time.wmt
+- Translation files for non-MyCHIPs components are stored in mychips/../wyselib/schema/language/

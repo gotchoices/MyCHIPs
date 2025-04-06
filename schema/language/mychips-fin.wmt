@@ -1,18 +1,909 @@
-#Sample text in alternate language:
+#Format WMT ver=1
 
-tabtext mychips.users -lang fin {CHIP käyttäjät} {Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
-  {user_ent {Entiteettien linkki} {Yhteys yhteisön peruspöytään}}
-  {user_stat {Kaupan tila} {CHIP-tilin kaupankäynnin tilille} {
-    {act {Aktiivinen} {Hyvä käydä kauppaa}}
-    {lck {Lukittu} {Tili hätätilanteessa. Älä harjoita kauppoja, jotka johtavat nettotappioon.}}
-    {off {Irrotettu} {Tili kokonaan pois päältä. Kaupat eivät ole mahdollisia.}}
+tabtext mychips.routes -lang fin {Ulkomaiset reitit} {Tietoja, jotka on kerätty muilta palvelimilta ulkomaisista vertaisista, joita voidaan tavoittaa vakiintuneiden kirjanpitojen kautta} {
+  {rid {Reitin tunnus} {Järjestelmän määräämä ainutlaatuinen kokonaisluku, joka tunnistaa kunkin reittitietueen}}
+  {via_ent {Reitin entiteetti} {Paikallisen entiteetin tunnus, joka omistaa kirjanpidon, josta tämä reitti alkaa}}
+  {via_tseq {Reitin kirjanpito} {Sen kirjanpidon järjestysnumero, josta tämä reitti alkaa}}
+  {dst_cuid {Kohteen CHIP-käyttäjätunnus} {CHIP-tunniste entiteetille, johon tämä reitti johtaa}}
+  {dst_agent {Kohteen agentti} {Agentin osoite entiteetille, johon tämä reitti johtaa}}
+  {req_ent {Pyytäjä} {Sen paikallisen entiteetin tunnus, jonka kautta tämä reittipyyntö tuli (ja minne kyselyn tulokset palautetaan)}}
+  {req_tseq {Pyytäjän kirjanpito} {Sen kirjanpidon järjestysnumero, jonka kautta reittipyyntö tuli (jätä tyhjäksi paikallisille kyselyille)}}
+  {status {Tila} {Ilmaisee, onko tämä reitti käytettävissä tai jos ei, mitä edistystä tehdään tällaisen reitin löytämiseksi} {
+      {draft {Luonnos} {Reitti on pyydetty, mutta sitä ei ole vielä tarkistettu tai välitetty ylävirtaan}}
+      {pend {Odottava} {Pyyntö on tehty ylävirtaan tämän reitin löytämiseksi, mutta lisätilaa ei vielä tunneta paikallisesti}}
+      {good {Hyvä} {Ylävirran vertaispalvelin on vastannut, että tämä reitti on mahdollinen}}
+      {none {Ei mitään} {Ylävirran vertaispalvelin on vastannut, että tämä reitti ei ole mahdollinen}}
+  }}
+  {step {Askel} {Kuinka monta askelta olemme edenneet reitillä siitä, mistä tämä reittipyyntö tuli}}
+  {lift_count {Käyttölaskuri} {Laskuri, jota kasvatetaan joka kerta, kun tätä polkua käytetään nostossa}}
+  {lift_date {Viimeksi käytetty} {Päivämäärä ja aika, jolloin tätä polkua viimeksi käytettiin nostossa}}
+  {good_date {Löytymispäivä} {Päivämäärä ja aika, jolloin tämä polku viimeksi merkittiin hyväksi ylävirran ulkomaisen palvelimen toimesta}}
+  {min {Noston minimi} {Enimmäismäärä, jonka voimme odottaa nostavamme tätä reittiä pitkin ilman, että vastakappaleita työnnetään niiden tavoiteasetuksen ohi}}
+  {max {Noston maksimi} {Enimmäismäärä, jonka voimme odottaa nostavamme tätä reittiä pitkin, mikä saattaa aiheuttaa ylimääräisen tapahtumapalkkion}}
+  {margin {Nostomarginaali} {Palkkiosuhde, jota voimme odottaa siirtäessämme mitä tahansa nostotapahtumaa tätä reittiä pitkin}}
+  {reward {Nostopalkkio} {Lisäpalkkiosuhde, jota voimme odottaa siirtäessämme nostoja, jotka ylittävät noston minimiarvon}}
+} -messages {
+  {BST {Virheellinen reitin tila} {Ei kelvollinen tila reitin tilalle}}
+  {UNI {Ei ainutlaatuinen reitti} {Reiteillä tulisi olla ainutlaatuinen yhdistelmä lähdettä ja kohdetta}}
+  {CRL {Laiton reitin kohde} {Reittien tulisi olla vain käyttäjille muissa järjestelmissä}}
+  {LMG {Laiton marginaali} {Marginaalin on oltava määritetty välillä -1 ja 1}}
+  {LRW {Laiton palkkio} {Palkkion on oltava määritetty välillä -1 ja 1}}
+}
+
+tabtext mychips.routes_v -lang fin {Ulkomaiset reitit} {Näkymä, joka näyttää ulkomaiset vertaiset, joita voidaan tavoittaa jonkin tunnetun ulkomaisen vertaisen kautta} {
+  {via_cuid {Reitti kautta CHIP-käyttäjätunnus} {Sen kirjanpidon omistajan CHIP-käyttäjätunnus, josta reitti alkaa}}
+  {via_agent {Reitti kautta agentti} {Sen kirjanpidon omistajan agentin osoite, josta reitti alkaa}}
+  {via_chad {Reitti kautta osoite} {Täydellinen JSON CHIP-osoite sen kirjanpidon omistajalle, josta reitti alkaa}}
+  {via_tally {Reitti kautta kirjanpito} {Sen kirjanpidon tunnus, josta reitti alkaa}}
+  {vip_cuid {Reittikumppanin CHIP-käyttäjätunnus} {Sen kirjanpidon ulkomaisen kumppanin CHIP-käyttäjätunnus, josta reitti alkaa}}
+  {vip_agent {Reittikumppanin agentti} {Sen kirjanpidon ulkomaisen kumppanin agentin osoite, josta reitti alkaa}}
+  {vip_chad {Reittikumppanin osoite} {Täydellinen JSON CHIP-osoite sen kirjanpidon ulkomaiselle kumppanille, josta reitti alkaa}}
+
+  {req_cuid {Pyyntö CHIP-käyttäjätunnus} {Sen kirjanpidon omistajan CHIP-käyttäjätunnus, jonka kautta reittiä pyydetään}}
+  {req_agent {Pyyntö agentti} {Sen kirjanpidon omistajan agentin osoite, jonka kautta reittiä pyydetään}}
+  {req_chad {Pyyntö osoite} {Täydellinen JSON CHIP-osoite sen kirjanpidon omistajalle, jonka kautta reittiä pyydetään}}
+  {req_tally {Pyyntö kirjanpito} {Sen kirjanpidon tunnus, jonka kautta reittiä pyydetään (tai null paikallisille pyynnöille)}}
+  {rpt_cuid {Pyyntökumppanin CHIP-käyttäjätunnus} {Sen kirjanpidon ulkomaisen kumppanin CHIP-käyttäjätunnus, jonka kautta reittiä pyydetään}}
+  {rpt_agent {Pyyntökumppanin agentti} {Sen kirjanpidon ulkomaisen kumppanin agentin osoite, jonka kautta reittiä pyydetään}}
+  {rpt_chad {Pyyntökumppanin osoite} {Täydellinen JSON CHIP-osoite sen kirjanpidon ulkomaiselle kumppanille, jonka kautta reittiä pyydetään}}
+
+  {dst_chad {Kohteen osoite} {Täydellinen JSON CHIP-osoite entiteetille, jota reitti etsii}}
+  {native {Paikallinen} {Reittiä pyytävä entiteetti on paikallinen käyttäjä}}
+  {tries {Yritykset} {Kuinka monta kertaa tämä reittipyyntö on yrittänyt ilman yhteyttä aiottuun vertaiseen}}
+  {last {Viimeisin yritys} {Milloin viimeisin uudelleenyritys tehtiin}}
+  {expires {Vanhenee} {Milloin tätä reittiä pidetään epävarmana}}
+  {expired {Vanhentunut} {Tämä reitti on epävarma, koska sen vahvistamisesta on kulunut tietty aika}}
+  {state {Tila} {Ilmaisee, miten/onko tämä reitti mahdollisesti käytettävissä}}
+  {lading {Lastaus} {JSON-rakenne, joka kuvaa, paljonko arvoa voidaan nostaa tätä reittiä pitkin ja mitä maksuja voidaan soveltaa}}
+  {json {Reittiobjekti} {Reitin JSON-esitys, jota käytetään vertaisviestinnässä}}
+}
+
+tabtext mychips.route_tries -lang fin {Reitin uudelleenyritykset} {Seuraa, kuinka monta kertaa reitin tilasiirtymäalgoritmi on yrittänyt kommunikoida siirtymää vertaiselle} {
+  {rtry_rid {Uudelleenyrityksen reitin tunnus} {Sen reitin pääavain, jonka uudelleenyrityksiä seuraamme}}
+  {last {Viimeisin yritys} {Viimeisin yrityskerta}}
+  {tries {Yritykset} {Kuinka monta yritystä olemme tehneet}}
+}
+
+tabtext mychips.tallies_v_net -lang fin {Kirjanpidon nostolinkit} {Näkymä, joka näyttää yksittäisen linkin entiteettien välillä, jotka ovat hypoteettisesti sopivia nostolle} {
+  {uuid {Kirjanpidon UUID} {Tähän linkkiin liittyvän kirjanpidon ainutlaatuinen tunniste}}
+  {inp {Syöttösolmun tunnus} {Paikallinen tunnus (tai null, jos ulkomainen vertainen) solmulle, joka antaa arvoa nostossa}}
+  {out {Tulostussolmun tunnus} {Paikallinen tunnus (tai null, jos ulkomainen vertainen) solmulle, joka vastaanottaa arvoa nostossa}}
+  {min {Miniminosto} {Pienin mahdollinen nostettavissa oleva yksikkömäärä tällä linkillä ilman palkkiokustannuksia}}
+  {max {Maksiminosto} {Suurin mahdollinen nostettavissa oleva yksikkömäärä tällä linkillä mahdollisine kustannuksineen}}
+  {margin {Nostomarginaali} {Palkkiosuhde, jota voimme odottaa siirtäessämme mitä tahansa nostotapahtumaa tätä linkkiä pitkin}}
+  {type {Noston tyyppi} {Suunta (nosto tai pudotus), johon nosto tapahtuu tällä verkkolinkillä}}
+  {sign {Linkin etumerkki} {Kertyykö positiivinen vai negatiivinen tähän kirjanpitoon (perustuen varastoon tai vastakappaleeseen)}}
+  {part {Kumppanin tunnus} {Paikallinen tunnus (tai null, jos ulkomainen vertainen) kumppanientiteetille}}
+  {inv {Käännetty} {Tosi, jos linkki on kirjanpito ulkomaisen vertaisen kanssa ja sitä harkitaan pudotukseen (käänteinen nosto)}}
+  {canlift {Voi nostaa} {Ilmaisee nostokapasiteetin tässä kirjanpidossa}}
+}
+
+tabtext mychips.tallies_v_edg -lang fin {Kirjanpidon nostolinkit} {Näkymä, joka näyttää yksittäisen linkin entiteettien välillä, jotka ovat hypoteettisesti sopivia nostolle} {
+  {uuid {Kirjanpidon UUID} {Tähän linkkiin liittyvän kirjanpidon ainutlaatuinen tunniste}}
+  {inp {Syöttösolmun tunnus} {Lähteen käyttäjätunnus (tai null, jos ulkomainen vertainen), josta nosto tulee}}
+  {out {Tulostussolmun tunnus} {Kohteen käyttäjätunnus (tai null, jos ulkomainen vertainen), johon nosto menee}}
+  {min {Miniminosto} {Pienin mahdollinen nostettavissa oleva yksikkömäärä tällä linkillä ilman palkkiokustannuksia}}
+  {max {Maksiminosto} {Suurin mahdollinen nostettavissa oleva yksikkömäärä tällä linkillä mahdollisine kustannuksineen}}
+  {margin {Nostomarginaali} {Palkkiosuhde, jota voimme odottaa siirtäessämme mitä tahansa nostotapahtumaa tätä linkkiä pitkin}}
+  {type {Noston tyyppi} {Suunta (nosto tai pudotus), johon nosto tapahtuu tällä verkkolinkillä}}
+  {sign {Linkin etumerkki} {Kertyykö positiivinen vai negatiivinen tähän kirjanpitoon (perustuen varastoon tai vastakappaleeseen)}}
+  {part {Kumppanin tunnus} {Paikallinen tunnus (tai null, jos ulkomainen vertainen) kumppanientiteetille}}
+  {inv {Käännetty} {Tosi, jos linkki on kirjanpito ulkomaisen vertaisen kanssa ja sitä harkitaan pudotukseen (käänteinen nosto)}}
+}
+
+tabtext mychips.tallies_v_paths -lang fin {Kirjanpidon polut} {Näkymä, joka näyttää verkkopolut paikallisten entiteettien välillä, perustuen niiden välisiin kirjanpitoihin} {
+  {uuids {Kirjanpidon tunnuslista} {Taulukko tällä polulla olevien kirjanpitojen tunnisteista}}
+  {seqs {Järjestysnumerolista} {Taulukko tällä polulla olevien kirjanpitojen järjestysnumeroista}}
+  {signs {Kirjanpidon etumerkkilista} {Taulukko etumerkeistä (+/- = nosto/pudotus) tällä polulla}}
+  {bang {Nostohyöty} {Polun pituuden ja pienimmän nostettavissa olevan yksikkömäärän tulo. Tämä antaa käsityksen tätä polkua pitkin suoritettavan noston suhteellisesta hyödystä.}}
+  {path {Käyttäjätunnuslista} {Taulukko käyttäjätunnuksista tällä polulla}}
+  {ath {Käyttäjätunnukset -ensimmäinen} {Taulukko käyttäjätunnuksista tällä polulla, ei sisällä syöttösolmua}}
+  {pat {Käyttäjätunnus -viimeinen} {Taulukko käyttäjätunnuksista tällä polulla, ei sisällä tulostussolmua}}
+  {at {Käyttäjätunnus sisäinen} {Taulukko käyttäjätunnuksista tällä polulla, ei sisällä syöttö- tai tulostussolmua}}
+  {circuit {Kiertopiiri} {Lippu, joka ilmaisee, että polku muodostaa silmukan päästä päähän}}
+  {edges {Solmun pituus} {Vertaissolmujen määrä tällä polulla}}
+  {nodes {Reunan pituus} {Solmujen välisten linkkien määrä tällä polulla}}
+  {inp {Polun alun tunnus} {Sen käyttäjän entiteettitunnus (tai null, jos ulkomainen vertainen), josta tämä nostopolku alkaa}}
+  {out {Polun lopun tunnus} {Sen käyttäjän entiteettitunnus (tai null, jos ulkomainen vertainen), johon tämä nostopolku päättyy}}
+  {fori {Syöttö ulkomainen} {Tosi, jos polun ensimmäinen solmu ei ole paikallisen järjestelmän käyttäjä}}
+  {foro {Tulostus ulkomainen} {Tosi, jos polun viimeinen solmu ei ole paikallisen järjestelmän käyttäjä}}
+  {bot {Alin käyttäjätunnus} {Sen paikallisen käyttäjän tunnus, joka omistaa kirjanpidon, joka on polun alkupään (syöttö) linkki}}
+  {top {Ylin käyttäjätunnus} {Sen paikallisen käyttäjän tunnus, joka omistaa kirjanpidon, joka on polun loppupään (tulostus) linkki}}
+  {inp_cuid {Polun syöttö CID} {Sen entiteetin CHIP-käyttäjätunnus, josta tämä nostopolku alkaa}}
+  {inp_agent {Polun syöttö agentti} {Sen entiteetin CHIP-agentin osoite, josta tämä nostopolku alkaa}}
+  {inp_chad {Polun syöttö CHAD} {Sen entiteetin täydellinen CHIP-osoite, josta tämä nostopolku alkaa}}
+  {out_cuid {Polun tulostus CID} {Sen entiteetin CHIP-käyttäjätunnus, johon tämä nostopolku päättyy}}
+  {out_agent {Polun tulostus agentti} {Sen entiteetin CHIP-agentin osoite, johon tämä nostopolku päättyy}}
+  {out_chad {Polun tulostus CHAD} {Sen entiteetin täydellinen CHIP-osoite, johon tämä nostopolku päättyy}}
+  {bot_cuid {Alin käyttäjä CID} {Sen paikallisen käyttäjän CHIP-käyttäjätunnus, joka omistaa kirjanpidon, josta tämä nostopolku alkaa}}
+  {bot_agent {Alin käyttäjä agentti} {Sen paikallisen käyttäjän CHIP-agentin osoite, joka omistaa kirjanpidon, josta tämä nostopolku alkaa}}
+  {bot_chad {Alin käyttäjä CHAD} {Sen paikallisen käyttäjän täydellinen CHIP-osoite, joka omistaa kirjanpidon, josta tämä nostopolku alkaa}}
+  {top_cuid {Ylin käyttäjä CID} {Sen paikallisen käyttäjän CHIP-käyttäjätunnus, joka omistaa kirjanpidon, johon tämä nostopolku päättyy}}
+  {top_agent {Ylin käyttäjä agentti} {Sen paikallisen käyttäjän CHIP-agentin osoite, joka omistaa kirjanpidon, johon tämä nostopolku päättyy}}
+  {top_chad {Ylin käyttäjä CHAD} {Sen paikallisen käyttäjän täydellinen CHIP-osoite, joka omistaa kirjanpidon, johon tämä nostopolku päättyy}}
+  {bot_uuid {Alin kirjanpito tunnus} {Tämän polun alkupäässä (syöttö) olevan kirjanpidon tunniste}}
+  {top_uuid {Ylin kirjanpito tunnus} {Tämän polun loppupäässä (tulostus) olevan kirjanpidon tunniste}}
+  {bot_tseq {Alin kirjanpito järjestysnumero} {Tämän polun alkupäässä (syöttö) olevan kirjanpidon järjestysnumero}}
+  {top_tseq {Ylin kirjanpito järjestysnumero} {Tämän polun loppupäässä (tulostus) olevan kirjanpidon järjestysnumero}}
+  {bot_inv {Alin kirjanpito käänteinen} {Tosi, jos nosto kulkee syöttökirjanpidon läpi käänteisessä (pudotus) suunnassa}}
+  {top_inv {Ylin kirjanpito käänteinen} {Tosi, jos nosto kulkee tulostuskirjanpidon läpi käänteisessä (pudotus) suunnassa}}
+  {segment {Nostosegmentti} {Polun syöttö- ja tulostussolmut ovat molemmat ulkomaisia entiteettejä}}
+  {ents {Entiteetit polussa} {Taulukko entiteettitunnuksista tällä polulla}}
+}
+
+tabtext mychips.routes_v_paths -lang fin {Reittipolut} {Näkymä, joka yhdistää sisäiset polut ja mahdolliset ulkoiset reitit mahdollisten nostojen valitsemiseksi} {
+  {circuit {Kiertopiiri} {Tosi, jos tämän reitin ja polun yhdistelmä muodostaa täydellisen kiertopiirin}}
+  {path_margin {Polun marginaali} {Palkkiosuhde, jota voimme odottaa siirtäessämme mitä tahansa nostotapahtumaa sisäistä polkua pitkin}}
+  {path_max {Polun maksimi} {Enimmäismäärä, jonka voimme odottaa nostavamme sisäistä polkua pitkin, mikä saattaa aiheuttaa ylimääräisen tapahtumapalkkion}}
+  {path_min {Polun minimi} {Enimmäismäärä, jonka voimme odottaa nostavamme sisäistä polkua pitkin ilman, että vastakappaleita työnnetään niiden tavoiteasetuksen ohi}}
+  {path_reward {Polun palkkio} {Mikä tahansa lisäpalkkiosuhde, jota voimme odottaa sisäisen polun varrella siirtäessämme nostoja, jotka ylittävät noston minimiarvon}}
+  {route_margin {Reitin marginaali} {Palkkiosuhde, jota voimme odottaa siirtäessämme mitä tahansa nostotapahtumaa ulkoista reittiä pitkin}}
+  {route_max {Reitin maksimi} {Enimmäismäärä, jonka voimme odottaa nostavamme sisäistä polkua pitkin, mikä saattaa aiheuttaa ylimääräisen tapahtumapalkkion}}
+  {route_min {Reitin minimi} {Enimmäismäärä, jonka voimme odottaa nostavamme ulkoista reittiä pitkin ilman, että vastakappaleita työnnetään niiden tavoiteasetuksen ohi}}
+  {route_reward {Reitin palkkio} {Lisäpalkkiosuhde, jota voimme odottaa ulkoisen reitin varrella siirtäessämme nostoja, jotka ylittävät noston minimiarvon}}
+}
+
+tabtext mychips.routes_v_query -lang fin {Kyselyreitit} {Näkymä mahdollisista ulkoisista reiteistä verrattuna olemassa oleviin reittitietueisiin} {
+  {exist {Olemassa} {Tosi, jos taulukossamme on olemassa oleva reitti}}
+  {find_agent {Lajittelija} {Prioriteettikenttä reittien lajitteluun haluttavuuden mukaan}}
+  {find_cuid {Etsi CUID} {Polun syötössä olevan entiteetin CHIP-käyttäjätunnus}}
+  {sorter {Etsi agentti} {Polun syötössä olevan entiteetin agentti}}
+}
+
+tabtext mychips.users_v_tallies -lang fin {Käyttäjät ja kirjanpidot} {Näkymä käyttäjille kuuluvista kirjanpidoista} {
+  {asset {Omaisuussumma} {Kaikkien positiivisen arvon omaavien kirjanpitojen CHIP-kokonaissumma}}
+  {assets {Omaisuuslaskuri} {Positiivisen arvon omaavien kirjanpitojen määrä}}
+  {liab {Velkasumma} {Kaikkien negatiivisen arvon omaavien kirjanpitojen CHIP-kokonaissumma}}
+  {liabs {Velkalaskuri} {Negatiivisen arvon omaavien kirjanpitojen määrä}}
+  {count {Kirjanpitolaskuri} {Tämän käyttäjän kirjanpitojen kokonaismäärä}}
+  {tallies {Kirjanpidot} {Taulukko tämän käyttäjän kirjanpidoista}}
+} -messages {
+  {lenFor {Ulkomaiset linkit} {Ulkomaisten solmujen välisten linkkien suhteellinen pituus}}
+  {lenLoc {Paikalliset linkit} {Muiden paikallisten käyttäjäsolmujen välisten linkkien suhteellinen pituus}}
+  {locPull {Paikallinen veto} {Kuinka voimakkaasti linkkiyhdistin vetää paikallisten käyttäjäsolmujen välillä}}
+  {forPull {Ulkomainen veto} {Kuinka voimakkaasti linkkiyhdistin vetää ulkomaisia solmuja}}
+  {centPull {Keskitys} {Kuinka voimakkaasti solmut hakeutuvat kuvaajan keskelle}}
+  {repel {Solmun hylkiminen} {Kuinka voimakkaasti solmut hylkivät toisiaan}}
+  {vertAlign {Pystysuora kohdistus} {Kuinka voimakkaasti ulkomaiset solmut työnnetään kohdistumaan paikallisen käyttäjän kirjanpitoon}}
+  {floatSink {Kelluvuus} {Kuinka voimakkaasti omaisuudet nousevat ja velat uppoavat}}
+  {simDecay {Alfa-vaimeneminen} {Ohjaa simulaation asettumisen nopeutta}}
+  {velDecay {Nopeuden vaimeneminen} {Simuloi ilmanvastusta}}
+}
+
+tabtext mychips.users_v_tallies_me -lang fin {Käyttäjät ja kirjanpidot} {Käyttöoikeudellinen näkymä, joka näyttää nykyisen käyttäjän kirjanpidot}
+
+tabtext mychips.users_v_tallysum -lang fin {Yhteenveto käyttäjien kirjanpidoista} {Vanhentunut näkymä käyttäjille kuuluvista kirjanpidoista}
+
+tabtext mychips.tallies_v_sum -lang fin {Yhteenveto kirjanpitotiedoista} {Vanhentunut näkymä yhdistetystä kirjanpitodatasta} {
+  {bounds {Vanhentunut}}
+  {client_agents {Vanhentunut}}
+  {client_cuids {Vanhentunut}}
+  {clients {Vanhentunut}}
+  {foil_nets {Vanhentunut}}
+  {foil_seqs {Vanhentunut}}
+  {foil_uuids {Vanhentunut}}
+  {foils {Vanhentunut}}
+  {insides {Vanhentunut}}
+  {clutchs {Vanhentunut}}
+  {foil_net {Vanhentunut}}
+  {nets {Vanhentunut}}
+  {part_agents {Vanhentunut}}
+  {policies {Vanhentunut}}
+  {rewards {Vanhentunut}}
+  {seqs {Vanhentunut}}
+  {states {Vanhentunut}}
+  {stock_net {Vanhentunut}}
+  {stock_seqs {Vanhentunut}}
+  {stock_uuids {Vanhentunut}}
+  {tallies {Vanhentunut}}
+  {targets {Vanhentunut}}
+  {types {Vanhentunut}}
+  {uuids {Vanhentunut}}
+  {vendor_agents {Vanhentunut}}
+  {vendor_cuids {Vanhentunut}}
+  {part_cuids {Vanhentunut}}
+  {part_ents {Vanhentunut}}
+  {stock_nets {Vanhentunut}}
+  {stocks {Vanhentunut}}
+  {vendors {Vanhentunut}}
+}
+
+tabtext mychips.lifts_v_pay -lang fin {Maksut} {Näkymä nostomaksuista entiteeteille, jotka eivät ole suoraan yhteydessä kirjanpitojen kautta}
+
+tabtext mychips.lifts_v_pay_me -lang fin {Omat maksut} {Käyttäjänäkymä nostomaksuista entiteeteille, jotka eivät ole suoraan yhteydessä kirjanpitojen kautta} {
+  {id {Käyttäjätunnus} {Paikallinen tunnus käyttäjälle, jota tämä maksu koskee}}
+  {net {Netto} {Tämän nostomaksun nettovaikutus käyttäjän saldoon}}
+  {memo {Muistio} {Huomautuksia maksusta}}
+  {reference {Viite} {Koneluettavaa tietoa, joka liittyy maksuun}}
+} -messages {
+  {address {Maksuosoite} {Luo linkki tai QR-koodi, jota muut käyttäjät voivat käyttää maksaakseen sinulle}}
+  {payreq {Maksupyyntö} {Tietoja, joita muut voivat käyttää maksaakseen sinulle, jos he eivät ole suoraan yhteydessä sinuun kirjanpidon kautta}}
+  {accept {Hyväksy maksu} {Hyväksy ehdotettu maksunosto}}
+  {reject {Hylkää maksu} {Kieltäydy ehdotetusta maksunostosta}}
+  {request {Pyydä maksua} {Luo maksupyyntö QR-koodina tai linkkinä}}
+}
+
+tabtext mychips.users -lang fin {CHIP-käyttäjät} {Tahot, joilla on CHIP-tilejä tällä palvelimella} {
+  {user_ent {Käyttäjän entiteetti} {Linkki entiteettien perustauluun}}
+  {user_host {Käyttäjän isäntäosoite} {Isäntänimi tai IP-numero, johon käyttäjän mobiilisovellus yhdistää}}
+  {user_port {Käyttäjän portti} {Portti, johon käyttäjän mobiililaite yhdistää}}
+  {user_stat {Kaupankäyntitila} {Käyttäjän CHIP-tilin nykyinen tila kaupankäyntiä varten} {
+    {act {Aktiivinen} {Valmis kaupankäyntiin}}
+    {lck {Lukittu} {Tili hätälukituksessa. Älä tee kauppoja, jotka johtavat luoton nettotappioon.}}
+    {off {Irrotettu} {Tili kokonaan offline-tilassa. Kaupankäynti ei ole mahdollista.}}
+  }}
+  {user_psig {Julkinen avain} {Käyttäjän julkinen avain, joka on muiden kauppakumppanien tiedossa ja jota käytetään tapahtumien vahvistamiseen}}
+  {user_named {Syntymänimi} {Käyttäjän nimi syntymähetkellä, jota käytetään varmennetietueessa}}
+  {user_cmt {Käyttäjän kommentit} {Hallinnolliset kommentit tästä käyttäjästä}}
+  {peer_cuid {CHIP-käyttäjätunnus} {Tunnusmerkkijono tai nimi, joka on ainutlaatuinen tälle käyttäjälle hänen omassa CHIP-palveluntarjoajan järjestelmässään. Samankaltainen kuin sähköpostiosoitteen nimiosio: <CHIP_tunnus>@<Palveluntarjoajan_isäntä_tai_IP>}}
+  {peer_agent {Agentti} {Agentin osoite, jossa tämän käyttäjän liikenne käsitellään}}
+  {peer_huid {Hajautettu tunnus} {Hämärretty versio tunnuksesta, joka voidaan antaa anonyymimpänä kohteena tapahtumalle}}
+  {_lift_check {Viimeisin nosto-tarkistus} {Päivämäärä/aika, jolloin järjestelmä viimeksi yritti selvitysnostoa tälle käyttäjälle}}
+  {_last_tally {Viimeisin tilikirja} {Järjestysnumerogeneraattori tämän käyttäjän tilikirjoille}}
+} -messages {
+  {BRM {Syntymätietueen päivitys} {Syntymätietueen voi käyttäjä kirjoittaa vain kerran}}
+  {UST {Virheellinen kaupankäyntitila} {Kaupankäyntitilalle määritettiin kielletty arvo}}
+}
+
+tabtext mychips.users_v -lang fin {CHIP-käyttäjät} {Tahot, joilla on CHIP-tilejä tällä palvelimella} {
+  {peer_host {Vertaispalvelimen isäntä} {Isäntänimi, jossa muut vertaispalvelimet voivat suorittaa tapahtumia tämän käyttäjän kanssa}}
+  {peer_port {Vertaispalvelimen portti} {Portti, jossa muut vertaispalvelimet voivat suorittaa tapahtumia tämän käyttäjän kanssa}}
+  {json {JSON} {Käyttäjätietue JSON-muodossa}}
+} -messages {
+  {GTK {Luodaan lippua} {Tietokantavirhe tapahtui käyttäjän yhteyslippua luotaessa}}
+  {URF {Tuntematon muoto} {Tuntematon muoto yhteyslipulle}}
+  {TMK {Virheellinen käyttäjänumero} {Yhteysliput täytyy kutsua täsmälleen yhdelle käyttäjälle}}
+  {TIN {Yhteyslippu} {Linkki palveluntarjoajasi käyttöön}}
+  {TIL {Voimassa} {Lippu vanhenee tämän ajan jälkeen}}
+  {ticket {Käyttäjälippu} {Luo väliaikainen, kertakäyttöinen lippu, jolla käyttäjä voi muodostaa suojatun yhteyden palvelimeen}}
+    {ticket.format {Muoto} {Määrittää, minkä tyyppinen yhteyslippu luodaan}}
+      {ticket.format.qr {QR} {Palauta yhteyslippu QR-koodina}}
+      {ticket.format.link {Linkki} {Palauta yhteyslippu deep link URL-osoitteena}}
+      {ticket.format.url {URL} {Palauta yhteyslippu SPA URL-osoitteena}}
+      {ticket.format.json {JSON} {Palauta yhteyslippu JSON-objektina}}
+  {lock {Lukitse tili} {Aseta määritetyt tilit lukitustilaan, jossa kaupankäynti ei ole mahdollista}}
+  {unlock {Avaa tilin lukitus} {Aseta määritetyt tilit toimintatilaan, jossa normaali kaupankäynti on mahdollista}}
+  {summary {Yhteenvetoraportti} {Raportti valitun käyttäjän nykyisestä tilasta}}
+  {trade {Kaupankäyntiraportti} {Raportti, joka näyttää kaupat tietyllä aikavälillä}}
+    {trade.start {Aloituspäivämäärä} {Sisällytä kaupat tästä päivämäärästä alkaen}}
+    {trade.end {Lopetuspäivämäärä} {Sisällytä kaupat tähän päivämäärään asti}}
+  {launch.title {Käyttäjät} {Käyttäjätilien hallinta}}
+  {launch.instruct {Perusohjeet} {
+    <p>Käyttäjät ovat ihmisiä tai yrityksiä, joita tämä järjestelmä isännöi.
+    <p>Käyttäjätilitietue voidaan luoda tyhjästä tai liittää olemassa olevaan entiteettiin}}
+}
+
+tabtext mychips.tallies -lang fin {Kirjanpidot} {Sisältää merkinnän jokaisesta kirjanpidosta, joka on tietue luottotapahtumista kahden kauppakumppanin välillä.} {
+  {tally_ent {Kirjanpidon entiteetti} {Sen entiteetin tai henkilön ID-numero, jolle tämä kirjanpito kuuluu}}
+  {tally_seq {Kirjanpidon järjestysnumero} {Ainutlaatuinen numero tämän entiteetin omistamien kirjanpitojen joukossa}}
+  {tally_uuid {Kirjanpidon UUID} {Maailmanlaajuisesti ainutlaatuinen tunniste tälle kirjanpidolle}}
+  {tally_type {Kirjanpidon tyyppi} {Määrittää, onko tämä entiteetti tyypillisesti velkoja (varasto) vai velallinen (vastakappale) tässä kirjanpidossa} {
+    {stock {Varasto} {Entiteetti, jolle tämä kirjanpito kuuluu, on tyypillisesti myyjä/velkoja tapahtumissa}}
+    {foil {Vastakappale} {Entiteetti, jolle tämä kirjanpito kuuluu, on tyypillisesti ostaja/velallinen tapahtumissa}}
+  }}
+  {tally_date {Kirjanpidon päivämäärä} {Päivämäärä ja aika, jolloin tämä kirjanpito aloitettiin osapuolten välillä}}
+  {version {Versio} {Numero, joka ilmaisee standardimuotoa, jota tämä kirjanpito noudattaa}}
+  {revision {Tarkistus} {Laskuri, joka osoittaa kuinka monta kertaa kirjanpitoa on tarkistettu/vastaehdotettu neuvottelun aikana}}
+  {comment {Kommentti} {Osapuolten kirjoittamat muistiinpanot, kun kirjanpidosta neuvoteltiin}}
+  {contract {Sopimus} {Tätä kirjanpitosopimusta hallinnoiva sopimus} {
+    {name {Nimi} {Hallinnoivan sopimuksen tunnisteen nimi}}
+    {host {Isäntä} {Hallinnoivan sopimuksen tekijän isäntäsivusto (oletus: mychips.org)}}
+    {source {Resurssi} {Hallinnoivan sopimuksen resurssitunniste}}
+  }}
+  {hold_cert {Haltijan varmenne} {Minun tunnistetietoni kirjanpidossa} {
+    {chad {CHIP-osoite} {JSON-objekti, joka kuvaa kuinka/missä muut käyttäjät viestivät MyCHIPs-tapahtumia kanssasi}}
+    {date {Varmenteen päivämäärä} {Aikaleima, joka näyttää milloin tämä varmennetieto luotiin}}
+    {name {Haltijan nimi} {Tietue (tai taulukko) nimistä, joilla sinua puhutellaan}}
+  }}
+  {part_cert {Kumppanin varmenne} {Kumppanini tunnistetiedot}}
+  {hold_sig {Haltijan allekirjoittama} {Tämän kirjanpidon omistavan/hallitsevan entiteetin digitaalinen allekirjoitus}}
+  {part_sig {Kumppanin allekirjoittama} {Tämän kirjanpidon toisen osapuolen digitaalinen allekirjoitus}}
+  {hold_terms {Haltijan ehdot} {Luottoehdot, jotka kirjanpidon haltija on tarjonnut kumppanilleen} {
+    {limit {Luottoraja} {Enimmäismäärä, jonka kumppani on oikeutettu velkaantumaan minulle (haltijalle)}}
+    {call {Maksuvaatimusaika} {Kun minä (haltija) vaadin saldon maksua, kumppanille sallitaan näin monta päivää noudattaa}}
+  }}
+  {part_terms {Kumppanin ehdot} {Luottoehdot, jotka kumppani on tarjonnut minulle (haltijalle)} {
+    {limit {Luottoraja} {Enimmäismäärä, jonka minä (haltija) olen oikeutettu velkaantumaan kumppanilleni}}
+    {call {Maksuvaatimusaika} {Kun kumppani vaatii saldon maksua, minulle (haltijalle) sallitaan näin monta päivää noudattaa}}
+  }}
+  {hold_sets {Haltijan asetukset} {Viimeisimmät ehdot, jotka haltija on vahvistanut kirjanpidolle}}
+  {part_sets {Kumppanin asetukset} {Viimeisimmät ehdot, jotka kumppani on vahvistanut kirjanpidolle}}
+  {digest {Tiiviste} {Digitaalisesti salattu hajautusarvo, joka osoittaa ainutlaatuisen mutta tiivistetyn esityksen kirjanpitoon kuuluvista kriittisistä tiedoista. Aloittaja allekirjoittaa tämän tiivisteen tehdäkseen nostosta sitovan.}}
+
+  {target {Tavoitesaldo} {Ihanteellinen saldo, joka kertyy nostoja suoritettaessa. Tämän arvon ylittäviin nostoihin sovelletaan Ostomarginaali-asetusta.}}
+  {reward {Ostomarginaali} {Kustannus nostoille, jotka ylittävät tavoitearvon (0.01 = 1%). Positiivinen ilmaisee kustannusta tai haittaa. Negatiivinen tarkoittaa, että haltija menettää arvoa!}}
+  {clutch {Myyntimarginaali} {Kustannus negatiivisille nostoille tai 'pudotuksille' (0.01 = 1%). Aseta arvoon 1 estääksesi tehokkaasti tällaiset kaupat. Negatiivinen tarkoittaa, että haltija menettää arvoa!}}
+  {bound {Kaupparaja} {Enimmäismäärä arvoa, jonka kirjanpidon haltija on valmis kerryttämään nostoista}}
+
+  {request {Pyyntö} {Pyydetty seuraava tila kirjanpidolle} {
+    {{} {Ei mitään} {Ei pyyntöä tilan muutokseen}}
+    {void {Mitätöi} {Yksi osapuoli on pyytänyt neuvottelua ennen kuin kirjanpito on avattu}}
+    {draft {Luonnos} {Yksi osapuoli ehdottaa ehtoja kirjanpidolle}}
+    {open {Avaa} {Yksi osapuoli pyytää kirjanpidon avaamista määritettyjen ehtojen mukaisesti}}
+    {close {Sulje} {Yksi osapuoli pyytää lopettamaan lisäkaupankäynnin tällä kirjanpidolla}}
+  }}
+  {status {Tila} {Kirjanpitotietueen nykyinen tila} {
+    {void {Mitätöity} {Kirjanpito on hylätty ennen kuin molemmat osapuolet vahvistivat sen}}
+    {draft {Luonnos} {Kirjanpitoa on ehdottanut yksi osapuoli, mutta toinen osapuoli ei ole vielä hyväksynyt sitä}}
+    {open {Avoin} {Kirjanpidon ovat vahvistaneet molemmat osapuolet, ja sitä voidaan käyttää tositteiden kaupankäyntiin}}
+    {offer {Tarjous} {Kirjanpidon on allekirjoittanut yksi osapuoli, ja se on tarjottu toiselle hyväksyttäväksi}}
+    {close {Suljettu} {Kirjanpidolla ei voi enää käydä kauppaa}}
+  }}
+  {closing {Sulkeminen} {Yksi osapuolista on rekisteröinyt sulkemispyynnön kirjanpidolle}}
+  {part_ent {Kumppanin entiteetti} {Kirjanpidon toisen osapuolen entiteetti-id}}
+  {net_c {Hyvät yksiköt} {Vahvistettujen tositteiden milliCHIP-arvo yhteensä}}
+  {net_pc {Odottavat yksiköt} {Vahvistettujen ja odottavien tositteiden milliCHIP-arvo yhteensä}}
+  {hold_cuid {Haltijan CID} {Välimuistiin tallennettu arvo haltijan CHIP-identiteetistä haltijan varmenteesta}}
+  {part_cuid {Kumppanin CID} {Välimuistiin tallennettu arvo kumppanin CHIP-identiteetistä haltijan varmenteesta}}
+  {hold_agent {Haltijan agentti} {Välimuistiin tallennettu arvo haltijan agentista haltijan varmenteesta}}
+  {part_agent {Kumppanin agentti} {Välimuistiin tallennettu arvo kumppanin agentista haltijan varmenteesta}}
+  {chain_conf {Ketju vahvistettu} {Viimeisen tositteen indeksi ketjussa, joka on vahvistettu kumppanivertaisen kanssa (tai nolla, jos ei yhtään)}}
+  {chain_stat {Ketjun tila} {Kirjanpidon konsensustila} {
+    {non {Ei mitään} {Kirjanpidon puoliskojen välillä ei ole vielä tunnettua konsensusta}}
+    {aff {Vahvistettu} {Kirjanpidon vastakappale on ketjuttanut kaikki tunnetut tositteet ja vahvistanut lopputarkistussumman varastolle}}
+    {pen {Odottava} {Kirjanpidon varasto on ketjuttanut kaikki tunnetut tositteet ja ehdottanut lopputarkistussummaa vastakappaleelle}}
+    {con {Konsensus} {Toinen osapuoli on vahvistanut ketjun lopun tarkistussumman}}
+    {err {Virhe} {Kirjanpidossa on ilmennyt sovittamaton virhe yritettäessä saavuttaa konsensusta toisen puolen kanssa}}
+  }}
+  {_last_chit {Viimeisin tosite} {Käytetään sisäisesti uusien tositetietueiden indeksinumeroiden luomiseen}}
+} -messages {
+  {VER {Virheellinen kirjanpidon versio} {Kirjanpidon version on oltava 1 tai suurempi}}
+  {TCM {Virheellinen kirjanpidon sopimus} {Avoimessa kirjanpidossa on oltava kelvollinen kirjanpitosopimus}}
+  {UCM {Virheellinen käyttäjävarmenne} {Avoimessa kirjanpidossa on oltava käyttäjävarmenne}}
+  {PCM {Virheellinen kumppanivarmenne} {Avoimessa kirjanpidossa on oltava kumppanivarmenne}}
+  {USM {Virheellinen käyttäjän allekirjoitus} {Avoimessa kirjanpidossa on oltava käyttäjän allekirjoitus}}
+  {PSM {Virheellinen kumppanin allekirjoitus} {Avoimessa kirjanpidossa on oltava kumppanin allekirjoitus}}
+  {TGT {Virheellinen tavoite} {Noston tavoitteen on oltava pienempi tai yhtä suuri kuin noston enimmäismäärä}}
+  {BND {Virheellinen raja} {Noston enimmäisrajan on oltava suurempi tai yhtä suuri kuin nolla}}
+  {RWD {Virheellinen palkkiomarginaali} {Nostopalkkion on oltava välillä -1 ja 1}}
+  {CLT {Virheellinen kytkentämarginaali} {Nostokytkennän on oltava välillä -1 ja 1}}
+  {RCV {Virheellinen palkkio/kytkentä} {Jos joko palkkio tai kytkentä on negatiivinen, toisen on oltava vähintään yhtä suuri positiivisena}}
+  {IVR {Virheellinen pyyntö} {Kirjanpidon pyyntöarvo ei ole kelvollinen}}
+  {IVS {Virheellinen tila} {Kirjanpidon tila-arvo ei ole kelvollinen}}
+  {NSP {Sama kumppanin tunnus} {Kirjanpidon kumppanin on oltava erillinen entiteetti}}
+  {TNU {Kirjanpidon tunnus ei ole ainutlaatuinen} {Valittu kirjanpidon tyyppi ja tunnus eivät ole ainutlaatuisia järjestelmässä}}
+  {UCI {CHIP-käyttäjätunnus} {Avoimessa kirjanpidossa on oltava kelvollinen käyttäjän CHIP-käyttäjätunnus}}
+  {PCI {Kumppanin CHIP-käyttäjätunnus} {Avoimessa kirjanpidossa on oltava kelvollinen kumppanin CHIP-käyttäjätunnus}}
+  {UAI {Käyttäjän agenttitunnus} {Avoimessa kirjanpidossa on oltava kelvollinen käyttäjän agenttitunnus}}
+  {PAI {Kumppanin agenttitunnus} {Avoimessa kirjanpidossa on oltava kelvollinen kumppanin agenttitunnus}}
+  {IST {Laiton tilamuutos} {Suoritettu tilasiirtymä ei ole sallittu}}
+  {ISR {Laiton tilapyyntö} {Pyydetty tilasiirtymä ei ole sallittu}}
+}
+
+tabtext mychips.tallies_v -lang fin {Kirjanpidot} {Standardinäkymä, joka sisältää merkinnän jokaisesta kirjanpidosta, joka on tietue luottotapahtumista kahden kauppakumppanin välillä.} {
+  {part_addr {Kumppanin osoite} {Kirjanpidon kumppanin CHIP-osoite (cid:agent)}}
+  {inside {Sisäinen} {Kumppanientiteetti on myös saman järjestelmän isännöimä kuin kirjanpidon omistaja}}
+  {state {Tila} {Laskettu arvo, joka ilmaisee edistymisen tilaa kirjanpidon elinkaaren aikana} {
+    {void {Mitätöity} {Kirjanpito on hylätty ennen kuin molemmat osapuolet vahvistivat sen}}
+    {H.offer {Haltijan tarjous} {Olet allekirjoittanut ja tarjonnut kirjanpidon kumppanillesi}}
+    {P.offer {Kumppanin tarjous} {Kumppanisi on allekirjoittanut ja tarjonnut kirjanpidon sinulle}}
+    {P.draft {Luonnos valmis} {Kumppanisi on liittänyt tietonsa luonnokseen ja odottaa tarjousta}}
+    {open {Avoin} {Kirjanpito on nyt avoin ja sitä voidaan käyttää kauppoihin}}
+    {close {Suljettu} {Kirjanpitoa ei voi enää käyttää kauppoihin}}
+  }}
+  {action {Toiminta} {Ilmaisee, että tämä kirjanpito vaatii jonkinlaista toimintaa käyttäjältä, kuten hyväksymistä, hylkäämistä, vahvistamista jne.}}
+  {liftable {Nostettavissa} {Ilmaisee, voiko kirjanpito osallistua nostoihin}}
+  {net {Kirjanpidon kokonaissumma} {Kirjanpidon milliCHIP-kokonaisarvo, joka on laskettu summaamalla nykyiset tositteet}}
+  {chits {Tositteet} {Kirjanpidossa kirjattujen tositetapahtumien kokonaismäärä}}
+  {latest {Viimeisin tosite} {Kirjanpidon viimeisimmän tositteen päivämäärä}}
+  {json_core {JSON-ydin} {JSON-esitys niistä kirjanpidon osista, jotka digitaalisesti hajautetaan ja allekirjoitetaan}}
+  {json {JSON} {JSON-esitys kirjanpidosta, mukaan lukien digitaalinen hajautus}}
+  {digest_v {Laskettu tiiviste} {Versio hajautustiivisteestä, joka lasketaan alusta alkaen joka kerta, kun se haetaan (verrattavaksi tallennettuun versioon)}}
+  {clean {Puhdas} {Ilmaisee, että tallennettu hajautus vastaa laskettua hajautusta. Tämä on merkki siitä, että kirjanpitoa ei ole peukaloitu.}}
+  {policy {Käytäntö} {JSON-tietue vakionosto- ja pudotusparametreista}}
+  {ack_hash {Kuittaustiiviste} {Viimeisen kuitatun tositteen hajautus ketjussa}}
+  {chits_p {Odottavat tositteet} {Vahvistettujen ja odottavien tositteiden määrä}}
+  {hold_chad {Haltijan osoite} {CHIP-osoitetiedot kirjanpidon haltijalle}}
+  {part_chad {Kumppanin osoite} {CHIP-osoitetiedot kirjanpidon kumppanille}}
+  {hold_host {Haltijan isäntä} {Isäntänimi kirjanpidon haltijaan yhdistämiseksi}}
+  {part_host {Kumppanin isäntä} {Isäntänimi kirjanpidon kumppaniin yhdistämiseksi}}
+  {hold_port {Haltijan portti} {Portti kirjanpidon haltijaan yhdistämiseksi}}
+  {part_port {Kumppanin portti} {Portti kirjanpidon kumppaniin yhdistämiseksi}}
+  {net_p {Netto odottava} {Kirjanpidon CHIP-kokonaissumma vahvistetuista ja odottavista tositteista}}
+  {mag_p {Suuruus} {Kirjanpidon CHIP-kokonaissumman absoluuttinen arvo vahvistetuista ja odottavista tositteista}}
+}
+
+tabtext mychips.tallies_v_me -lang fin {Omat kirjanpidot} {Näkymä, joka sisältää nykyistä käyttäjää koskevat kirjanpidot} {
+} -messages {
+  {GTK {Kirjanpidon luominen} {Kirjanpidon kutsulipun luomisen aikana tapahtui tietokantavirhe}}
+  {URF {Tuntematon muoto} {Tuntematon muoto kirjanpidon kutsulle}}
+  {CNF {Tuntematon sopimus} {Kirjanpidon sopimusta ei löydy}}
+  {TMK {Virheellinen avainnumero} {Kirjanpidon kutsua varten on oltava tasan yksi kirjanpito}}
+  {TIN {Kirjanpidon kutsu} {Seuraa linkkiä harkitaksesi kirjanpitoa}}
+  {TIL {Voimassa} {Kutsu vanhenee tämän ajan jälkeen}}
+  {detail {Kirjanpidon tiedot} {Näytä kaikki tiedot kirjanpidosta}}
+  {close {Sulje kirjanpito} {Pyydä, että nykyinen kirjanpito suljetaan, kun sen saldo saavuttaa nollan}}
+  {P.draft.valid {Kirjanpitokysely} {Joku on vastannut kirjanpitokutsuusi, sisältäen oman tunnistetietosertifikaattinsa}}
+  {H.offer.offer {Sinun tarjouksesi} {Olet tarjonnut tämän kirjanpidon toiselle osapuolelle}}
+  {P.offer.offer {Kirjanpitotarjous} {Toinen osapuoli on tarjonnut sinulle tämän kirjanpidon}}
+  {H.offer.draft {Kirjanpitoa tarkistettu} {Toinen osapuoli on merkinnyt kirjanpitotarjouksen tarkistettavaksi}}
+  {P.draft.draft {Sinä tarkistit} {Olet merkinnyt kirjanpitotarjouksen tarkistettavaksi}}
+  {open.open {Kirjanpito avattu} {Molemmat osapuolet ovat hyväksyneet kirjanpidon, ja se on valmis tapahtumia varten}}
+  {disclose {Lähetä varmenne} {Paljasta varmennetietoni toiselle osapuolelle}}
+  {offer {Tarjoa kirjanpito} {Ehdota kirjanpitoa kumppanille}}
+  {review {Tarkista kirjanpito} {Tarkista ehdotettu kirjanpito}}
+  {accept {Hyväksy kirjanpito} {Hyväksy ehdotettu kirjanpito}}
+  {revise {Tarkista kirjanpito} {Tarkista ehdotettu kirjanpito}}
+  {reject {Hylkää kirjanpito} {Kieltäydy ehdotetusta kirjanpidosta}}
+  {requested {Kirjanpito pyydetty} {Olet paljastanut varmennetiedot ja pyytänyt kirjanpitoa}}
+  {accepted {Kirjanpito hyväksytty} {Kirjanpito on hyväksytty ja valtuutettu}}
+  {rejected {Kirjanpito hylätty} {Kirjanpito on hylätty}}
+  {noterms {Ei kirjanpidon ehtoja} {Määritä luottoehdot ennen kirjanpidon jakamista}}
+  {sort {Kirjanpitojen järjestys} {Hallitse järjestystä, jossa kirjanpidot listataan}}
+  {credit {Luotto} {Luottamus on laajennettu tälle summalle}}
+  {risk {Riski} {Tämän summan suuruinen tappio voi syntyä}}
+  {invited {Haluaa kirjanpitoa} {Pyytää sinua tarjoamaan uutta MyCHIPs-kirjanpitoa}}
+  {nocert {Virheellinen varmenne} {Varmenne puuttuu tai on virheellinen}}
+  {nosig {Virheellinen allekirjoitus} {Digitaalinen allekirjoitus puuttuu tai on virheellinen}}
+  {invite {Kutsu kirjanpitoon} {Luo uusi kirjanpitokutsu tulevalle kumppanille}}
+    {invite.reuse {Uudelleenkäytettävä} {Luo kirjanpitomalli, jota voidaan käyttää uudelleen minkä tahansa kauppakumppanin kanssa}}
+    {invite.format {Muoto} {Määrittää, minkä tyyppinen kutsu luodaan}}
+      {invite.format.qr {qr} {Palauta kirjanpitokutsu QR-koodina}}
+      {invite.format.link {linkki} {Palauta kirjanpitokutsu deep linkkinä (Uniform Resource Locator)}}
+      {invite.format.json {json} {Palauta kirjanpitokutsu JSON-objektina}}
+  {trade {Kauppa-asetukset} {Kirjanpidon kauppamuuttuja-asetusten graafinen näkymä}}
+    {trade.format {Kaaviomuoto} {Miten palauttaa kaavioraportin tiedot}}
+      {trade.format.html {html} {Palauta HTML-katkelman, joka sisältää raportin}}
+      {trade.format.url {url} {Palauta URL-linkki verkkosivulle, joka sisältää raportin}}
+    {trade.direct {Suorat tositteet} {Polku, joka näyttää suorat kirjanpitomaksut}}
+    {trade.lift {Saapuvat nostot} {Polku, joka näyttää luottonostot kumppanilta}}
+    {trade.drop {Lähtevät nostot} {Polku, joka näyttää luottonostot kumppanille}}
+    {trade.reset {Palauta asetukset} {Palauta näyttö kirjanpidon nykyisiin asetuksiin}}
+    {trade.submit {Käytä asetukset} {Tallenna nykyiset asetukset kirjanpidon toimintaan}}
+  {file {Asiakirjatiedosto} {Hae mitkä tahansa kumppanin tiedostoliitteet viitatusta kirjanpidosta}}
+    {file.format {Palautusmuoto} {Miten palauttaa kaavioraportin tiedot}}
+      {file.format.html {html} {Palauta HTML-asiakirja, joka näyttää tiedosto-objektit}}
+      {file.format.json {json} {Palauta tiedostotiedot JSON-objektina}}
+    {file.digest {Tiedostotiiviste} {Määrittää palautettavan yksittäisen asiakirjatiedoston base64url-hajautuksen}}
+  {agree {Esikatsele sopimus} {Luo kirjanpitosopimus jaettavana PDF-asiakirjana}}
+    {agree.format {Sopimusmuoto} {Miten palauttaa kirjanpitosopimuksen raporttitiedot}}
+      {agree.format.html {html} {Palauta HTML-katkelman, joka sisältää raportin}}
+      {agree.format.url {url} {Palauta URL-linkki verkkosivulle, joka sisältää raportin}}
+    {agree.data {Kirjanpitotiedot} {Kirjanpidosta olennaiset parametrit kirjanpitosopimuksen kannalta on esitetty alla. Nämä parametrit määrittävät osapuolet ja lisäehdot, jotka liittyvät heidän kirjanpitosopimukseensa.}}
+    {agree.terms.foil {Vastakappale-ehdot} {Vastakappaleen haltijan asettamat ehdot, jotka on laajennettu varastohaltijalle}}
+    {agree.terms.stock {Varasto-ehdot} {Varastohaltijan asettamat ehdot, jotka on laajennettu vastakappaleenhaltijalle}}
+    {agree.cert.foil {Vastakappale-varmenne} {Vastakappaleen haltijan tunnistetiedot}}
+    {agree.cert.stock {Varasto-varmenne} {Varastohaltijan tunnistetiedot}}
+    {agree.sign {Sovittu} {Osapuolten digitaaliset allekirjoitukset}}
+    {agree.other {Muut tiedot} {Lisätietoja kirjanpidossa}}
+  {launch.title {Kirjanpidot} {Vertaiskauppasuhteet}}
+  {launch.instruct {Perusohjeet} {
+    <p>Kirjanpitoja käytetään dokumentoimaan ja seuraamaan kauppasopimuksia kumppaneiden välillä.
+    <p>Voit ehdottaa uutta kirjanpitoa muokkausruudun toimintovalikosta.
+  }}
+  {launch.pay {Lähetä maksu} {Lähetä suora maksu tälle kirjanpitokumppanille}}
+  {launch.request {Pyydä maksua} {Pyydä suoraa maksua tältä kirjanpitokumppanilta}}
+  {launch.detail {Näytä kirjanpito} {Näe lisätietoja tästä kirjanpidosta}}
+  {launch.chits {Tositehistoria} {Näe menneisyyden ja odottavat tositteet tässä kirjanpidossa}}
+  {notify.draft {Aloita kirjanpito} {Joku haluaa vastata kutsuusi avata MyCHIPs-kirjanpito}}
+  {notify.P.offer {Kirjanpitotarjous} {Olet saanut tarjouksen avata MyCHIPs-kirjanpito}}
+}
+
+tabtext mychips.tally_tries -lang fin {Kirjanpidon uudelleenyritykset} {Taulukko sisältää tietoja uudelleenyrityksistä vertaisten kanssa kirjanpitojen muodostamiseksi} {
+  {ttry_ent {Kirjanpidon entiteetti} {Entiteetti, joka omistaa kirjanpidon}}
+  {ttry_seq {Kirjanpidon järjestysnumero} {Kirjanpidon ainutlaatuinen järjestysnumero}}
+  {tries {Uudelleenyritykset} {Kuinka monta kertaa vertaispalvelin on yrittänyt toimia tämän kirjanpidon tilapyynnön mukaan}}
+  {last {Viimeisin yritys} {Milloin viimeksi yritettiin käsitellä tilamuutoksia tässä kirjanpidossa}}
+}
+
+tabtext mychips.chits -lang fin {Tositteet} {Sisältää merkinnän jokaisesta luottovirran tapahtumasta kumpaankin suuntaan kirjanpidon osapuolten välillä.} {
+  {chit_ent {Tositteen entiteetti} {Sen entiteetin tunnus, joka omistaa tositteen kuuluvan kirjanpidon}}
+  {chit_seq {Tositteen järjestysnumero} {Kirjanpidon järjestysnumero, johon tämä tosite kuuluu}}
+  {chit_idx {Tositteen indeksi} {Ainutlaatuinen tunniste kirjanpidon sisällä, joka yksilöi tämän tositteen}}
+  {chit_uuid {Tositteen UUID} {Maailmanlaajuisesti ainutlaatuinen tunniste tälle tapahtumalle}}
+  {chit_type {Tositteen tyyppi} {Tämän luottovirran edustaman tapahtuman tyyppi} {
+    {lift {Luottonosto} {Tapahtuma on osa luottonostoa, joten useita tositteita pitäisi olla samalla ID-numerolla, jotka kaikki nettoavat nollaan vaikutuksessaan asianomaiseen entiteettiin}}
+    {tran {Tapahtuma} {Luotto myönnetään vastineeksi nykyisistä tai tulevista tavaroista, palveluista tai muusta, mahdollisesti hyväntekeväisyydellisestä, vastikkeesta.}}
+    {set {Käyttäjäasetus} {Tosite todistaa osapuolen (varasto tai vastakappale) asettaneen muutoksen tiettyihin kirjanpidon toimintaparametreihin}}
+  }}
+  {chit_date {Päivämäärä/Aika} {Päivämäärä ja aika, jolloin tämä tapahtuma astuu voimaan}}
+  {issuer {Myöntäjä} {Ilmaisee, onko varaston haltija vai vastakappaleen haltija luonut (ja allekirjoittanut) tositteen. Tapahtuma- ja nostotositteille tämä ilmaisee, mihin suuntaan arvo virtaa (myöntäjältä vastaanottajalle).}}
+  {units {Yksiköt} {Tapahtuman määrä, mitattuna milli-CHIPeinä (1/1000 CHIPiä)}}
+  {reference {Viite} {Mikä tahansa mielivaltainen JSON-data tapahtumasta, jolla on merkitystä osapuolille. Voi viitata laskuun, ostotilaukseen, rekisteriin, muuhun asiakirjaan, joka todistaa toimitetut tavarat tai palvelut, ja kauppasuhdetta osapuolten välillä. Asetustositteille tämä sisältää vahvistettavat asetukset.}}
+  {memo {Muistio} {Mikä tahansa muu ihmisen luettavissa oleva tekstikuvaus, asiayhteys tai selitys tapahtumalle}}
+  {digest {Tiivistehajautus} {Tositteen tapahtuman hajautus, joka allekirjoitetaan digitaalisesti}}
+  {signature {Allekirjoitus} {Tapahtuman valtuuttavan osapuolen digitaalinen allekirjoitus}}
+  {status {Tila} {Tilakentästä näkyy, onko tila edennyt pisteeseen, jossa tositteen määrää voidaan pitää odottavana tai lopullisena} {
+    {draft {Luonnos} {Tosite on ehdotettu tai sitä työstetään, mutta se ei vielä vaikuta kirjanpidon arvoon}}
+    {pend {Odottava} {Tosite on osa nostoa, jonka valmistumistilaa ei vielä tiedetä}}
+    {good {Hyvä} {Tosite on asianmukaisesti allekirjoitettu ja pätevä velvoite}}
+    {void {Mitätöity} {Tosite on merkitty virheelliseksi, ja se voidaan jättää huomiotta}}
+  }}
+  {request {Pyyntö} {Tositteiden tilasiirtymäalgoritmi vastaa tähän kenttään syötettyihin siirtymäpyyntöihin.} {
+    {{} {Ei mitään} {Muutosta ei pyydetä}}
+    {draft {Luonnos} {Haltija pyytää tositteen siirtämistä luonnostilaan}}
+    {good {Hyvä} {Haltija pyytää tositteen siirtämistä hyvään tilaan}}
+    {void {Mitätöi} {Haltija pyytää tositteen siirtämistä mitätöityyn tilaan}}
+  }}
+  {chain_idx {Ketjuindeksi} {Ilmaisee tositetietueiden järjestyksen hajautusketjussa. Ensimmäinen tosite numeroidaan numerolla 1}}
+  {chain_msg {Ketjuviesti} {Sisältää ketjutustietoja, jotka kommunikoidaan kumppanille tositteen konsensuksesta}}
+  {chain_prev {Ketjun edellinen} {Kopio edellisen hajautusketjun tositteen hajautuksesta}}
+  {chain_dgst {Ketjutiiviste} {Nykyisen tositetietueen hajautustiiviste, joka sisältää edellisen tietueen hajautuksen muodostaakseen hajautusketjun}}
+  {lift_seq {Noston järjestysnumero} {Jos tosite on osa nostotapahtumaa, tämä ilmaisee, mihin kirjanpitotietueeseen tositteet kuuluvat. Joissakin tapauksissa voi olla useampi kuin yksi nostotietue nostoa kohti.}}
+} -messages {
+  {BRQ {Virheellinen tositekysely} {Ei kelvollinen arvo tositepyynnölle}}
+  {BCT {Virheellinen tositetyyppi} {Ei kelvollinen tyyppi tositteelle}}
+  {GDS {Allekirjoitustarkistus} {Hyvässä tilassa olevien tositteiden on sisällettävä allekirjoitus}}
+  {BST {Virheellinen tositetila} {Ei kelvollinen arvo tilakentälle}}
+  {BLL {Virheellinen noston järjestysnumero} {Vain nostotositteiden pitäisi sisältää noston järjestysnumero}}
+  {CUU {Tosite ei ole ainutlaatuinen} {Tositteen UUID:n on oltava ainutlaatuinen jokaiselle kirjanpidolle}}
+  {ISR {Laiton tilapyyntö} {Pyydetty tilasiirtymä ei ole sallittu}}
+  {IST {Laiton tilamuutos} {Suoritettu tilasiirtymä ei ole sallittu}}
+  {LIT {Linkitä virheellinen kirjanpito} {Yritettiin linkittää tosite virheelliseen kirjanpitoon}}
+  {ILI {Laiton tositteen myöntäjä} {Käyttäjä yritti suorittaa hyvän tositteen, jonka on myöntänyt kumppani}}
+  {MIS {Virheellinen tositteen allekirjoitus} {Hyväksi merkityllä tositteella ei ole allekirjoitusta}}
+  {CUN {Virheelliset tositeyksiköt} {Tapahtumatositteilla on oltava yksikköarvo. Asetustositteilla ei saa olla.}}
+}
+
+tabtext mychips.chits_v -lang fin {Tositteet} {Standardinäkymä, joka sisältää merkinnän jokaisesta tositteesta, joka on arvonsiirto kahden kauppakumppanin välillä yhdessä kirjanpidossa.} {
+  {net {Nettoarvo} {Tositteen määrä ilmaistuna positiivisena tai negatiivisena lukuna riippuen siitä, miten se kertyy tämän kirjanpitopuoliskon haltijalle.}}
+  {net_g {Hyvä arvo} {Tämän tositteen nettoarvo, joka on asianmukaisesti allekirjoitettu ja sitä pidetään sitovana.}}
+  {net_p {Odottava arvo} {Tämän tositteen nettoarvo, kun sitä ei ole vielä allekirjoitettu. Arvo täällä osoittaa, että se on edelleen odottava eikä lopullinen.}}
+  {state {Tila} {Tilaa käytetään seuraamaan tapahtumaa prosessissa} {
+    {A.good {Omaisuus hyvä} {Sinulle luvattu tosite sitoo toista osapuolta}}
+    {A.pend {Omaisuus odottava} {Odotat tositteen valtuutusta toiselta osapuolelta}}
+    {A.void {Omaisuus mitätöity} {Sinulle luvattu tosite on peruutettu}}
+    {L.good {Vastuu hyvä} {Olet valtuuttanut tositteen lupauksen toiselle osapuolelle}}
+    {L.pend {Vastuu odottava} {Tosite odottaa valtuutusalakirjoitustasi}}
+    {L.void {Vastuu mitätöity} {Sinun lupaama tosite on peruutettu}}
+  }}
+  {action {Toimenpide vaaditaan} {Ilmaisee, että tämä kirjanpito vaatii jonkinlaista toimintaa käyttäjältä, kuten hyväksymistä, hylkäämistä, vahvistamista jne.}}
+  {json_core {JSON-ydin} {JSON-esitys niistä tositteen tapahtuman osista, jotka digitaalisesti hajautetaan ja allekirjoitetaan}}
+  {json {JSON} {JSON-esitys tositteen tapahtumasta, mukaan lukien digitaalinen hajautus}}
+  {chain {Ketjuviesti} {Tositteen ketjuttamisen konsensustiedot}}
+  {json_chain {JSON ketjulla} {JSON-esitys tositteesta, jota käytetään konsensusviesteihin}}
+  {hash_v {Laskettu tiiviste} {Versio hajautustiivisteestä, joka lasketaan alusta alkaen joka kerta, kun se haetaan (verrattavaksi tallennettuun versioon)}}
+  {clean {Puhdas} {Ilmaisee, että tallennettu hajautus vastaa laskettua hajautusta. Tämä on merkki siitä, että tietuetta ei ole peukaloitu.}}
+  {cstate {Konsensustila} {Tositteen tila konsensusalgoritmin määritelmän mukaan}}
+}
+
+tabtext mychips.chits_v_me -lang fin {Omat tositteet} {Näkymä kaikista tapahtumista nykyisen käyttäjän kirjanpidoissa} {
+} -messages {
+  {detail {Tositteen tiedot} {Näytä kaikki tiedot tositteesta}}
+  {pending {Odottavat tositteet} {Tositteet, jotka on ehdotettu mutta ei vielä hyväksytty}}
+  {asset {Omaisuus} {Kumppanisi myöntämä tosite sinulle maksamiseksi}}
+  {liability {Vastuu} {Sinun myöntämä tosite kumppanillesi maksamiseksi}}
+  {dirpmt {Suora maksu} {Sinun myöntämä maksu kumppanillesi maksamiseksi}}
+  {dirreq {Suora pyyntö} {Sinun pyytämä maksu kumppaniltasi}}
+  {approve {Hyväksy tosite} {Valtuuta ja allekirjoita pyydetty tosite}}
+  {reject {Hylkää tosite} {Kieltäydy maksamasta pyydettyä tositetta}}
+  {approved {Tosite hyväksytty} {Tosite on hyväksytty ja valtuutettu}}
+  {rejected {Tosite hylätty} {Tosite on hylätty}}
+  {chits {Tositehistoria} {Luettelo aiemmista maksutositteista}}
+}
+
+tabtext mychips.chits_v_chains -lang fin {Tositeketjut} {Sisältää tietoja arvosiirtotietueiden (tositteiden) hajautuslinkitetyistä ketjuista} {
+  {ent {Entiteetti} {Sen entiteetin tunnus, joka omistaa ketjun kuuluvan kirjanpidon}}
+  {seq {Järjestysnumero} {Kirjanpidon omistajan järjestysnumero, johon ketju kuuluu}}
+  {chain_idx {Ketjuindeksi} {Tietueen numero ketjussa. Peruskirjanpito on -1, ensimmäinen tosite on 0, toinen tosite on 1...}}
+  {chain_prev {Edellinen hajautus} {Sisältää edellisen linkin (tosite tai kirjanpito) hajautuksen ketjussa}}
+  {prev_ok {Edelliset linkit} {On tosi, jos tämä ja kaikki edelliset tietueet sisältävät oikein edellisestä tietueesta kopioidun hajautuksen}}
+  {hash_ok {Edelliset hajautukset} {On tosi, jos tämä ja kaikki edelliset tietueet sisältävät tarkan hajautuksen relevanteista tiedoista tietueessaan}}
+  {ok {Ketju kelvollinen} {Tosi, jos kaikki hajautukset on laskettu oikein tämän tietueen läpi}}
+  {last {Ketjun loppu} {Tosi, jos tämä on ketjun viimeinen tietue}}
+  {length {Pituus} {Ilmaisee, kuinka monta tositetta on osa ketjua}}
+  {uuids {UUID-lista} {Sisältää luettelon ketjun kunkin tositteen (ja kirjanpidon) maailmanlaajuisista tunnisteista}}
+}
+
+tabtext mychips.chit_tries -lang fin {Tositteen uudelleenyritykset} {Seuraa, kuinka monta kertaa tositteen tilasiirtymäalgoritmi on yrittänyt kommunikoida siirtymää vertaiselle} {
+  {ctry_ent {Entiteetti} {Entiteetti, jolle tosite/kirjanpito kuuluu}}
+  {ctry_seq {Järjestysnumero} {Kirjanpidon/tositteen järjestysnumero}}
+  {ctry_idx {Indeksi} {Tämän tositteen indeksinumero}}
+  {last {Viimeisin yritys} {Edellinen yrityskerta}}
+  {tries {Yritykset} {Kuinka monta yritystä on kertynyt}}
+}
+
+tabtext mychips.lifts -lang fin {Nostot} {Sisältää tietueen jokaisesta segmentin tositeryhmästä, joka kuuluu nostotapahtumaan} {
+  {lift_uuid {Noston UUID} {Maailmanlaajuisesti ainutlaatuinen tunniste tälle nostolle. Se on sama tunniste kaikissa palvelimissa, jotka osallistuvat samaan tapahtumaan.}}
+  {lift_seq {Noston järjestysnumero} {Nosto voi kulkea yksittäisen tietokannan läpi useita kertoja. Tämä kasvaa jokaiselle uudelle nostotietueelle, joka luodaan tämän tapahtuessa.}}
+  {lift_type {Noston tyyppi} {Onko/miten tämä nostotietue on peräisin} {
+    {in {Sisäinen} {Nosto rajoittuu yhteen tietokantaan}}
+    {org {Alkuperä} {Nosto sai alkunsa paikallisessa tietokannassa, mutta se levitetään muille sivustoille}}
+    {rel {Rele} {Nosto syntyi toisella sivustolla ja levitettiin tälle sivustolle}}
+  }}
+  {request {Pyyntö} {Nostojen tilasiirtymäalgoritmi vastaa tähän kenttään syötettyihin siirtymäpyyntöihin.}}
+  {status {Tila} {Tilakentästä näkyy, mitä on tehty ja mitä pitää tapahtua seuraavaksi, jos mitään}}
+  {tallies {Kirjanpidot} {Taulukko paikallisen segmenttireitin käyttäjien/vertaisten välisten kirjanpitojen maailmanlaajuisista tunnisteista}}
+  {signs {Nostot/pudotukset} {Kokonaislukutaulukko, joka näyttää, tapahtuuko nosto varastolta-vastakappaleelle (-1) vai vastakappaleelta-varastolle (1)}}
+  {circuit {Kiertopiirin käyttäjä} {Pyöreissä nostoissa tämä on alin paikallinen käyttäjä paikallisessa segmentissämme. Se on entiteetti, joka täydentää ympyrän. Lineaarisille nostoille tämä kenttä on tyhjä.}}
+  {units {Yksiköt} {Nostotapahtuman määrä, mitattuna milli-CHIPeinä (1/1,000)}}
+  {lift_date {Noston päivämäärä} {Päivämäärä/aika, jolloin nosto aloitettiin}}
+  {life {Elinaika} {Aika, jonka jälkeen välimiestuomari katsoo noston vanhentuneeksi}}
+  {payor_ent {Maksaja-entiteetti} {Paikallinen entiteettitunnus, joka valtuuttaa tämän noston maksuna}}
+  {payee_ent {Maksunsaaja-entiteetti} {Paikallinen entiteettitunnus tämän noston vastaanottajalle maksuna}}
+  {payor_auth {Maksajan valtuutus} {Nostomaksun tiedot} {
+    {ref {Viite} {Mikä tahansa mielivaltainen JSON-data tapahtumasta, jolla on merkitystä osapuolille. Voi viitata laskuun, ostotilaukseen, rekisteriin, muuhun asiakirjaan, joka todistaa toimitetut tavarat tai palvelut, ja kauppasuhdetta osapuolten välillä.}}
+    {memo {Muistio} {Ihmisen luettavissa oleva tekstikuvaus, asiayhteys tai selitys tapahtumalle}}
+    {sign {Allekirjoitus} {Maksajan digitaalinen allekirjoitus, joka valtuuttaa agentin suorittamaan noston}}
+  }}
+  {agent_auth {Agentin valtuutus} {Tiedot noston valtuuttamisesta} {
+    {agent {Agentti} {Noston valtuuttavan agentin julkinen avain}}
+    {sign {Allekirjoitus} {Agentin digitaalinen allekirjoitus}}
+  }}
+  {signature {Allekirjoitus} {Noston aloittajan digitaalinen allekirjoitus, joka osoittaa, että tapahtuma on sitova.}}
+  {session {Istuntokoodi} {Nostonneuvotteluistunnolle ainutlaatuinen koodi}}
+  {transact {Tapahtuma} {Nostoneuvottelutapahtuman tulokset}}
+  {find {Kohde} {Sen entiteetin JSON CHIP-osoite, jota etsimme linjan päästä tälle nostolle. Pyöreissä nostoissa se on ulkomainen vertaispari paikallisen segmenttimme pohjalla.}}
+  {origin {Alkuperä} {JSON-tietue, joka kuvaa tietoja siitä, kuinka/missä nosto sai alkunsa. Jotkut osat on salattu vain kohdeagentin silmille.}}
+  {referee {Välimies} {Sivuston JSON CHIP-osoite, joka päättää, milloin nosto on vanhentunut}}
+  {digest {Hajautus} {Nostotietojen SHA-256-hajautusarvo}}
+} -messages {
+  {CIF {Tositteen epäonnistuminen} {Operaatio ei onnistunut luomaan tositteita oikein nostoa varten}}
+  {MDA {Puuttuva agentti} {Kohde-CHIP-osoite annettiin määrittämättä agentin osoitetta}}
+  {IVR {Virheellinen pyyntö} {Yritettiin asettaa nostopyyntö kielletylle arvolle}}
+  {IVS {Virheellinen tila} {Yritettiin asettaa noston tila kielletylle arvolle}}
+  {IVT {Virheellinen tyyppi} {Yritettiin luoda nostotietue kielletyllä tyypillä}}
+}
+
+tabtext mychips.lifts_v -lang fin {Nostot} {Standardinäkymä, joka sisältää merkinnän jokaisesta nostosta lisähyödyllisine johdettuine kenttineen} {
+  {state {Tila} {Johdettu tila- ja pyyntösarakkeista näyttämään nykyinen siirtymätila}}
+  {json {JSON} {JSON-esitys nostotapahtumasta, mukaan lukien digitaalinen hajautus}}
+  {json_core {JSON-ydin} {JSON-esitys niistä nostotapahtuman osista, jotka digitaalisesti hajautetaan ja allekirjoitetaan}}
+  {digest_v {Laskettu tiiviste} {Versio hajautustiivisteestä, joka lasketaan alusta alkaen joka kerta, kun se haetaan (verrattavaksi tallennettuun versioon)}}
+  {clean {Puhdas} {Ilmaisee, että tallennettu hajautus vastaa laskettua hajautusta. Tämä on merkki siitä, että nostotietuetta ei ole peukaloitu.}}
+  {expires {Vanhentuu} {Päivämäärä/aika, jolloin välimies katsoo noston vanhentuneeksi}}
+  {remains {Jäljellä} {Aika ennen vanhentumista, paikallinen nostotietue luotiin ja sitten välitettiin eteenpäin}}
+}
+
+tabtext mychips.lifts_v_me -lang fin {Omat nostot} {Näkymä, joka näyttää käyttäjille yksittäisten nostojen nettovaikutuksen heidän saldoihinsa} {
+  {seqs {Järjestysnumerot} {Tähän nostoon liittyvien kirjanpitojen/tositteiden järjestysnumerot}}
+  {idxs {Indeksit} {Tähän nostoon liittyvien tositteiden indeksinumerot}}
+}
+
+tabtext mychips.lifts_v_dist -lang fin {Hajautetut nostot} {Standardinäkymä, joka sisältää merkinnän jokaisesta nostosta lisähyödyllisine johdettuine kenttineen, jotka koskevat hajautettuja (ei paikallisia) nostoja} {
+  {top_chad {Ylä-osoite} {Sen entiteetin CHIP-osoite, joka pitää hallussaan tämän noston paikallisen segmentin yläosan (lähtö) kirjanpitoa}}
+  {bot_chad {Ala-osoite} {Sen entiteetin CHIP-osoite, joka pitää hallussaan tämän noston paikallisen segmentin alaosan (tulo) kirjanpitoa}}
+  {top_tally {Ylä-kirjanpito} {Tämän noston paikallisen segmentin yläosan (lähtö) kirjanpidon uuid}}
+  {bot_tally {Ala-kirjanpito} {Tämän noston paikallisen segmentin alaosan (tulo) kirjanpidon uuid}}
+  {origin_v {Alkuperämalli} {Oletuspohja uuden noston alkuperä-ominaisuudelle}}
+  {find_v {Etsi malli} {Oletuspohja uuden noston kohde-ominaisuudelle}}
+  {referee_v {Välimies-malli} {Oletuspohja uuden noston välimies-ominaisuudelle}}
+  {out_chad {Lähtö-osoite} {Kumppanin CHIP-osoite tämän noston paikallisen segmentin yläosan (lähtö) kirjanpidossa}}
+  {inp_chad {Tulo-osoite} {Kumppanin CHIP-osoite tämän noston paikallisen segmentin alaosan (tulo) kirjanpidossa}}
+}
+
+tabtext mychips.users_v_me -lang fin {Nykyinen käyttäjä} {Näkymä, joka sisältää vain nykyisen käyttäjän tiedot} {
+  {cert {Varmenne} {JSON-objekti, joka sisältää kaikki käyttäjän saatavilla olevat varmennetiedot} {
+    {chad {CHIP-osoite} {JSON-objekti, joka kuvaa kuinka/missä muut käyttäjät viestivät MyCHIPs-tapahtumia kanssasi}}
+    {chad.cid {CHIP-tunnus} {Nimi, jolla MyCHIPs-agenttiprosessisi tunnistaa sinut yksilöllisesti}}
+    {chad.host {Isäntä} {Internet-isäntäosoite, josta agenttisi on tavoitettavissa}}
+    {chad.port {Portti} {Porttinumero, josta agenttisi on tavoitettavissa}}
+    {chad.agent {Agentti} {Agenttisi osoite / julkinen avain}}
+    {date {Päivämäärä} {Aikaleima, joka näyttää milloin nämä varmennetiedot luotiin}}
+    {name {Nimi} {Tietue (tai taulukko) nimistä, joilla sinua puhutellaan}}
+    {name.first {Etunimi} {Ensimmäinen etunimesi}}
+    {name.prefer {Kutsumanimi} {Nimi, jolla haluat itseäsi kutsuttavan}}
+    {name.surname {Sukunimi} {Sukunimesi}}
+    {type {Entiteettityyppi} {Minkä tyyppinen entiteetti olet (p:henkilö, o:organisaatio)}}
+    {place {Osoitteet} {Taulukko fyysisistä tai postiosoitteista}}
+    {place.type {Tyyppi} {Osoitteen tyyppi}}
+    {place.address {Katu} {Katuosoite tai postilokero tälle osoitteelle}}
+    {place.city {Kaupunki} {Kaupunki, jossa tämä osoite sijaitsee}}
+    {place.state {Osavaltio} {Osavaltio, jossa tämä osoite sijaitsee}}
+    {place.post {Postinumero} {Postinumero tälle osoitteelle}}
+    {place.country {Maa} {Maa, jossa tämä osoite sijaitsee}}
+    {place.comment {Kommentti} {Huomautus, joka selittää tätä osoitetta}}
+    {public {Julkinen avain} {Julkinen osa avaimesta, jota käytät tapahtumien allekirjoittamiseen}}
+    {connect {Yhteydet} {Taulukko puhelinnumeroista, sähköpostiosoitteista tai vastaavista yhteyspisteistä}}
+    {connect.media {Media} {Yhteyspisteen tyyppi}}
+    {connect.address {Osoite} {Puhelinnumero, sähköpostiosoite tai vastaava}}
+    {connect.comment {Kommentti} {Huomautus tästä yhteyspisteestä}}
+    {file {Liitteet} {Taulukko muista tiedostoasiakirjoista, joita annat henkilöllisyytesi vahvistamiseksi}}
+    {file.media {Tiedostotyyppi} {Asiakirjan tyyppi (bio, id, photo, cert, other)}}
+    {file.digest {Tiiviste} {Asiakirjan yksilöllinen tunnistehajautus}}
+    {file.format {Muoto} {Asiakirjan tiedostomuoto}}
+    {file.comment {Kommentti} {Selittävä huomautus asiakirjasta}}
+    {identity {Henkilöllisyys} {Taulukko tietueista, jotka yksilöivät sinut ainutlaatuisesti}}
+    {identity.birth {Syntymä} {Syntymääsi liittyvät ainutlaatuiset tiedot}}
+    {identity.birth.date {Syntymäaika} {Päivämäärä, jolloin synnyit}}
+    {identity.birth.name {Syntymänimi} {Alkuperäinen nimesi, jos se on muuttunut}}
+    {identity.birth.place {Syntymäpaikka} {Missä asuit syntyessäsi}}
+    {identity.birth.place.address {Syntymäosoite} {Katu ja numero, jossa asuit syntyessäsi}}
+    {identity.birth.place.city {Syntymäkaupunki} {Kaupunki, jossa asuit syntyessäsi}}
+    {identity.birth.place.state {Syntymäosavaltio} {Osavaltio, jossa asuit syntyessäsi}}
+    {identity.birth.place.post {Syntymäpostinumero} {Postinumero paikalle, jossa asuit syntyessäsi}}
+    {identity.birth.place.country {Syntymämaa} {Maa, jossa asuit syntyessäsi}}
+    {identity.state {Valtion myöntämä} {Virallinen henkilötodistus, jonka maa on myöntänyt sinulle}}
+    {identity.state.id {Valtion tunniste} {Virallinen valtion tunnistenumerosi (kuten henkilötunnus)}}
+    {identity.state.country {Myöntäjävaltio} {Osavaltio/maa, joka myönsi henkilötunnuksen}}
   }}
 } -messages {
-  {ABC {Koetus 1} {Ensimmäinen testiviesti}}
-  {BCD {Koetus 2} {Toinen testiviesti}}
-  {DEF {Koetus 3} {Kolmanen testiviesti}}
+  {GCH {CHIP-arvon haku} {Tapahtui virhe yritettäessä hakea nykyistä arvioitua CHIP-arvoa}}
+  {INV {Maksulaskutus} {Seuraa linkkiä maksaaksesi entiteetille}}
+  {graph {Kirjanpitokuvaaja} {Luo visuaalinen kuvaaja käyttäjän kirjanpitosuhteista ja saldoista}}
+    {graph.format {Kuvaajan muoto} {Miten palauttaa kuvaajan raporttitiedot}}
+      {graph.format.html {html} {Palauta HTML-katkelman, joka sisältää raportin}}
+      {graph.format.url {url} {Palauta URL-linkki verkkosivulle, joka sisältää raportin}}
+  {chip {CHIP-arvo} {Luo arvio nykyisestä CHIP-arvosta standardivaluuttana}}
+    {chip.format {Raportin muoto} {Miten palauttaa chip-arvostusraportin tiedot}}
+      {chip.format.html {html} {Palauta HTML-katkelman, joka sisältää raportin}}
+      {chip.format.json {json} {Palauta JSON-tietue, joka sisältää CHIP-vaihtokurssin}}
+    {chip.curr {Valuutta} {Koodi valuutalle, jota käytetään CHIP-arvoarvion ilmaisemiseen}}
+  {invoice {Pyydä maksua} {Luo QR-koodi tai linkki maksupyynnön lähettämiseksi jollekulle}}
+    {invoice.units {Yksiköt} {Syötä pyydetyn maksun määrä milliCHIPeinä}}
+    {invoice.memo {Muistio} {Syötä viesti maksajalle koskien tätä maksua}}
+    {invoice.ref {Viite} {Syötä tiedot, jotka palautetaan sinulle maksun yhteydessä}}
+    {invoice.format {Muoto} {Määrittää, minkä tyyppinen lasku luodaan}}
+      {invoice.format.qr {qr} {Palauta lasku QR-koodina}}
+      {invoice.format.link {linkki} {Palauta lasku deep linkkinä (Uniform Resource Locator)}}
+      {invoice.format.json {json} {Palauta lasku JSON-objektina}}
+ {launch.title {Nykyinen käyttäjä} {Nykyisen käyttäjän tilitietue}}
+  {launch.instruct {Perusohjeet} {
+    <p>Tämä näkymä näyttää vain yhdistettyyn käyttäjään liittyvän tietueen
+  }}
 }
 
-tabtext mychips.users_v -lang fin {CHIP käytäjät näkymä} {Yksiköt, joilla on CHIP-tilejä tällä palvelimella} {
-  {peer_port {Käyttäjä pistorasia} {IP-numero ja portti, johon käyttäjän mobiililaite yhdistää}}
+tabtext mychips.addr_v_me -lang fin {Käyttäjän osoitteet} {Näkymä nykyisen käyttäjän osoitteista}
+
+tabtext mychips.comm_v_me -lang fin {Käyttäjän yhteystiedot} {Näkymä nykyisen käyttäjän yhteyspisteistä}
+
+tabtext mychips.file_v_me -lang fin {Käyttäjän tiedostot} {Näkymä nykyisen käyttäjän datatiedostoista} {
+  {digest {Tiiviste} {Asiakirjan hajautus base64v-muodossa}}
 }
+
+tabtext mychips.file_v_part -lang fin {Kumppanin tiedostot} {Näkymä, joka sisältää nykyisen käyttäjän kirjanpitokumppanien käyttäjätiedostot} {
+  {media {Media} {Asiakirjan tyyppi kirjanpitovarmenteessa tallennettuna}}
+  {format {Muoto} {Asiakirjan mime-tyyppi kirjanpitovarmenteessa tallennettuna}}
+  {comment {Kommentti} {Asiakirjan kommentti kirjanpitovarmenteessa tallennettuna}}
+  {digest {Tiiviste} {Asiakirjan hajautus kirjanpitovarmenteessa tallennettuna}}
+  {hash {Hajautus} {Asiakirjan hajautus base64url-muodossa}}
+}
+
+tabtext mychips.users_v_flat -lang fin {Tasatut käyttäjät} {Näkymä käyttäjistä, jossa ensisijaiset yhteystiedot ja osoitteet ovat samalla rivillä}
+
+tabtext mychips.chark -lang fin {Chark-teksti} {Pseudonäkymä, joka tarjoaa kielitunnisteita chark-mobiilisovellusta varten} {
+  {always {Aina} {Aina tosi}}
+} -message {
+  {mychips {MyCHIPs} {Pääruudun otsikko}}
+  {working {Työkirjanpidot} {Luonnos- ja mitätöidyt mallit, joita voit käyttää kirjanpitoon muiden käyttäjien kanssa}}
+  {settings {Asetukset} {Tarkastele/muokkaa sovellusasetuksia}}
+  {profile {Henkilötiedot} {Tarkastele/muokkaa käyttäjän henkilökohtaisia tietoja}}
+  {activity {Aktiviteetti} {Näytä ilmoitukset ja tilisiirrdt}}
+  {newtally {Uusi kirjanpito} {Uuden kirjanpitomallin luominen}}
+  {filter {Suodata} {Asetukset, jotka ohjaavat tietueiden näyttöä luetteloesikatselussa}}
+  {search {Hae} {Lataa tietueet, jotka vastaavat annettua merkkijonoa}}
+  {selall {Valitse kaikki} {Valitse kaikki mahdolliset kohteet}}
+  {more {Lisää tietoja} {Näytä lisää tietoja}}
+  {less {Vähemmän tietoja} {Näytä vähemmän tietoja}}
+  {language {Kieli} {Mitä kieltä sovellus käyttää}}
+  {next {Seuraava} {Siirry seuraavaan vaiheeseen}}
+  {cancel {Peruuta} {Keskeytä nykyinen toiminto}}
+  {none {Ei mitään} {Tälle kyselylle ei löytynyt tietoja}}
+  {custom {Mukautettu} {Mukauta asetuksiani}}
+  {warn {Varoitus} {Ehdotetulla toiminnalla voi olla haitallisia seurauksia}}
+  {fail {Toiminto epäonnistui} {Ehdotettu toiminto ei onnistunut}}
+  {save {Tallenna} {Tallenna nykyiset muutokset}}
+  {sure {Oletko varma?} {Vahvista, että haluat jatkaa}}
+  {proceed {Jatka} {Ymmärrän, ole hyvä ja jatka}}
+  {edit {Muokkaa} {Muokkaa nykyisiä tietoja}}
+  {success {Onnistui} {Pyydetty toiminto saatiin päätökseen tarkoituksenmukaisesti}}
+  {updated {Päivitetty} {Muutokset on kirjoitettu tietokantaan}}
+  {deleted {Poistettu} {Kohde on poistettu tietokannasta}}
+  {import {Tuo} {Tuo kohde ulkoisesta muodosta}}
+  {export {Vie} {Vie kohde ulkoiseen muotoon}}
+  {link {Linkki} {Luo syvälinkki tälle toiminnolle}}
+  {share {Jaa} {Jaa tämä kohde jollakin ulkoisella medialla}}
+  {qr {QR-koodi} {Luo skannattava QR-koodi}}
+  {add {Lisää} {Lisää uusi tietue}}
+  {enter {Ole hyvä ja syötä} {Käyttäjää pyydetään syöttämään arvo}}
+  {confirm {Ole hyvä ja vahvista} {Käyttäjää pyydetään syöttämään arvo uudelleen vahvistusta varten}}
+  {certopts {Varmenteen sisältö} {Valitse, mitä tietoja varmenteessa on}}
+  {certshare {Varmenteen jakaminen} {Päätä, mitä henkilökohtaisia tietoja jaat toisen osapuolen kanssa. Voit luoda mukautetun varmenteen tai käyttää jotakin olemassa olevista luonnoskirjanpidoistasi.}}
+  {certtpts {Mallivarmenteet} {Valitse varmenne olemassa olevasta kirjanpitomallista}}
+  {keys {Hallitse avaimia} {Salauksellinen avainpari (julkinen ja yksityinen) vaaditaan kirjanpitojen ja tapahtumien digitaaliseen allekirjoittamiseen. Kun avain on luotu, varmista, että viet avaimesi ja tallennat sen turvalliseen paikkaan, tai menetät mahdollisuuden käydä kauppaa olemassa olevissa kirjanpidoissa.}}
+  {keygen {Luo avain} {Luo uusi avainpari kirjanpitojen ja tapahtumien allekirjoittamiseen}}
+  {nokey {Ei allekirjoitusavainta} {Et ole vielä luonut digitaalista allekirjoitusavainta. Jatka luodaksesi sellaisen.}}
+  {diffkey {Avainten ristiriita} {Avain ei vastaa nykyistä ladattua allekirjoitusavaintasi. Toiminnot kirjanpidossa eivät ole mahdollisia.}}
+  {keywarn {Korvaa avain?} {Avainparin luominen tai tuominen hylkää nykyisen avaimesi. Jos sinulla on avoimia kirjanpitoja, jotka on luotu vanhalla avaimella, et voi käydä kauppaa kyseisillä kirjanpidoilla.}}
+  {private {Yksityinen avain} {Tämä avainparin osa on pidettävä salassa, eikä sitä saa koskaan jakaa. Sinun on myös oltava kadottamatta sitä, tai et voi käydä kauppaa olemassa olevilla kirjanpidoilla, jotka on luotu tätä avainta käyttäen.}}
+  {public {Julkinen avain} {Tämä avainparin osa voidaan turvallisesti jakaa kauppakumppaniesi kanssa. He käyttävät sitä vahvistaakseen kirjanpitosi ja tapahtumasi.}}
+  {keypass {Avaimen salasana} {Viety avaimesi on suojattu salasanalla, joka sinun on muistettava tuodaksesi avaimen myöhemmin uudelleen. Tämä estää muita löytämästä salaista avaintasi.}}
+  {keybio {Biometrinen vahvistus} {Yksityinen avaimesi pidetään salattuna laitteellasi suojellakseen sitä muilta. Siihen pääsee käsiksi vain antamalla biometrisen vahvistuksesi.}}
+  {biofail {Biometrinen epäonnistuminen} {Yksityiseen avaimeen ei päästä käsiksi, koska biometrinen vahvistuksesi epäonnistui.}}
+  {entercid {Syötä CHIP-käyttäjätunnus} {Valitse merkkijono, jolla kauppakumppanisi osoittavat sinua tässä agentissa (samankaltainen kuin sähköpostiosoite)}}
+}
+
+tabtext mychips.agents -lang fin {Sivustoagentit} {Ylläpitää agenttiprosessien yhteystietoja} {
+  {agent {Agentin tunnus} {Ainutlaatuinen merkkijono, joka tunnistaa agenttipalvelun}}
+  {agent_key {Agentin avain} {Yhteyden julkinen avain, joka on purettu agentin tunnus-merkkijonosta}}
+  {agent_host {Agentin isäntäosoite} {Isäntänimi tai IP-numero, johon vertaiset yhdistävät tähän agenttiin}}
+  {agent_port {Agentin portti} {Portti, johon vertaiset yhdistävät}}
+  {agent_ip {Agentin IP} {IP-numero, josta tämä agentti viimeksi yhdisti}}
+  {crt_date {Luotu} {Päivämäärä, jolloin tämä tietue luotiin}}
+  {mod_date {Muokattu} {Päivämäärä, jolloin tätä tietuetta viimeksi muokattiin}}
+  {crt_by {Luoja} {Käyttäjä, joka loi tämän tietueen}}
+  {mod_by {Muokkaaja} {Käyttäjä, joka viimeksi muokkasi tätä tietuetta}}
+} -messages {
+  {CHR {Agentin isäntä vaaditaan} {Agentille on määritettävä isäntä tai IP-osoite}}
+  {CPR {Agentin portti vaaditaan} {Agentille on määritettävä porttinumero}}
+  {AHP {Ainutlaatuinen isäntä/portti} {Jokaiseen agentin avaimeen on liitettävä ainutlaatuinen isäntäosoitteen ja portin yhdistelmä}}
+}
+
+tabtext mychips.agents_v -lang fin {Sivustoagentit} {Standardoitu näkymä nykyisellä sivustolla tunnetuista agenteista} {
+  {sock {Pistoke} {Agentin isännän ja porttinumeron yhdistelmä muodossa: isäntä:portti}}
+  {valid {Kelvollinen} {Ilmaisee, että agentin nimi voidaan purkaa julkiseksi avainarvoksi}}
+  {atsock {Pistokkeessa} {Agentin osoitteen, isännän ja portin yhdistelmä muodossa: agentti@isäntä:portti}}
+  {json {JSON} {Agentin osoite, isäntä ja portti JSON-tietueena}}
+}
+
+tabtext mychips.contracts -lang fin {Sopimukset} {Jokainen tietue sisältää sopimusmuotoilua, joka sisällytetään viittauksen kautta MyCHIPs-kirjanpitoon tai vastaavaan sopimukseen} {
+  {host {Tekijän isäntä} {Verkkosivuston osoite, joka voi tarjota virallisen kopion sopimusasiakirjasta}}
+  {name {Asiakirjan nimi} {Sopimuksen nimi, joka on ainutlaatuinen määritetylle isännälle}}
+  {version {Versio} {Tämän sopimusasiakirjan versionumero, alkaen numerosta 1}}
+  {language {Kieli} {Vakiomallinen 3-kirjaiminen ISO-koodi kielelle, jolla sopimus on kirjoitettu}}
+  {title {Otsikko} {Lyhyt, kuvaava otsikko, joka näytetään asiakirjan tai osion otsikkona, kun sopimus esitetään}}
+  {text {Teksti} {Johdattava tekstikappale asiakirjan ylätasolla}}
+  {top {Ylätaso} {Ilmaisee, että tämä asiakirja sopii käytettäväksi kirjanpitosopimuksena (erotuksena pelkästä osiosta)}}
+  {published {Julkaistu} {Päivämäärä, jolloin tämä sopimuksen versio julkaistiin ensimmäisen kerran}}
+  {sections {Osiot} {Muut sopimustekstin aliosiot, jotka kuvaavat sopimuksen ehtoja ja edellytyksiä}}
+  {digest {Hajautus} {Asiakirjan SHA-256-hajautusarvo, johon muut voivat viitata todistaakseen sopimuksen tarkkuuden}}
+  {crt_date {Luotu} {Päivämäärä, jolloin tämä tietue luotiin}}
+  {mod_date {Muokattu} {Päivämäärä, jolloin tätä tietuetta viimeksi muokattiin}}
+  {crt_by {Luoja} {Käyttäjä, joka loi tämän tietueen}}
+  {mod_by {Muokkaaja} {Käyttäjä, joka viimeksi muokkasi tätä tietuetta}}
+} -messages {
+  {BVN {Virheellinen versionumero} {Sopimusten versionumeroinnin tulisi alkaa numerosta 1 ja kasvaa progressiivisesti suuremmaksi}}
+  {PBC {Julkaisurajoitukset} {Asiakirjaa julkaistaessa on määritettävä tiivistehajautus, lähteen sijainti ja sisältöosiot}}
+  {UNC {Tuntematon komento} {Sopimuseditorin raportti vastaanotti tunnistamattoman toimintokomennon}}
+  {ILR {Laittomat rivit} {Kysely, jonka odotettiin palauttavan yhden tietueen, palautti nolla tai useita rivejä}}
+  {IRI {Virheellinen resurssitunnus} {Sopimus sisältää viittauksen toiseen asiakirjaan, jota ei löydy}}
+}
+
+tabtext mychips.contracts_v -lang fin {Sopimukset} {Jokainen tietue sisältää sopimusmuotoilua, joka sisällytetään viittauksen kautta MyCHIPs-kirjanpitoon tai vastaavaan sopimukseen.} {
+  {rid {Resurssitunnus} {Sopimusasiakirjan Base58-koodattu versio}}
+  {json_core {JSON-ydin} {Sopimus esitettynä JavaScript Object Notation -muodossa}}
+  {json {JSON} {Sopimus esitettynä JavaScript Object Notation -muodossa ja sisältäen sen tiivisteen}}
+  {digest_v {Laskettu tiiviste} {Tämän asiakirjan tiiviste nykyisen laskennan mukaan}}
+  {clean {Puhdas} {Tallennettu tiiviste vastaa laskettua tiivistettä}}
+} -messages {
+  {edit {Muokkaa osioita} {Tarkoitukseen soveltuva ikkuna sopimusosioiden asianmukaiseen muokkaamiseen}}
+  {publish {Julkaise} {Vahvista tämä versio, kirjoita julkaisupäivämäärä ja estä lisämuokkaukset}}
+  {IDK {Virheellinen avain} {Sopimusasiakirjalle määritetyt avainarvot eivät ole kelvollisia}}
+  {TMK {Virheellinen avainnumero} {Sopimusraporttia on kutsuttava täsmälleen yhdellä tietuetunnuksella}}
+  {launch.title {Sopimukset} {Hallinnoi kauppasopimuksia}}
+  {launch.instruct {Perusohjeet} {
+    <p>Jos käyttäjäsi käyttävät vain muiden osapuolten luomia ja ylläpitämiä sopimuksia, sinun 
+       ei ehkä tarvitse luoda uusia tietoja tänne.
+    <p>Voit luoda omia sopimuksia ja/tai muokata olemassa olevia avaamalla muokkausikkunan
+       ja valitsemalla Muokkaa osioita Toiminnot-valikosta.
+  }}
+}
+
+tabtext mychips.creds -lang fin {Valtuustiedot} {Sisältää kriteerit entiteettivarmenteiden pisteyttämiseen} {
+  {name {Nimi} {Varmenneominaisuuden täydellinen polkunimi, johon tämä pistemäärä pätee}}
+  {func {Funktio} {Määrittää, miten ominaisuutta testataan} {
+    {a {Poissa} {Sovella pisteitä, jos nimetty ominaisuus on läsnä}}
+    {p {Läsnä} {Sovella pisteitä, jos nimetty ominaisuus puuttuu}}
+    {mt {Enemmän kuin} {Sovella pisteitä, jos nimettyjen elementtien määrä on suurempi kuin määritetty arvo}}
+    {re {Säännöllinen lauseke} {Sovella pisteitä, jos ominaisuusarvo vastaa säännöllistä lauseketta}}
+  }}
+  {parm {Parametri} {Sisältää säännöllisen lausekkeen tai kokonaisluvun, jota käytetään ominaisuusvertailuun}}
+  {score {Pisteet} {Kokonaisluku, joka lisätään kokonaispisteisiin, jos tämä kriteeri täyttyy}}
+} -messages {
+  {BCF {Virheellinen funktio} {Ei kelvollinen asetus valtuustietofunktiolle}}
+  {CNU {Ei ainutlaatuinen} {Jokaisen valtuustieto-kriteerin on oltava ainutlaatuinen nimen, funktion ja parametrin osalta}}
+}
+
+tabtext mychips.creds_v -lang fin {Valtuustiedot} {Standardinäkymä kriteereistä entiteettivarmenteiden pisteyttämiseen}
+
+tabtext mychips.tokens -lang fin {Tokenit} {Seuraa kertakäyttöisiä yhteystokeneita ulkoisille vertaisille} {
+  {token_ent {Tokenin entiteetti} {Sen entiteetin ID, jolle tämä token on myönnetty}}
+  {token_seq {Tokenin järjestysnumero} {Pitää kirjaa erilaisista tämän entiteetin luomista tokeneista}}
+  {token {Token} {Tokenin digitaalinen koodi}}
+  {reuse {Uudelleenkäytettävä} {Voi myöntää useita tilikirjoja yhdestä tokenista}}
+  {used {Käytetty} {Ilmaisee, onko token käytetty}}
+  {expires {Vanhenee} {Ilmaisee, milloin token ei ole enää voimassa}}
+  {tally_seq {Tilikirjan järjestysnumero} {Indeksi, joka osoittaa, mikä tilikirja myönnetään tämän tokenin yhteydessä}}
+  {crt_date {Luotu} {Päivämäärä, jolloin tämä tietue luotiin}}
+  {mod_date {Muokattu} {Päivämäärä, jolloin tätä tietuetta viimeksi muokattiin}}
+  {crt_by {Luoja} {Käyttäjä, joka loi tämän tietueen}}
+  {mod_by {Muokkaaja} {Käyttäjä, joka viimeksi muokkasi tätä tietuetta}}
+}
+
+tabtext mychips.tokens_v -lang fin {Käyttäjätokenit} {Standardoitu näkymä käyttäjien yhteystokeneista} {
+  {chad {CHIP-osoite} {Tietotietue, joka sisältää CHIP-käyttäjätunnuksen, agentin, isännän ja portin tälle käyttäjälle}}
+  {expired {Vanhentunut} {Tosi, jos tokenin voimassaoloaika on päättynyt}}
+  {valid {Kelvollinen} {Tosi, jos token on edelleen kelvollinen yhdistämiseen}}
+}
+
+tabtext mychips.tokens_v_me -lang fin {Omat tokenit} {Nykyisen käyttäjän yhteystokenit}
