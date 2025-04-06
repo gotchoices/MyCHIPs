@@ -1,8 +1,7 @@
-import { NativeModules } from 'react-native';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-import { languageMap } from '../utils/language';
+import { getDeviceLocale, getAvailableLanguages, findMatchingLanguage } from '../utils/language';
 import { getFile, uploadImage, getComm, getAddresses, getPersonal, getCurrency, getCountry } from '../services/profile';
 
 const initialState = {
@@ -15,6 +14,7 @@ const initialState = {
   preferredLanguage: {
     name: 'English',
     code: 'eng',
+    iso_2: 'en'
   },
   communications: [],
   personal: undefined,
@@ -54,22 +54,70 @@ export const getPreferredLanguage = createAsyncThunk('profile/getPreferredLangua
       return {
         name: language?.eng_name,
         code: language?.code,
+        iso_2: language?.iso_2
       }
     } else {
-      const deviceLanguage =
-        Platform.OS === 'ios'
-        ? NativeModules.SettingsManager.settings.AppleLocale || NativeModules.SettingsManager.settings.AppleLanguages[0]
-        : NativeModules.I18nManager.localeIdentifier;
-
+      // Use English as the default language
       return {
-        name: languageMap[deviceLanguage]?.name ?? '',
-        code: languageMap[deviceLanguage]?.language,
-      }
+        name: 'English',
+        code: 'eng',
+        iso_2: 'en'
+      };
     }
   } catch(err) {
-    throw er;
+    console.log('Error in getPreferredLanguage:', err);
+    // Default to English in case of errors
+    return {
+      name: 'English',
+      code: 'eng',
+      iso_2: 'en'
+    };
   }
 })
+
+export const detectAndSetLanguage = createAsyncThunk(
+  'profile/detectAndSetLanguage',
+  async (wm, { dispatch, getState }) => {
+    try {
+      // Step 1: Check if user has explicitly selected a language previously
+      const storedPreference = await AsyncStorage.getItem('preferredLanguage');
+      if (storedPreference) {
+        const language = JSON.parse(storedPreference);
+        // User already has a preference, no need to detect
+        return null;
+      }
+      
+      // Step 2: Get device locale
+      const deviceLocale = getDeviceLocale();
+      
+      // Step 3: Get available languages
+      const availableLanguages = await getAvailableLanguages(wm);
+      
+      // Step 4: Find matching language
+      const matchedLanguage = findMatchingLanguage(deviceLocale, availableLanguages);
+      
+      if (matchedLanguage) {
+        // Found a match to device locale, update language
+        wm.newLanguage(matchedLanguage.code);
+        
+        // Save preference
+        await AsyncStorage.setItem('preferredLanguage', JSON.stringify(matchedLanguage));
+        
+        return {
+          name: matchedLanguage.eng_name,
+          code: matchedLanguage.code,
+          iso_2: matchedLanguage.iso_2
+        };
+      }
+      
+      // No match found, keep English default
+      return null;
+    } catch (error) {
+      console.log('Error detecting language:', error);
+      return null;
+    }
+  }
+)
 
 export const fetchPersonalAndCurrency = createAsyncThunk('profile/fetchPersonalAndCountry', async (args) => {
   try {
@@ -211,6 +259,11 @@ export const profileSlice = createSlice({
       })
       .addCase(getPreferredLanguage.fulfilled, (state, action) => {
         state.preferredLanguage = action.payload;
+      })
+      .addCase(detectAndSetLanguage.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.preferredLanguage = action.payload;
+        }
       })
       .addCase(fetchPersonalAndCurrency.fulfilled, (state, action) => {
         state.personal = action.payload.personal;

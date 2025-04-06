@@ -25,6 +25,7 @@ AI Agents:
 - [Automated Deployment](autodeploy.md) - Implemented Fastlane for automated building and deployment to various targets
 - [Payment Processing Improvements](payments.md) - Standardized units conversion, UUID generation, and timestamp formats
 - [Trading Variables Implementation](trading.md) - Fixed critical issues with trading variables chit generation and processing
+- [Language Selection and Auto-Detection](language.md) - Implemented proper default language, locale detection, and fixed Settings UI issues
 
 ### In Progress
 - [Tally Validity and Verification](tally_valid.md) - Extending cryptographic verification to include chits and hash chain integrity

@@ -3,6 +3,7 @@ import * as Keychain from 'react-native-keychain';
 import notifee, { AndroidImportance } from '@notifee/react-native'
 import { Linking } from 'react-native'
 import { useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSubtle } from '../services/crypto';
 
 const wm = require('../wyseman')
@@ -12,6 +13,7 @@ import { query_user } from '../utils/user';
 import { random, getLinkHost } from '../utils/common';
 import { setUser } from '../redux/currentUserSlice';
 import { setHasNotification } from '../redux/activitySlice';
+import { detectAndSetLanguage } from '../redux/profileSlice';
 
 const initialConnectionBackoff = 1000;
 const maxConnectionBackoff = 11000;
@@ -74,11 +76,24 @@ const SocketProvider = ({ children }) => {
         }, delay)
       }
 
-      websocket.onopen = () => {
+      websocket.onopen = async () => {
         connectionBackoffRef.current = initialConnectionBackoff;
         setStatus('Connected');
         clearTimeout(connectTimeout.current);
         setWs(websocket);
+        
+        // Check if we should perform language detection
+        // Only do this if no user preference exists yet
+        try {
+          const storedPreference = await AsyncStorage.getItem('preferredLanguage');
+          if (!storedPreference) {
+            // Only detect language if there's no stored preference (first time use)
+            dispatch(detectAndSetLanguage(wm));
+          }
+        } catch (error) {
+          console.log('Error checking language preference:', error);
+        }
+        
         wm.listen(`${listenId}-${user}`, user, data => {
           const talliesMsg = wm?.cache?.lang?.['mychips.tallies_v_me'] ?? {};
           const chitsMsg = wm?.cache?.lang?.['mychips.chits_v_me'] ?? {};

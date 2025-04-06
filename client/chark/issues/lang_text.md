@@ -159,6 +159,7 @@ WHERE language = 'eng'
    - [ ] Review all screens in Settings section
    - [ ] Review Tally screens and their components
    - [ ] Review Profile screens
+   - [ ] Fix filter/sort icons in the Home screen which are not respecting language preference
 
 3. Perform wider component audit:
    - [ ] Create list of all components using language text

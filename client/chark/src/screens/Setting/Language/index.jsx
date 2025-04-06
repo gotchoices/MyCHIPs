@@ -30,7 +30,7 @@ const Language = (props) => {
     if (wm) {
       wm.request(`language_ref_${random()}`, 'select', {
         view: 'base.language_v',
-        fields: ['code', 'eng_name', 'tables'],
+        fields: ['code', 'iso_2', 'eng_name', 'tables'],
         where: {
           oper: 'notnull',
           left: 'tables',
@@ -51,6 +51,7 @@ const Language = (props) => {
       dispatch(setPreferredLanguage({
         name: found?.eng_name,
         code: found?.code,
+        iso_2: found?.iso_2
       }));
       AsyncStorage.setItem('preferredLanguage', JSON.stringify(found));
       wm.newLanguage(language);
