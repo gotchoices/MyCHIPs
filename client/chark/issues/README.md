@@ -29,6 +29,7 @@ AI Agents:
 - [Trading Variables Implementation](trading.md) - Fixing and improving trading variables handling
 
 ### Future (Priority Order)
+- [Connection Ticket and Backend Connectivity](connect.md) - Improving connection reliability, token handling, and first-time user experience
 - [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API
 - [Language Text Tags](lang_text.md) - Standardize language text implementation and fill missing tags
 - [Toast and Modal UI Improvements](toasting.md) - Standardize feedback mechanisms and user interactions

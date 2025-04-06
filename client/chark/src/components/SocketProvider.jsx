@@ -150,7 +150,26 @@ const SocketProvider = ({ children }) => {
       console.log('Resetting generic password for the new connection')
       Keychain.resetGenericPassword();
       let creds = Object.assign({}, connectionObj.ticket)
-      credConnect(creds, cb)
+      
+      // Create a wrapper callback to trigger tally fetch after new token connection
+      const newConnectionCallback = (err, connected) => {
+        // Run the original callback if provided
+        if (cb) {
+          cb(err, connected);
+        }
+        
+        // If connection succeeded with new token, fetch tallies
+        if (!err && connected) {
+          console.log('New connection successful - fetching tallies');
+          // Using dynamic import to avoid circular dependencies
+          import('../redux/openTalliesSlice').then(module => {
+            dispatch(module.fetchOpenTallies({wm}));
+          });
+        }
+      };
+      
+      // Use our wrapper callback for new connections
+      credConnect(creds, newConnectionCallback)
     } else {
       Keychain.getGenericPassword().then((credentials) => {
         if(credentials) {
@@ -158,7 +177,14 @@ const SocketProvider = ({ children }) => {
           const creds = JSON.parse(val);
 
           credConnect(creds);
-        } 
+        } else {
+          console.log('No connection key found - redirecting to help page');
+          // No connection key - redirect to help page
+          // Immediate redirect for first-time users with no connection key
+          Linking.openURL('https://mychips.org/nokey.html').catch(err => {
+            console.log('Error opening help URL:', err.message);
+          });
+        }
       }).catch(err => {
         console.log('Error fetching connection key', err.message)
       });
