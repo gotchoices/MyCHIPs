@@ -4,11 +4,60 @@ This folder contains translations for the MyCHIPs schema system in various langu
 
 ## Current Languages
 
-- Spanish (spa): `mychips-spa.wmt` - Most comprehensive, includes core system components
-- Finnish (fin): `mychips-fin.wmt` - Partial translation
-- Nepali (nep): `mychips-nep.wmt` - Partial translation
+- Spanish (spa): Complete translation across all schemas
+  - `mychips-spa.wmt` - Core MyCHIPs schema components
+  - `json-spa.wmt` - JSON schema definitions
+  - `wylib-spa.wmt` - In wyselib/schema/language/ - Wylib schema components
+  - `base-spa.wmt` - In wyselib/schema/language/ - Base schema components
+  - `wm-spa.wmt` - In wyselib/schema/language/ - Wyseman schema components
+- Finnish (fin): Partial translations
+  - `mychips-fin.wmt` - Partial MyCHIPs schema
+  - `wylib-fin.wmt` - In wyselib/schema/language/ - Partial Wylib schema
+- Nepali (nep): Partial translations
+  - `mychips-nep.wmt` - Partial MyCHIPs schema
+  - `json-nep.wmt` - Partial JSON schema
+  - `base-nep.wmt` - In wyselib/schema/language/ - Partial Base schema
+  - `wm-nep.wmt` - In wyselib/schema/language/ - Partial Wyseman schema
+  - `wylib-nep.wmt` - In wyselib/schema/language/ - Partial Wylib schema
 
 Each language has its own progress tracking file (`STATUS-{lang}.md`) that lists completed and pending translations.
+
+## Schema Organization
+
+MyCHIPs depends on several schema components that need translation:
+
+1. **MyCHIPs Schema** (in current directory)
+   - Primary application schema (tallies, chits, users, etc.)
+   - Files: `mychips-{lang}.wmt`
+   - Contains core business domain objects like tally, chit, lift
+
+2. **JSON Schema** (in current directory)
+   - JSON-specific data structures used for API/imports/exports
+   - Files: `json-{lang}.wmt`
+   - Used for data exchange formats and API inputs/outputs
+
+3. **Wylib Schema** (in mychips/../wyselib/schema/language/)
+   - UI components and application framework
+   - Files: `wylib-{lang}.wmt`
+   - Contains GUI elements, widgets, and application preferences
+
+4. **Base Schema** (in mychips/../wyselib/schema/language/)
+   - Fundamental data types and common structures
+   - Files: `base-{lang}.wmt`
+   - Definitions found in mychips/../wyselib/schema/base/*.wms
+   - Includes address, communication, entity, file storage definitions
+
+5. **Wyseman Schema** (in mychips/../wyselib/schema/language/)
+   - Schema management system itself
+   - Files: `wm-{lang}.wmt`
+   - Original definitions found in mychips/../wyseman/lib/run_time.wmt
+   - Contains metadata tables, object tracking, and system messages
+
+The file paths must be carefully managed:
+- mychips-*.wmt and json-*.wmt files belong in mychips/schema/language/
+- wylib-*.wmt, base-*.wmt, and wm-*.wmt files belong in mychips/../wyselib/schema/language/
+
+When beginning a new language translation, all these components should be considered for complete system translation. The Spanish translation now has complete coverage across all schema components.
 
 ## Translation Workflows
 
@@ -36,6 +85,15 @@ When using AI tools to assist with translations:
 
 This direct comparison approach is much more efficient than the CSV workflow when using AI assistance, as it eliminates several intermediate steps.
 
+#### Translation Process Steps
+
+For each object or group of related objects:
+1. Compare English WMT file with target language translation
+2. Identify missing fields, messages, and descriptions
+3. Create translations for missing elements
+4. Update status in the STATUS file
+5. Prepare patch file for missing translations
+
 #### Translation Process Recommendations
 
 1. **Group Related Objects**: Translate conceptually related objects together (all routes-related views, all chits tables/views, etc.) to maintain terminology consistency and context.
@@ -45,6 +103,15 @@ This direct comparison approach is much more efficient than the CSV workflow whe
 3. **Base Tables First**: Translate base tables before their views to establish terminology that will be used throughout derived views.
 
 4. **Update STATUS Files Immediately**: Record each translation in the STATUS file immediately after completion to maintain accurate progress tracking.
+
+#### Prioritization Plan
+
+For new languages, follow this order of translation:
+1. Complete MyCHIPs core tables (tallies, chits, lifts)
+2. Focus on UI-visible elements (chark, users_v_me)
+3. Complete JSON schema for API functionality
+4. Fill in remaining Wylib components
+5. Add Base and Wyseman schema translations
 
 ### Terminology Management
 
@@ -57,6 +124,27 @@ Maintaining consistent terminology across all database objects is crucial. Each 
 ```
 
 The glossary should be updated whenever new key terms are translated, providing a single source of truth for all translations.
+
+#### Component-Specific Terminology
+
+Different schema components have specialized terminology:
+
+1. **MyCHIPs Schema** - Key domain terms like:
+   - tally, chit, lift, foil, stock, clutch
+   - route, path, edge, node, circuit
+   - digest, hash, chain
+
+2. **Base Schema** - Common entity terms like:
+   - entity, address, communication
+   - country, language, parameter
+   - file, media format, checksum
+
+3. **Wyseman Schema** - Database metadata:
+   - object, table, column, text
+   - release, version, parameter
+   - message, error code
+
+For maximum consistency, translate the core MyCHIPs schema first to establish domain terminology, then expand to other components.
 
 #### Technical Terms Strategy
 
@@ -128,10 +216,21 @@ Regardless of which method is used, the final steps are:
 1. Verify translations with native speakers if possible
 2. Update the schema files with `make clean lang`
 3. Verify everything builds correctly with `make schema sql`
-4. Submit changes via pull request
+4. For components outside the mychips directory (such as wylib in wyselib):
+   - Navigate to the respective directory (e.g., `cd ../wyselib/schema`)
+   - Run `make clean lang` and `make schema sql` there as well
+   - Ensure all components build correctly and language tags are properly integrated
+5. Test the application with the new language settings to verify actual display 
+6. Submit changes via pull request for each affected repository (mychips, wyselib, etc.)
 
 ### Important Notes
 
+#### File Location
+- MyCHIPs schema translations (mychips-*.wmt, json-*.wmt) belong in mychips/schema/language/
+- Base, Wylib, and Wyseman translations (base-*.wmt, wylib-*.wmt, wm-*.wmt) belong in mychips/../wyselib/schema/language/
+- The STATUS-*.md tracking files should remain in mychips/schema/language/ for all components
+
+#### Schema Dependencies
 If the language description for a table/view does not exist, there is nothing to
 relate column/message/value tags to so even though they may import (wm-csv2db), they will 
 not export (wm-db2wmt) and so will be lost.

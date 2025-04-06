@@ -75,7 +75,7 @@ Current focus is on completing the mobile app and fully implementing the lift an
 
 - Backend PostgreSQL database
   - Database authoring/modification tool
-  - Data dictionary, including multi-language support
+  - Data dictionary, including multi-language support (complete Spanish, partial Finnish and Nepali)
   - Basic schema to support many users per instance
   - User/group/permission structures
   - Future capability for full ERP integration

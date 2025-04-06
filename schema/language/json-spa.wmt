@@ -1,0 +1,86 @@
+#Copyright MyCHIPs.org; See license in root of this package
+#----------------------------------------------------------------
+
+tabtext json.cert -lang spa {Certificado JSON}	{Vista JSON de certificados de usuario destinada principalmente para importación/exportación} {
+  {identity	{Identidad}		{Registro de identidad MyCHIPs JSON con registros estatales y de nacimiento opcionales}}
+  {chad		{Dirección CHIP}		{Registro completo de dirección CHIP JSON para el usuario}}
+  {name		{Nombre de Entidad}		{El nombre de la entidad tal como está representado en el certificado CHIP}}
+  {type		{Tipo de Entidad}		{Un código de una letra que indica p:persona, o:organización, g:grupo}}
+  {public	{Clave Pública}		{Una representación pública de la clave del usuario para firmar transacciones CHIP}}
+  {connect	{Conexiones}		{Información de teléfono/web para este usuario}}
+  {place	{Direcciones}		{Direcciones físicas/postales para este usuario}}
+  {file		{Archivos de Datos}		{Archivos de datos asociados con este usuario}}
+  {date		{Fecha de Exportación}		{Fecha y hora en que se generaron estos datos de certificado}}
+}
+
+tabtext json.user -lang spa {Importación JSON de Usuario} {Vista JSON de usuarios dedicada a importar cuentas de usuario} {
+  {cuid		{ID de Usuario CHIP}		{El nombre por el cual este usuario es identificado por su agente}}
+  {agent	{Dirección de Agente}		{El nombre y clave pública de un proceso que maneja transacciones CHIP para este usuario}}
+  {name		{Nombre de Entidad}		{El apellido o nombre de empresa para la entidad de usuario CHIP}}
+  {type		{Tipo de Entidad}		{Un código de una letra que indica p:persona, o:organización, g:grupo}}
+  {first	{Nombre de Pila}		{Primer nombre dado de la entidad de persona}}
+  {middle	{Segundo Nombre}		{Otros nombres dados de la entidad de persona}}
+  {prefer	{Nombre Preferido}	{El nombre de pila comúnmente usado de la entidad de persona}}
+  {begin	{Fecha de Nacimiento}		{La fecha de nacimiento de un individuo o fecha de establecimiento de un grupo u organización}}
+  {juris	{Jurisdicción}		{País o Estado al cual la persona o grupo está sujeto}}
+  {taxid	{ID Fiscal}		{Cómo la persona u organización es identificada por su país o estado}}
+  {named	{Nombre de Nacimiento}		{Un registro que describe cómo el usuario fue nombrado originalmente o al nacer}}
+}
+
+tabtext json.users -lang spa {Exportación JSON de Usuario} {Vista JSON de usuarios dedicada a exportar cuentas de usuario} {
+  {connect	{Conexiones}		{Información de teléfono/web para este usuario}}
+  {place	{Direcciones}		{Direcciones físicas/postales para este usuario}}
+}
+
+tabtext json.place -lang spa {Importación JSON de Ubicación} {Vista JSON de direcciones dedicada a importar cuentas de usuario} {
+  {id		{ID de Usuario}	{Identidad interna del usuario al que pertenece esta dirección}}
+  {seq		{Secuencia}	{Número de índice interno utilizado para rastrear esta dirección}}
+  {address	{Dirección}	{Línea(s) de dirección de calle o ubicación}}
+  {type		{Tipo de Dirección}	{El tipo de dirección}}
+  {main		{Es Principal}	{Verdadero si esta dirección está destinada a ser la más significativa de su tipo para este usuario}}
+  {city		{Ciudad}		{La ciudad en la que se encuentra la dirección}}
+  {state	{Estado}		{El estado en el que se encuentra la dirección}}
+  {post		{Código Postal}	{Código postal o zip para esta dirección}}
+  {comment	{Comentario}	{Otras notas relevantes para esta dirección}}
+  {prior	{Inactiva}	{Esta dirección ya no está vigente para el usuario}}
+  {private	{Privada}	{Esta dirección no debe compartirse en certificados CHIP o de otra manera}}
+}
+
+tabtext json.connect -lang spa {Importación JSON de Conexión} {Vista JSON de teléfono/web dedicada a importar cuentas de usuario} {
+  {id		{ID de Usuario}	{Identidad interna del usuario al que pertenece esta conexión}}
+  {seq		{Secuencia}	{Número de índice interno utilizado para rastrear esta dirección}}
+  {address	{Dirección}	{Número de teléfono, correo electrónico, dirección web para este punto de conexión}}
+  {media	{Medio}	{Tipo de punto de conexión como correo electrónico, web, teléfono, etc.}}
+  {main		{Es Principal}	{Verdadero si este punto de contacto está destinado a ser el más significativo de su tipo para este usuario}}
+  {comment	{Comentario}	{Otras notas relevantes para esta conexión}}
+  {prior	{Inactiva}	{Este punto de conexión ya no está vigente para el usuario}}
+  {private	{Privada}	{Este punto de conexión no debe compartirse en certificados CHIP o de otra manera}}
+}
+  
+tabtext json.file -lang spa {Importación JSON de Archivo} {Vista JSON de archivos de datos dedicada a importar cuentas de usuario} {
+  {id		{ID de Usuario}	{Identidad interna del usuario al que pertenece esta conexión}}
+  {seq		{Secuencia}	{Número de índice interno utilizado para rastrear esta dirección}}
+  {data		{Datos}		{Los datos binarios contenidos en este archivo}}
+  {media	{Tipo de Medio}	{El tipo general del archivo: foto, escaneo, hoja de cálculo, documento}}
+  {format	{Formato}	{El formato del archivo: jpg, gif, doc, etc.}}
+  {main		{Es Principal}	{Verdadero si este archivo está destinado a ser el más significativo de su tipo para este usuario}}
+  {comment	{Comentario}	{Otras notas relevantes para este archivo de datos}}
+  {private	{Privada}	{Este punto de conexión no debe compartirse en certificados CHIP o de otra manera}}
+  {digest	{Resumen Hash}	{Un identificador único utilizado para hacer referencia externa a este documento}}
+}
+
+tabtext json.tally -lang spa {Recuentos JSON} {Vista JSON estandarizada de recuentos} {
+  {id		{ID de Entidad}	{Identidad interna del usuario al que pertenece este recuento}}
+  {seq		{Secuencia}	{Número de índice interno utilizado para rastrear esta dirección}}
+  {type		{Tipo de Recuento}	{Existencias o contraparte sostenidas por este usuario}}
+  {uuid		{ID de Recuento}	{Un identificador único para este recuento, compartido por existencias y contraparte}}
+  {date		{Fecha de Recuento}	{Fecha en que se ejecutó el recuento}}
+  {comment	{Comentario}	{Otras notas relevantes para este recuento}}
+  {agree	{Contrato}	{Una referencia al contrato acordado por los socios del recuento}}
+  {holder	{Cert de Titular}	{Datos de certificado por los cuales se identifica al titular del recuento}}
+  {partner	{Cert de Socio}	{Datos de certificado por los cuales se identifica al otro socio}}
+  {hterms	{Términos del Titular}	{Términos de crédito por los cuales está obligado el titular}}
+  {pterms	{Términos del Socio}	{Términos de crédito por los cuales está obligado el otro socio}}
+}
+
+tabtext json.contract -lang spa {Contratos JSON} {Vista JSON estandarizada de contratos de recuento}

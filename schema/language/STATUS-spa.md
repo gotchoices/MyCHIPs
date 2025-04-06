@@ -1,6 +1,12 @@
 # Spanish (spa) Translation Status
 
-Last synchronized with English: April 5, 2025
+Last synchronized with English: April 6, 2025
+
+## Remaining Tasks
+- [x] Create ../wyselib/schema/language/wm-spa.wmt for Wyseman schema objects (completed April 6, 2025)
+- [x] Verify existence and completeness of ../wyselib/schema/language/base-spa.wmt (verified April 6, 2025)
+
+All Spanish translations are now complete across all schema components.
 
 ## Completed Tables/Views
 - [x] mychips.tallies (completely translated with improved terminology)
@@ -72,14 +78,14 @@ The term "elevación" was chosen for "lift" as it clearly conveys the concept of
 ## Pending Translation Audit
 
 ### json Schema Objects
-- [ ] json.cert
-- [ ] json.connect
-- [ ] json.contract
-- [ ] json.file
-- [ ] json.place
-- [ ] json.tally
-- [ ] json.user
-- [ ] json.users
+- [x] json.cert (completed April 6, 2025)
+- [x] json.connect (completed April 6, 2025)
+- [x] json.contract (completed April 6, 2025)
+- [x] json.file (completed April 6, 2025)
+- [x] json.place (completed April 6, 2025)
+- [x] json.tally (completed April 6, 2025)
+- [x] json.user (completed April 6, 2025)
+- [x] json.users (completed April 6, 2025)
 
 ### mychips Schema Objects
 - [x] mychips.addr_v_me (completed April 6, 2025)
@@ -96,16 +102,22 @@ The term "elevación" was chosen for "lift" as it clearly conveys the concept of
 - [x] mychips.users_v_tallysum (completed April 6, 2025)
 
 ### Other Schema Objects
-- [ ] wylib.data
+- [x] wylib.data (completed April 6, 2025)
+- [x] base.addr (completed in wyselib/schema/language/base-spa.wmt)
+- [x] base.comm (completed in wyselib/schema/language/base-spa.wmt)
+- [x] base.ent (completed in wyselib/schema/language/base-spa.wmt)
+- [x] base.file (completed in wyselib/schema/language/base-spa.wmt)
+- [x] base.language (completed in wyselib/schema/language/base-spa.wmt)
+- [x] base.parm (completed in wyselib/schema/language/base-spa.wmt)
+- [x] base.priv (completed in wyselib/schema/language/base-spa.wmt)
+- [x] wm.column_text (completed in wyselib/schema/language/wm-spa.wmt)
+- [x] wm.message_text (completed in wyselib/schema/language/wm-spa.wmt)
+- [x] wm.objects (completed in wyselib/schema/language/wm-spa.wmt)
+- [x] wm.objects_v (completed in wyselib/schema/language/wm-spa.wmt)
+- [x] wm.table_text (completed in wyselib/schema/language/wm-spa.wmt)
+- [x] wm.value_text (completed in wyselib/schema/language/wm-spa.wmt)
 
-## Translation Process for Each Object
-
-For each object:
-1. Compare English WMT file with Spanish translation
-2. Identify missing fields, messages, and descriptions
-3. Create translations for missing elements
-4. Update status in this TODO file
-5. Prepare patch file for missing translations
+## Specific Translation Notes for Spanish
 
 ## Translation Decisions and Terminology
 
@@ -143,6 +155,32 @@ The following terminology decisions have been implemented:
 - "peer" -> "par" or "igual" (back-translation: "peer" or "equal")
 
 ## Completed Translations
+
+### April 6, 2025 (Fourth Session)
+- Completed wylib Schema objects
+  - Created new wylib-spa.wmt file in wyselib/schema/language/
+  - Translated GUI data text objects:
+    - wylib.data: GUI configuration and preferences objects
+    - wylib.data_v: View of GUI configuration data
+  - Translated all interface elements including application states and menus
+  - Maintained consistent terminology with previously translated objects
+  - Used established UI terminology patterns for window, dialog, action functions
+  - Preserved technical terms (GUI, JSON) unchanged
+  - Used appropriate Spanish translations for database concepts
+  - Completed all Spanish translations - Spanish schema now 100% translated
+
+### April 6, 2025 (Third Session)
+- Completed all JSON Schema objects
+  - Created new json-spa.wmt file for JSON schema translations
+  - Translated all JSON structure definitions:
+    - json.cert: Certificate and identity structure
+    - json.user, json.users: User import/export formats
+    - json.place, json.connect, json.file: Address and contact formats
+    - json.tally, json.contract: Tally and contract JSON formats
+  - Used consistent terminology with MyCHIPs translations
+  - Maintained technical terms like "JSON" unchanged
+  - Translated user identity fields consistent with user_v_me translations
+  - Used established terms: "recuento" for tally, "socio" for partner, etc.
 
 ### April 6, 2025 (Second Session)
 - Completed user profile views and related objects
