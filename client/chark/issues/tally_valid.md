@@ -130,12 +130,31 @@ We have successfully implemented:
 - ✅ Used existing language tags 'nocert', 'nosig', and 'diffkey' from tallies_v_me
 - ✅ Made ValidityIcon into a more reusable component with configurable message source
 
-### ⏳ Future: Chit Validation Implementation
-- Apply similar validation pattern to chits
-- Add verification functions for chit signatures
-- Add validation for hash chain integrity
-- Update ChitHistory UI to show validation status
-- Update ChitDetail screen to display validation information
+### 🔲 Current Phase: Chit Validation Implementation
+
+The next phase of this project focuses on extending the same validation patterns developed for tallies to chits:
+
+#### 1. Core Implementation
+- [ ] 1.1 Create verification functions for chit signatures:
+  - [ ] 1.1.1 Implement `verifyChitSignature(chit)` for cryptographic validation
+  - [ ] 1.1.2 Add signature validation to existing chit flow
+  - [ ] 1.1.3 Add chit validation to Redux slice
+
+#### 2. Hash Chain Integrity
+- [ ] 2.1 Implement hash chain validation:
+  - [ ] 2.1.1 Create utility to verify chain_prev references
+  - [ ] 2.1.2 Verify chain_idx values are consistent
+  - [ ] 2.1.3 Add chain integrity status to chit objects
+
+#### 3. UI Integration
+- [ ] 3.1 Update ChitHistory component:
+  - [ ] 3.1.1 Add validity indicators to chit items
+  - [ ] 3.1.2 Show chain status in history view
+
+- [ ] 3.2 Update ChitDetail screen:
+  - [ ] 3.2.1 Add detailed validation information section
+  - [ ] 3.2.2 Show chain position visualization
+  - [ ] 3.2.3 Add repair options (if applicable)
 
 ### ⏳ Future: Backend Repair Functionality
 - Implement repair functions in backend

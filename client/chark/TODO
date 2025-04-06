@@ -16,6 +16,7 @@ X- Test tally sequence
 X- Do we still use the 'mychips://' deep link prefix for anything?
 X- Chit screen probably doesn't need to show settings chits
 X- Finish tally_valid issue
+- Implement chit validity checking similar to tally
 - Signatures
 X  - Can I sign tallies/chits using the new crypto library?
 X  - Re-enable signature checking in the backend

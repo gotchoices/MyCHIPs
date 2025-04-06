@@ -228,37 +228,41 @@ After examining the codebase, we've identified specific issues contributing to c
   - [x] 1.2.2 Update both URL and JSON connection paths for consistent user confirmation
   - [x] 1.2.3 Add comments explaining previous behavior and rationale for changes
 
-### 🔲 Phase 1: Fix Remaining Critical Connection Bugs
+## Future Improvements
 
-- [ ] 1.3 Consolidate deep link handling:
-  - [ ] 1.3.1 Create centralized link handler utility in deep-links.js
-  - [ ] 1.3.2 Remove duplicate link listeners from SocketProvider and Home components
-  - [ ] 1.3.3 Register callbacks for different link types in a single location
+The following items are marked for future enhancements after completing the critical fixes:
 
-### 🔲 Phase 2: Enhance Connection Reliability
+### Future Deep Link Improvements
 
-- [ ] 2.1 Add connection key validation:
-  - [ ] 2.1.1 Add schema validation for connection keys
-  - [ ] 2.1.2 Implement JSON parsing in try/catch
-  - [ ] 2.1.3 Add required field validation
-  - [ ] 2.1.4 Add graceful error handling for corrupted keys
+- 🔲 Consolidate deep link handling:
+  - 🔲 Create centralized link handler utility in deep-links.js
+  - 🔲 Remove duplicate link listeners from SocketProvider and Home components
+  - 🔲 Register callbacks for different link types in a single location
 
-- [ ] 2.2 Improve connection key management:
-  - [ ] 2.2.1 Create `connection-keychain.js` utility (based on `keychain-store.js` pattern)
-  - [ ] 2.2.2 Add proper error handling for storage operations
-  - [ ] 2.2.3 Implement secure backup/restore capability similar to signing keys
+### Future Connection Reliability Enhancements
 
-- [ ] 2.3 Add user feedback mechanisms:
-  - [ ] 2.3.1 Create toast/alert system for connection state changes
-  - [ ] 2.3.2 Add success confirmation before navigation
-  - [ ] 2.3.3 Implement connection status indicator in UI
+- 🔲 Add connection key validation:
+  - 🔲 Add schema validation for connection keys
+  - 🔲 Implement JSON parsing in try/catch
+  - 🔲 Add required field validation
+  - 🔲 Add graceful error handling for corrupted keys
 
-### 🔲 Phase 3: Continue First-Time Experience Improvements
+- 🔲 Improve connection key management:
+  - 🔲 Create `connection-keychain.js` utility (based on `keychain-store.js` pattern)
+  - 🔲 Add proper error handling for storage operations
+  - 🔲 Implement secure backup/restore capability similar to signing keys
 
-- [ ] 3.2 Create offline welcome experience:
-  - [ ] 3.2.1 Design language-neutral welcome screen with icons
-  - [ ] 3.2.2 Add scanner access button in prominent position
-  - [ ] 3.2.3 Include visual guide for finding service providers
+- 🔲 Add user feedback mechanisms:
+  - 🔲 Create toast/alert system for connection state changes
+  - 🔲 Add success confirmation before navigation
+  - 🔲 Implement connection status indicator in UI
+
+### Future First-Time Experience Improvements
+
+- 🔲 Create offline welcome experience:
+  - 🔲 Design language-neutral welcome screen with icons
+  - 🔲 Add scanner access button in prominent position
+  - 🔲 Include visual guide for finding service providers
 
 ## Testing Strategy
 

@@ -152,67 +152,69 @@ We recommend phasing out bin/build entirely in favor of direct Fastlane usage th
 - `/ios/fastlane/`: iOS Fastlane configuration
 - Package.json scripts connect these systems together
 
-### 🔲 Remaining Tasks
+### ✅ Completed Tasks
 
-#### Configuration Customization
-- [x] Update Android Appfile with correct package name ✅ (`org.mychips.chark` already set correctly)
-- [x] Update iOS Appfile with correct bundle identifier ✅ (`org.mychips.mychips` to match TestFlight)
-- [x] Update iOS Appfile with Apple ID and team information ✅ (Using environment variables)
-- [x] Review and adjust Fastfiles for project-specific requirements ✅ (Added proper API key handling)
-- [x] Add version increment functionality ✅ (Implemented via npm scripts using react-native-version)
+#### Configuration and Setup
+- [x] Update Android Appfile with correct package name (`org.mychips.chark` already set correctly)
+- [x] Update iOS Appfile with correct bundle identifier (`org.mychips.mychips` to match TestFlight)
+- [x] Update iOS Appfile with Apple ID and team information (Using environment variables)
+- [x] Review and adjust Fastfiles for project-specific requirements (Added proper API key handling)
+- [x] Add version increment functionality (Implemented via npm scripts using react-native-version)
 
 #### Signing Setup
 - [x] Configure Android signing:
-  - [x] Create/locate keystore file and place in appropriate location ✅
-  - [x] Update gradle files to reference keystore ✅
-  - [x] Test signing configuration with a release build ✅
+  - [x] Create/locate keystore file and place in appropriate location
+  - [x] Update gradle files to reference keystore
+  - [x] Test signing configuration with a release build
 - [x] Configure iOS signing:
-  - [x] Verify certificates and provisioning profiles ✅
-  - [x] Ensure provisioning profiles include Associated Domains capability ✅
-  - [x] Update Fastlane configuration for proper signing ✅
-  - [x] Test signing with a development build ✅
+  - [x] Verify certificates and provisioning profiles
+  - [x] Ensure provisioning profiles include Associated Domains capability
+  - [x] Update Fastlane configuration for proper signing
+  - [x] Test signing with a development build
 
 #### Testing and Validation
 - [x] Test Android lanes:
-  - [x] `build_apk` ✅ (Tested and working)
-  - [x] `build_app_bundle` ✅ (Tested and working)
-  - [x] `deploy_to_mychips` ✅ (Tested and working with environment variable set)
-  - [x] `deploy_to_playstore_testing` ✅ (Tested and working with Google Play API key)
-  - [x] `deploy_to_playstore` ✅ (Tested and working, automatic publishing enabled)
+  - [x] `build_apk` (Tested and working)
+  - [x] `build_app_bundle` (Tested and working)
+  - [x] `deploy_to_mychips` (Tested and working with environment variable set)
+  - [x] `deploy_to_playstore_testing` (Tested and working with Google Play API key)
+  - [x] `deploy_to_playstore` (Tested and working, automatic publishing enabled)
 - [x] Test iOS lanes:
-  - [x] `build_archive` ✅ (Works with proper signing configuration)
-  - [x] `test_api_key` ✅ (Added for testing App Store API access)
-  - [x] `beta` (TestFlight) ✅ (Successfully uploads to TestFlight)
-  - [x] `upload_only` ✅ (Added for uploading existing IPA files)
-  - [ ] `release` (App Store) ❓ (Implemented but not yet tested)
+  - [x] `build_archive` (Works with proper signing configuration)
+  - [x] `test_api_key` (Added for testing App Store API access)
+  - [x] `beta` (TestFlight) (Successfully uploads to TestFlight)
+  - [x] `upload_only` (Added for uploading existing IPA files)
 
 #### Documentation
-- [x] Finalize README.md updates with Fastlane instructions ✅
-- [x] Add comments to Fastfiles explaining each lane ✅
-- [x] Document environment variable requirements ✅
+- [x] Finalize README.md updates with Fastlane instructions
+- [x] Add comments to Fastfiles explaining each lane
+- [x] Document environment variable requirements
 
 #### Environment Variables
 - [x] Set up environment variables for deployment:
-  - [x] `MYCHIPS_ANDROID_APK_DEPLOY` for Android APK deployment to mychips.org ✅
-  - [x] `GOOGLE_PLAY_API_FILE` pointing to Google Play API JSON key file (for Play Store deployment) ✅
-  - [x] `APPLE_ID` for Apple Developer account email ✅
-  - [x] `APPLE_TEAM_ID` for Apple Developer Portal Team ID ✅
-  - [x] `APP_STORE_API_FILE` pointing to App Store API key file (for TestFlight/App Store deployment) ✅
+  - [x] `MYCHIPS_ANDROID_APK_DEPLOY` for Android APK deployment to mychips.org
+  - [x] `GOOGLE_PLAY_API_FILE` pointing to Google Play API JSON key file (for Play Store deployment)
+  - [x] `APPLE_ID` for Apple Developer account email
+  - [x] `APPLE_TEAM_ID` for Apple Developer Portal Team ID
+  - [x] `APP_STORE_API_FILE` pointing to App Store API key file (for TestFlight/App Store deployment)
 
 #### Transition Plan
-- [x] Add deprecation notice to bin/build ✅
-- [x] Create developer transition guidance document ✅ (Added in README.md)
-- [x] Run side-by-side tests (old vs new build process) ✅
-- [ ] Officially deprecate bin/build after transition period
+- [x] Add deprecation notice to bin/build
+- [x] Create developer transition guidance document (Added in README.md)
+- [x] Run side-by-side tests (old vs new build process)
 
-#### Future Enhancements
-- [ ] Test and verify App Store production release
-- [x] Add support for automatically submitting to TestFlight External Testing ⚠️ (Implemented but not yet tested)
-  - Added `distribute_external: true` and `groups: ["MT"]` to the TestFlight upload action
-  - Added beta app review info parameters to automate the external testing approval process
-  - Needs testing during the next TestFlight submission
+### 🔲 Future Enhancements
+
+These items are marked for future work but are not required for the current implementation:
+
+#### App Store Release
+- [ ] Test and verify App Store production release (`release` lane implemented but not yet tested)
+- [ ] Verify External TestFlight distribution
+
+#### Additional Features
 - [ ] Add changelog generation or management in deployment process
 - [ ] Add safety checks to prevent accidentally uploading debug builds
+- [ ] Officially deprecate bin/build after transition period
 
 #### (Optional) CI/CD Integration
 - [ ] Research appropriate CI/CD platforms compatible with requirements

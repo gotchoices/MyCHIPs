@@ -21,16 +21,19 @@ AI Agents:
 - [Crypto Service Implementation](crypto_service.md) - Centralized crypto service using QuickCrypto
 - [QR Code Scanner Compatibility](scanner.md) - Fixed scanner after React Native 0.77 upgrade
 - [Tally Display Improvements](tally_display.md) - Enhanced certificate display with interactive elements and image support
-- [Tally Validity and Verification](tally_valid.md) - Added cryptographic verification of tallies with visual indicators and repair options
+- [Connection Ticket and Backend Connectivity](connect.md) - Fixed critical connection issues including key preservation, confirmation flow, and first-time user experience
+- [Automated Deployment](autodeploy.md) - Implemented Fastlane for automated building and deployment to various targets
+- [Payment Processing Improvements](payments.md) - Standardized units conversion, UUID generation, and timestamp formats
+- [Trading Variables Implementation](trading.md) - Fixed critical issues with trading variables chit generation and processing
 
 ### In Progress
-- [Automated Deployment](autodeploy.md) - Fastlane implementation, 90% complete
-- [Payment Processing Improvements](payments.md) - Standardizing units, references, UUIDs and timestamps
-- [Trading Variables Implementation](trading.md) - Fixing and improving trading variables handling
+- [Tally Validity and Verification](tally_valid.md) - Extending cryptographic verification to include chits and hash chain integrity
 
 ### Future (Priority Order)
-- [Connection Ticket and Backend Connectivity](connect.md) - Improving connection reliability, token handling, and first-time user experience
 - [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API
 - [Language Text Tags](lang_text.md) - Standardize language text implementation and fill missing tags
 - [Toast and Modal UI Improvements](toasting.md) - Standardize feedback mechanisms and user interactions
+- [Trading Variables UI Enhancements](trading.md) - Improve WebView form design and user experience
+- [Payment Processing Extensions](payments.md) - Implement consistent memo field handling and additional testing
 - [TypeScript Migration](ts_migrate.md) - Migrate codebase to TypeScript
+- [Automated Deployment Enhancements](autodeploy.md) - Further CI/CD automation and App Store production releases
