@@ -293,6 +293,272 @@ tabtext mychips.lifts_v_pay_me -lang spa {Mis pagos por elevación} {Vista que m
   {memo {Memo} {Descripción de la transacción}}
 }
 
+tabtext mychips.tallies_v -lang spa {Recuentos} {Vista estándar que contiene una entrada para cada recuento, que es un registro de transacciones de crédito entre dos socios comerciales.} {
+  {part_addr {Dirección del Socio} {La dirección CHIP (cid:agent) del socio en este recuento}}
+  {inside {Interno} {La entidad socia también está alojada por el mismo sistema que el propietario del recuento}}
+  {state {Estado} {Un valor calculado que indica el estado de progreso a medida que el recuento pasa por su ciclo de vida} {
+    {void {Nulo} {El recuento ha sido abandonado antes de ser afirmado por ambas partes}}
+    {H.offer {Oferta del Titular} {Has firmado y ofrecido el recuento a tu socio}}
+    {P.offer {Oferta del Socio} {Tu socio ha firmado y ofrecido el recuento a ti}}
+    {P.draft {Borrador Listo} {Tu socio ha fijado su información al borrador y espera una oferta}}
+    {open {Abierto} {El recuento ahora está abierto y se puede usar para operaciones}}
+    {close {Cerrado} {El recuento ya no se puede usar para operaciones}}
+  }}
+  {action {Acción} {Indica que este recuento requiere algún tipo de acción por parte del usuario, como aceptar, rechazar, confirmar, etc.}}
+  {liftable {Elevable} {Indica si el recuento es elegible para participar en elevaciones}}
+  {net {Total del Recuento} {Valor total en milliCHIP en el recuento, sumado de los vales actuales}}
+  {chits {Vales} {El número total de transacciones de vales registradas en el recuento}}
+  {latest {Último Vale} {La fecha del último vale en el recuento}}
+  {json_core {Núcleo JSON} {Una representación JSON de las partes del recuento que serán hash digital y firmadas}}
+  {json {JSON} {Una representación JSON del recuento, incluido el hash digital}}
+  {digest_v {Resumen Calculado} {Una versión del resumen hash calculado desde cero cada vez que se recupera (para compararlo con la versión almacenada)}}
+  {clean {Limpio} {Indica que el hash almacenado coincide con el hash calculado. Esta es una indicación de que el recuento no ha sido manipulado.}}
+  {policy {Política} {Un registro JSON de los parámetros estándar de elevación y descenso}}
+  {ack_hash {Resumen de Confirmación} {El hash del último vale reconocido en la cadena}}
+  {chits_p {Vales Pendientes} {Número de vales confirmados y pendientes}}
+  {hold_chad {Dirección del Titular} {Datos de dirección CHIP para el titular del recuento}}
+  {part_chad {Dirección del Socio} {Datos de dirección CHIP para el socio del recuento}}
+  {hold_host {Host del Titular} {Nombre de host para conectarse al titular del recuento}}
+  {part_host {Host del Socio} {Nombre de host para conectarse al socio del recuento}}
+  {hold_port {Puerto del Titular} {Puerto para conectarse al titular del recuento}}
+  {part_port {Puerto del Socio} {Puerto para conectarse al socio del recuento}}
+  {net_p {Neto Pendiente} {Total de CHIP del recuento de vales confirmados y pendientes}}
+  {mag_p {Magnitud} {Valor absoluto total de CHIP del recuento de vales confirmados y pendientes}}
+}
+
+tabtext mychips.tallies_v_me -lang spa {Mis Recuentos} {Vista que contiene los recuentos correspondientes al usuario actual} {
+}
+
+tabtext mychips.routes -lang spa {Rutas Externas} {Información recopilada de otros servidores sobre pares extranjeros que se pueden alcanzar a través de recuentos establecidos} {
+  {rid {ID de Ruta} {Un número entero único asignado por el sistema para identificar cada registro de ruta}}
+  {via_ent {Entidad de Ruta} {El ID de una entidad local que posee el recuento con el que comienza esta ruta}}
+  {via_tseq {Recuento de Ruta} {Número de secuencia del recuento con el que comienza esta ruta}}
+  {dst_cuid {ID de Usuario CHIP de Destino} {El identificador CHIP para la entidad a la que conduce esta ruta}}
+  {dst_agent {Agente de Destino} {La dirección del agente para la entidad a la que conduce esta ruta}}
+  {req_ent {Solicitante} {El ID de la entidad local a través de la cual se originó esta solicitud de ruta (también donde devolver los resultados de la consulta)}}
+  {req_tseq {Recuento del Solicitante} {El número de secuencia del recuento por el que llegó la solicitud de ruta (dejar nulo para consultas locales)}}
+  {status {Estado} {Indica si esta ruta es utilizable o, de no serlo, qué progreso se está haciendo para descubrir dicha ruta} {
+    {draft {Borrador} {La ruta ha sido solicitada pero aún no ha sido verificada o propagada aguas arriba}}
+    {pend {Pendiente} {Se ha realizado una solicitud aguas arriba para descubrir esta ruta, pero aún no se conoce más estado localmente}}
+    {good {Buena} {El servidor par aguas arriba ha respondido que esta ruta es posible}}
+    {none {Ninguna} {El servidor par aguas arriba ha respondido que esta ruta no es posible}}
+  }}
+  {step {Paso} {Cuántos pasos estamos en el camino desde donde se originó esta solicitud de ruta}}
+  {lift_count {Contador de Uso} {Un contador que se incrementa cada vez que esta ruta se utiliza en una elevación}}
+  {lift_date {Último Uso} {La fecha/hora en que esta ruta se utilizó por última vez en una elevación}}
+  {good_date {Fecha de Descubrimiento} {La fecha/hora en que esta ruta fue marcada como buena por última vez por un servidor extranjero aguas arriba}}
+  {min {Mínimo de Elevación} {Lo máximo que podemos esperar elevar a lo largo de esta ruta sin empujar las contrapartes más allá de su configuración objetivo}}
+  {max {Máximo de Elevación} {Lo máximo que podemos esperar elevar a lo largo de esta ruta, lo que podría incurrir en una tarifa de transacción adicional}}
+  {margin {Margen de Elevación} {La tasa de comisión que podemos esperar para mover cualquier transacción de elevación a lo largo de esta ruta}}
+  {reward {Recompensa de Elevación} {Una tasa de comisión adicional que podemos esperar para mover elevaciones más allá del monto Mínimo de Elevación}}
+} -messages {
+  {BST {Estado de Ruta Incorrecto} {No es un estado válido para el estado de la ruta}}
+  {UNI {Ruta No Única} {Las rutas deben tener una combinación única de origen y destino}}
+  {CRL {Destino de Ruta Ilegal} {Las rutas deben ser solo a usuarios en otros sistemas}}
+  {LMG {Margen Ilegal} {El margen debe especificarse entre -1 y 1}}
+  {LRW {Recompensa Ilegal} {La recompensa debe especificarse entre -1 y 1}}
+}
+
+tabtext mychips.routes_v -lang spa {Rutas Externas} {Una vista que muestra pares extranjeros a los que se puede llegar a través de uno de nuestros pares extranjeros conocidos} {
+  {via_cuid {ID de Usuario CHIP Vía Ruta} {ID de Usuario CHIP del propietario del recuento en el que comienza la ruta}}
+  {via_agent {Agente Vía Ruta} {Dirección del agente para el propietario del recuento en el que comienza la ruta}}
+  {via_chad {Dirección Vía Ruta} {Dirección CHIP JSON completa para el propietario del recuento en el que comienza la ruta}}
+  {via_tally {Recuento Vía Ruta} {ID del recuento en el que comienza la ruta}}
+  {vip_cuid {ID de Usuario CHIP del Socio de Ruta} {ID de Usuario CHIP del socio extranjero en el recuento en el que comienza la ruta}}
+  {vip_agent {Agente del Socio de Ruta} {Dirección del agente para el socio extranjero en el recuento en el que comienza la ruta}}
+  {vip_chad {Dirección del Socio de Ruta} {Dirección CHIP JSON completa para el socio extranjero en el recuento en el que comienza la ruta}}
+  
+  {req_cuid {ID de Usuario CHIP de Solicitud} {ID de Usuario CHIP del propietario del recuento a través del cual se solicita la ruta}}
+  {req_agent {Agente de Solicitud} {Dirección del agente para el propietario del recuento a través del cual se solicita la ruta}}
+  {req_chad {Dirección de Solicitud} {Dirección CHIP JSON completa para el propietario del recuento a través del cual se solicita la ruta}}
+  {req_tally {Recuento de Solicitud} {ID del recuento a través del cual se solicita la ruta (o nulo para solicitudes locales)}}
+  {rpt_cuid {ID de Usuario CHIP del Socio Solicitante} {ID de Usuario CHIP del socio extranjero en el recuento a través del cual se solicita la ruta}}
+  {rpt_agent {Agente del Socio Solicitante} {Dirección del agente para el socio extranjero en el recuento a través del cual se solicita la ruta}}
+  {rpt_chad {Dirección del Socio Solicitante} {Dirección CHIP JSON completa para el socio extranjero en el recuento a través del cual se solicita la ruta}}
+  
+  {dst_chad {Dirección de Destino} {Dirección CHIP JSON completa para la entidad que la ruta está buscando}}
+  {native {Nativa} {La entidad que solicita la ruta es un usuario local}}
+  {tries {Intentos} {Cuántas veces esta solicitud de ruta ha intentado sin conectarse al par previsto}}
+  {last {Último Intento} {Cuándo se realizó el último reintento}}
+  {expires {Vence} {Cuándo esta ruta se considerará incierta}}
+  {expired {Vencida} {Esta ruta es incierta debido a la cantidad de tiempo transcurrido desde que fue confirmada}}
+  {state {Estado} {Indica cómo/si esta ruta podría ser utilizable}}
+  {lading {Cargamento} {Una estructura JSON que describe cuánto valor se puede elevar a lo largo de esta ruta y qué tarifas podrían aplicarse}}
+  {json {Objeto de Ruta} {Representación JSON de la ruta utilizada en mensajes entre pares}}
+}
+
+tabtext mychips.route_tries -lang spa {Reintentos de Ruta} {Rastrea cuántas veces el algoritmo de transición de estado de ruta ha intentado comunicar una transición a un par} {
+  {rtry_rid {ID de Ruta de Reintento} {Clave principal de la ruta para la que estamos rastreando reintentos}}
+  {last {Último Intento} {La última vez que lo intentamos}}
+  {tries {Intentos} {Cuántos intentos llevamos}}
+}
+
+tabtext mychips.agents -lang spa {Agentes del Sitio} {Mantiene las direcciones de conexión de los procesos agentes} {
+  {agent {ID de Agente} {Cadena única que identifica el servicio del agente}}
+  {agent_key {Clave de Agente} {La clave pública de conexión decodificada de la cadena de ID del agente}}
+  {agent_host {Dirección del Host del Agente} {El nombre de host o número IP donde los pares se conectan a este agente}}
+  {agent_port {Puerto del Agente} {El puerto en el que se conectan los pares}}
+  {agent_ip {IP del Agente} {El número IP desde el cual este agente se conectó por última vez}}
+  {crt_date {Creado} {La fecha en que se creó este registro}}
+  {mod_date {Modificado} {La fecha de la última modificación de este registro}}
+  {crt_by {Creado por} {El usuario que ingresó este registro}}
+  {mod_by {Modificado Por} {El usuario que modificó por última vez este registro}}
+} -messages {
+  {CHR {Host de Agente Requerido} {Se debe especificar un host o dirección IP para el agente}}
+  {CPR {Puerto de Agente Requerido} {Se debe especificar un número de puerto para el agente}}
+  {AHP {Host/Puerto Único} {Cada clave de agente debe estar asociada con una combinación única de dirección de host y puerto}}
+}
+
+tabtext mychips.agents_v -lang spa {Agentes del Sitio} {Vista estandarizada de agentes conocidos en el sitio actual} {
+  {sock {Socket} {La combinación de host del agente y número de puerto como: host:puerto}}
+  {valid {Válido} {Indica que el nombre del agente puede decodificarse en un valor de clave pública}}
+  {atsock {En Socket} {La combinación de dirección del agente, host y puerto como: agente@host:puerto}}
+  {json {JSON} {La dirección del agente, host y puerto como un registro JSON}}
+}
+
+tabtext mychips.contracts -lang spa {Contratos} {Cada registro contiene el lenguaje del contrato para ser incluido por referencia en un recuento MyCHIPs o un acuerdo similar} {
+  {host {Anfitrión del Autor} {Dirección web de un servidor http que puede proporcionar una copia autorizada del documento de contrato}}
+  {name {Nombre del Documento} {Un nombre para el contrato, único para el anfitrión especificado}}
+  {version {Versión} {El número de versión, comenzando en 1, de este documento de contrato}}
+  {language {Idioma} {El código ISO estándar de 3 letras para el idioma en el que está escrito el contrato}}
+  {title {Título} {Un título breve y descriptivo que se mostrará como encabezado de documento o sección cuando se renderice un contrato}}
+  {text {Texto} {Un párrafo introductorio de texto en el nivel superior del documento}}
+  {top {Nivel Superior} {Indica que este documento es adecuado para ser utilizado como un contrato de recuento (en lugar de solo una sección)}}
+  {published {Publicado} {La fecha en que esta versión del contrato fue puesta a disposición del público por primera vez}}
+  {sections {Secciones} {Subsecciones adicionales del texto del contrato, que describen los términos y condiciones del contrato}}
+  {digest {Hash} {La firma hash SHA-256 del documento que puede ser referenciada por otros para probar la exactitud del contrato}}
+  {crt_date {Creado} {La fecha en que se creó este registro}}
+  {mod_date {Modificado} {La fecha de la última modificación de este registro}}
+  {crt_by {Creado por} {El usuario que ingresó este registro}}
+  {mod_by {Modificado Por} {El usuario que modificó por última vez este registro}}
+} -messages {
+  {BVN {Número de Versión Incorrecto} {El número de versión para los contratos debe comenzar con 1 y avanzar progresivamente}}
+  {PBC {Restricciones de Publicación} {Al publicar un documento, se debe especificar el hash de resumen, la ubicación de origen y las secciones de contenido}}
+  {UNC {Comando Desconocido} {El informe del editor de contratos recibió un comando de acción no reconocido}}
+  {ILR {Filas Ilegales} {Una consulta que esperaba un solo registro devolvió cero o múltiples filas}}
+  {IRI {ID de Recurso Inválido} {Un contrato contiene una referencia a otro documento que no se puede encontrar}}
+}
+
+tabtext mychips.contracts_v -lang spa {Contratos} {Cada registro contiene el lenguaje del contrato para ser incluido por referencia en un recuento MyCHIPs o un acuerdo similar.} {
+  {rid {ID de Recurso} {Versión codificada en Base58 del documento de contrato}}
+  {json_core {Núcleo JSON} {El contrato representado en Notación de Objeto JavaScript}}
+  {json {JSON} {El contrato representado en Notación de Objeto JavaScript e incluyendo su resumen}}
+  {digest_v {Resumen Calculado} {El resumen para este documento tal como se calcula actualmente}}
+  {clean {Limpio} {El resumen almacenado coincide con el resumen calculado}}
+} -messages {
+  {edit {Editar Secciones} {Ventana dedicada para editar correctamente las secciones del contrato}}
+  {publish {Publicar} {Confirmar esta versión, escribir la fecha de publicación y deshabilitar modificaciones adicionales}}
+  {IDK {Clave Inválida} {Los valores clave especificados para el documento del contrato no son válidos}}
+  {TMK {Número de Clave Incorrecto} {El informe de contrato debe llamarse con exactamente un ID de registro}}
+  {launch.title {Contratos} {Gestionar Acuerdos Comerciales}}
+  {launch.instruct {Instrucciones Básicas} {
+    <p>Si sus usuarios utilizan solo contratos creados y mantenidos por otras partes, es posible 
+       que no necesite crear nuevos datos aquí.
+    <p>Puede crear sus propios contratos y/o modificar los existentes abriendo una ventana
+       de edición y seleccionando Editar Secciones en el menú Acciones.
+  }}
+}
+
+tabtext mychips.creds -lang spa {Credenciales} {Contiene criterios para puntuar certificados de entidades} {
+  {name {Nombre} {El nombre completo de la ruta de la propiedad del certificado a la que se aplica esta puntuación}}
+  {func {Función} {Determina cómo evaluar la propiedad} {
+    {a {Ausente} {Aplicar puntuación si la propiedad nombrada está ausente}}
+    {p {Presente} {Aplicar puntuación si la propiedad nombrada está presente}}
+    {mt {Más que} {Aplicar puntuación si el número de elementos nombrados es mayor que un valor especificado}}
+    {re {Expresión regular} {Aplicar puntuación si el valor de la propiedad coincide con una expresión regular}}
+  }}
+  {parm {Parámetro} {Contiene una expresión regular o un entero para usar en la comparación de propiedades}}
+  {score {Puntuación} {Un entero para aplicar a la puntuación agregada si este criterio coincide}}
+  {crt_date {Creado} {La fecha en que se creó este registro}}
+  {mod_date {Modificado} {La fecha de la última modificación de este registro}}
+  {crt_by {Creado por} {El usuario que ingresó este registro}}
+  {mod_by {Modificado Por} {El usuario que modificó por última vez este registro}}
+} -messages {
+  {BCF {Función Incorrecta} {No es un valor válido para una función de credencial}}
+  {CNU {No Único} {Cada criterio de credencial debe ser único en el nombre, función y parámetro}}
+}
+
+tabtext mychips.creds_v -lang spa {Credenciales} {Vista estándar de criterios para puntuar certificados de entidades} {
+}
+
+tabtext mychips.file_v_me -lang spa {Archivos del Usuario} {Una vista de los archivos de datos del usuario actual} {
+  {digest {Resumen} {El hash del documento en formato base64v}}
+}
+
+tabtext mychips.file_v_part -lang spa {Archivos del Socio} {Una vista que contiene archivos de usuario de los socios de recuento del usuario actual} {
+  {media {Medio} {El tipo de documento como se registra en el certificado de recuento}}
+  {format {Formato} {El tipo MIME del documento como se registra en el certificado de recuento}}
+  {comment {Comentario} {El comentario del documento como se registra en el certificado de recuento}}
+  {digest {Resumen} {El hash del documento como se registra en el certificado de recuento}}
+  {hash {Hash} {El hash del documento en formato base64url}}
+}
+
+tabtext mychips.routes_v_paths -lang spa {Rutas y Vías} {Une vías internas y posibles rutas externas para seleccionar posibles elevaciones en el sistema MyCHIPs} {
+  {circuit {Circuito} {Verdadero si la combinación de esta ruta y vía forma un circuito completo}}
+  {path_margin {Margen de Vía} {La tasa de comisión que podemos esperar para mover cualquier transacción de elevación a lo largo de la vía interna}}
+  {path_max {Máximo de Vía} {Lo máximo que podemos esperar elevar a lo largo de la vía interna, lo que podría incurrir en una tarifa de transacción adicional}}
+  {path_min {Mínimo de Vía} {Lo máximo que podemos esperar elevar a lo largo de la vía interna sin empujar las contrapartes más allá de su configuración objetivo}}
+  {path_reward {Recompensa de Vía} {Cualquier tasa de comisión adicional que podemos esperar a lo largo de la vía interna para mover elevaciones más allá del monto Mínimo de Elevación}}
+  {route_margin {Margen de Ruta} {La tasa de comisión que podemos esperar para mover cualquier transacción de elevación a lo largo de la ruta externa}}
+  {route_max {Máximo de Ruta} {Lo máximo que podemos esperar elevar a lo largo de la ruta externa, lo que podría incurrir en una tarifa de transacción adicional}}
+  {route_min {Mínimo de Ruta} {Lo máximo que podemos esperar elevar a lo largo de la ruta externa sin empujar las contrapartes más allá de su configuración objetivo}}
+  {route_reward {Recompensa de Ruta} {Una tasa de comisión adicional que podemos esperar a lo largo de la ruta externa para mover elevaciones más allá del monto Mínimo de Elevación}}
+}
+
+tabtext mychips.routes_v_query -lang spa {Consulta de Rutas} {Compara posibles rutas externas con registros de ruta existentes en el sistema} {
+  {exist {Existe} {Verdadero si existe una ruta en nuestra tabla}}
+  {find_agent {Agente de Búsqueda} {Campo de prioridad para ordenar rutas por conveniencia}}
+  {find_cuid {ID de Usuario CHIP de Búsqueda} {El ID de Usuario CHIP de la entidad en la entrada de la vía}}
+  {sorter {Clasificador} {El agente de la entidad en la entrada de la vía}}
+}
+
+tabtext mychips.tallies_v_edg -lang spa {Enlaces de Elevación de Recuentos} {Una vista que muestra un solo enlace entre entidades hipotéticamente elegibles para una elevación} {
+  {uuid {UUID de Recuento} {ID único del recuento asociado con este enlace}}
+  {inp {ID de Nodo de Entrada} {El ID de usuario de origen (o nulo si es un par extranjero) de donde proviene la elevación}}
+  {out {ID de Nodo de Salida} {El ID de usuario de destino (o nulo si es un par extranjero) a donde irá la elevación}}
+  {min {Elevación Mínima} {Número mínimo de unidades posibles para elevar en este enlace sin costo de recompensa aplicable}}
+  {max {Elevación Máxima} {Número máximo de unidades posibles para elevar en este enlace con posibles costos aplicables}}
+  {margin {Margen de Elevación} {La tasa de comisión que podemos esperar para mover cualquier transacción de elevación a lo largo de este enlace}}
+  {type {Tipo de Elevación} {La dirección (elevación o descenso) en que ocurrirá una elevación en este borde de la red}}
+  {sign {Signo de Enlace} {Si se acumulará positivo o negativo en este recuento (basado en existencias o contraparte)}}
+  {part {ID de Socio} {ID local (o nulo si es un par extranjero) de la entidad socia}}
+  {inv {Invertido} {Verdadero si el enlace es un recuento con un par extranjero y se está considerando para un descenso (elevación inversa)}}
+}
+
+tabtext mychips.tallies_v_net -lang spa {Enlaces de Elevación de Recuentos} {Una vista que muestra un solo enlace entre entidades hipotéticamente elegibles para una elevación} {
+  {uuid {UUID de Recuento} {ID único del recuento asociado con este enlace}}
+  {inp {ID de Nodo de Entrada} {El ID local (o nulo si es un par extranjero) del nodo que dará valor en la elevación}}
+  {out {ID de Nodo de Salida} {El ID local (o nulo si es un par extranjero) del nodo que recibirá valor en la elevación}}
+  {min {Elevación Mínima} {Número mínimo de unidades posibles para elevar en este enlace sin costo de recompensa aplicable}}
+  {max {Elevación Máxima} {Número máximo de unidades posibles para elevar en este enlace con posibles costos aplicables}}
+  {margin {Margen de Elevación} {La tasa de comisión que podemos esperar para mover cualquier transacción de elevación a lo largo de este enlace}}
+  {type {Tipo de Elevación} {La dirección (elevación o descenso) en que ocurrirá una elevación en este borde de la red}}
+  {sign {Signo de Enlace} {Si se acumulará positivo o negativo en este recuento (basado en existencias o contraparte)}}
+  {part {ID de Socio} {ID local (o nulo si es un par extranjero) de la entidad socia}}
+  {inv {Invertido} {Verdadero si el enlace es un recuento con un par extranjero y se está considerando para un descenso (elevación inversa)}}
+  {canlift {Puede Elevar} {Indica la capacidad de elevación en este recuento}}
+}
+
+tabtext mychips.tallies_v_paths -lang spa {Vías de Recuentos} {Una vista que muestra vías de red entre entidades locales, basadas en los recuentos que tienen establecidos} {
+  {uuids {Lista de ID de Recuentos} {Una matriz de los identificadores de recuento en esta vía}}
+  {seqs {Lista de Secuencias} {Una matriz de las secuencias de recuento en esta vía}}
+  {signs {Lista de Signos de Recuento} {Una matriz de los signos (+/- = elevación/descenso) en esta vía}}
+  {bang {Beneficio de Elevación} {El producto de la longitud de la vía y las unidades mínimas elevables. Esto da una idea del beneficio relativo de realizar una elevación a lo largo de esta vía.}}
+  {path {Lista de ID de Usuario} {Una matriz de los IDs de usuario en esta vía}}
+  {ath {IDs de Usuario -Primero} {Una matriz de los IDs de usuario en esta vía sin incluir el nodo de entrada}}
+  {pat {ID de Usuario -Último} {Una matriz de los IDs de usuario en esta vía sin incluir el nodo de salida}}
+  {at {ID de Usuario Interno} {Una matriz de los IDs de usuario en esta vía sin incluir el nodo de entrada o salida}}
+  {circuit {Circuito} {Una bandera que indica que la vía forma un bucle de extremo a extremo}}
+  {edges {Longitud de Nodos} {El número de nodos pares en esta vía}}
+  {nodes {Longitud de Enlaces} {El número de enlaces entre nodos en esta vía}}
+  {inp {ID de Inicio de Vía} {ID de entidad del usuario (o nulo si es un par extranjero) con el que comienza esta vía de elevación}}
+  {out {ID de Fin de Vía} {ID de entidad del usuario (o nulo si es un par extranjero) con el que termina esta vía de elevación}}
+  {fori {Entrada Extranjera} {Verdadero si el primer nodo en la vía no es un usuario en el sistema local}}
+  {foro {Salida Extranjera} {Verdadero si el último nodo en la vía no es un usuario en el sistema local}}
+  {bot {ID de Usuario Inferior} {ID del usuario local que posee el recuento que es el enlace de inicio (entrada) de la vía}}
+  {top {ID de Usuario Superior} {ID del usuario local que posee el recuento que es el enlace final (salida) de la vía}}
+}
+
 tabtext mychips.users -lang spa {Usuarios de CHIP} {Entidades que tienen cuentas CHIP en este servidor} {
   {user_ent {Entidad de usuario} {Un enlace a la tabla base de entidades.}}
   {user_host {Dirección del host del usuario} {El nombre de host o número de IP donde se conecta la aplicación móvil de los usuarios}}
@@ -350,3 +616,165 @@ tabtext mychips.users_v -lang spa {Usuarios de CHIP} {Entidades que tienen cuent
   {trade.start {Fecha de Comienzo} {Incluir operaciones a partir de esta fecha}}
   {unlock {Desbloquear cuenta} {Ponga la(s) cuenta(s) especificada(s) en modo funcional, para que pueda ocurrir el comercio normal}}
 }
+
+tabtext mychips.tally_tries -lang spa {Intentos de Recuento}	{La tabla contiene información sobre reintentos con pares para establecer recuentos} {
+  {ttry_ent	{Entidad de Recuento}	{La entidad que posee el recuento}}
+  {ttry_seq	{Secuencia de Recuento}	{El número de secuencia único del recuento}}
+  {tries	{Reintentos}		{Cuántas veces el servidor par ha intentado actuar sobre la solicitud de estado para este recuento}}
+  {last		{Último Intento}	{Cuándo se realizó el último intento de procesar cambios de estado en este recuento}}
+}
+
+tabtext mychips.addr_v_me -lang spa {Direcciones del Usuario}	{Una vista de las direcciones del usuario actual}
+
+tabtext mychips.chark -lang spa {Texto Chark}	{Vista pseudónima para proporcionar etiquetas de idioma para la aplicación móvil chark} {
+  {always	{Siempre}		{Siempre verdadero}}
+} -message {
+  {mychips	{Mis CHIPs}		{Título para la pantalla principal}}
+  {working	{Recuentos de Trabajo}	{Plantillas en borrador y vacías que puede usar para contar con otros usuarios}}
+  {settings	{Configuración}		{Ver/modificar preferencias de la aplicación}}
+  {profile	{Datos Personales}	{Ver/modificar información personal sobre el usuario}}
+  {activity	{Actividad}		{Mostrar notificaciones y transacciones de cuenta}}
+  {newtally	{Nuevo Recuento}	{Creando una nueva plantilla de recuento}}
+  {filter	{Filtrar}		{Configuración para controlar la visualización de registros en la vista previa de la lista}}
+  {search	{Buscar}		{Cargar registros que coincidan con una cadena determinada}}
+  {selall	{Seleccionar Todo}	{Seleccionar todos los elementos posibles}}
+  {more		{Más Detalles}		{Mostrar más información}}
+  {less		{Menos Detalles}	{Mostrar menos información}}
+  {language	{Idioma}		{Qué idioma usará la aplicación}}
+  {next		{Siguiente}		{Proceder al siguiente paso}}
+  {cancel	{Cancelar}		{Abortar la operación actual}}
+  {none		{Ninguno}		{No se encontraron datos para esta consulta}}
+  {custom	{Personalizado}		{Personalizar mi configuración}}
+  {warn		{Advertencia}		{La acción propuesta podría tener consecuencias adversas}}
+  {fail		{Operación Fallida}	{La acción propuesta no tuvo éxito}}
+  {save		{Guardar}		{Guardar los cambios actuales}}
+  {sure		{¿Está seguro?}		{Confirmar que desea continuar}}
+  {proceed	{Continuar}		{Entiendo, por favor proceda}}
+  {edit		{Editar}		{Modificar la información actual}}
+  {success	{Éxito}			{La operación solicitada se completó según lo previsto}}
+  {updated	{Actualizado}		{Los cambios se han escrito en la base de datos}}
+  {deleted	{Eliminado}		{El elemento ha sido eliminado de la base de datos}}
+  {import	{Importar}		{Importar el elemento desde un formato externo}}
+  {export	{Exportar}		{Exportar el elemento a un formato externo}}
+  {link		{Enlace}		{Generar un enlace profundo para esta función}}
+  {share	{Compartir}		{Compartir este elemento por algún medio externo}}
+  {qr		{Código QR}		{Generar un código QR escaneable}}
+  {add		{Añadir}		{Agregar un nuevo registro}}
+  {enter	{Por favor, Ingrese}	{Se le pide al usuario que ingrese un valor}}
+  {confirm	{Por favor, Confirme}	{Se le pide al usuario que vuelva a ingresar un valor para confirmación}}
+  {certopts	{Contenido del Certificado}	{Seleccionar qué información está contenida en un certificado}}
+  {certshare	{Compartir Certificado}	{Decida qué información personal compartirá con la otra parte. Puede crear un certificado personalizado o usar uno de cualquier plantilla de recuento existente que pueda tener.}}
+  {certtpts	{Certificados de Plantilla}	{Seleccionar un certificado de una plantilla de recuento existente}}
+  {keys		{Administrar Claves}	{Se requiere un par de claves criptográficas (pública y privada) para firmar digitalmente recuentos y transacciones. Una vez generada, asegúrese de exportar y guardar su clave en un lugar seguro o perderá la capacidad de realizar transacciones en recuentos existentes.}}
+  {keygen	{Generar Clave}		{Generar un nuevo par de claves para firmar recuentos y transacciones}}
+  {nokey	{Sin Clave de Firma}	{Aún no ha creado una clave de firma digital. Proceda a crear una.}}
+  {diffkey	{Discrepancia de Clave}	{La clave no coincide con su clave de firma cargada actualmente. No es posible realizar operaciones en el recuento.}}
+  {keywarn	{¿Sobrescribir Clave?}	{Generar o importar un par de claves descartará su clave existente. Si tiene recuentos abiertos creados con la clave anterior, no podrá realizar transacciones en esos recuentos.}}
+  {private	{Clave Privada}		{Esta parte del par de claves debe mantenerse en secreto y nunca compartirse. También debe nunca perderla o no podrá realizar transacciones en recuentos existentes creados con la clave.}}
+  {public	{Clave Pública}		{Esta parte del par de claves se comparte de manera segura con sus socios comerciales. La utilizarán para validar sus recuentos y transacciones.}}
+  {keypass	{Frase de Paso de Clave}	{Su clave exportada está protegida por una frase de paso que debe recordar para poder importar la clave nuevamente más tarde. Esto evitará que otros descubran su clave secreta.}}
+  {keybio	{Validación Biométrica}	{Su clave privada se mantiene encriptada en su dispositivo para protegerla de otros. Solo se puede acceder a ella proporcionando su validación biométrica.}}
+  {biofail	{Fallo Biométrico}	{No se puede acceder a su clave privada porque falló su validación biométrica.}}
+  {entercid	{Ingresar ID de Usuario CHIP}	{Elija una cadena de caracteres por la cual sus socios comerciales se dirigirán a usted en este agente (similar a una dirección de correo electrónico)}}
+}
+
+tabtext mychips.tokens -lang spa {Tokens}		{Realiza un seguimiento de los tokens de conexión de un solo uso para pares extranjeros} {
+  {token_ent		{Entidad de Token}	{ID de entidad para la que se emite este token}}
+  {token_seq		{Secuencia de Token}	{Mantiene el recuento de los diversos tokens creados para esta entidad}}
+  {token		{Token}			{El código digital del token}}
+  {reuse		{Reutilizable}		{Puede emitir múltiples recuentos desde un solo token}}
+  {used			{Usado}			{Indica verdadero una vez que se ha utilizado el token}}
+  {expires		{Expira}		{Indica cuándo el token ya no es válido}}
+  {tally_seq		{Secuencia de Recuento}	{Un índice que indica qué recuento se emitirá en relación con este token}}
+  {crt_date		{Creado}		{La fecha en que se creó este registro}}
+  {mod_date		{Modificado}		{La fecha de la última modificación de este registro}}
+  {crt_by		{Creado por}		{El usuario que ingresó este registro}}
+  {mod_by		{Modificado Por}	{El usuario que modificó por última vez este registro}}
+}
+
+tabtext mychips.tokens_v -lang spa {Tokens de Usuario}	{Vista estandarizada de tokens de conexión de usuario} {
+  {chad		{Dirección CHIP}	{Registro de datos que contiene ID de usuario CHIP, agente, host y puerto para este usuario}}
+  {expired	{Expirado}		{Verdadero si ha pasado el tiempo de expiración del token}}
+  {valid	{Válido}		{Verdadero si el token aún es válido para conectarse}}
+}
+
+tabtext mychips.tokens_v_me -lang spa {Mis Tokens}	{Tokens de conexión para el usuario actual}
+
+tabtext mychips.users_v_flat -lang spa {Usuarios Aplanados}	{Una vista de usuarios con contactos principales y direcciones en la misma fila}
+
+tabtext mychips.users_v_me -lang spa {Usuario Actual}	{Una vista que contiene solo los datos del usuario actual} {
+  {cert		{Certificado}	{Un objeto JSON que contiene todos los datos de certificado disponibles para el usuario} {
+    {chad		{Dirección CHIP}	{Objeto JSON que describe cómo/dónde otros usuarios se comunican con transacciones MyCHIPs contigo}}
+    {chad.cid		{ID CHIP}	{El nombre por el cual eres identificado de manera única por tu proceso de agente MyCHIPs}}
+    {chad.host		{Anfitrión}		{La dirección de host de internet donde se puede contactar a tu agente}}
+    {chad.port		{Puerto}		{El número de puerto donde se puede contactar a tu agente}}
+    {chad.agent		{Agente}		{La dirección/clave pública de tu agente}}
+    {date		{Fecha}		{Marca de tiempo que muestra cuándo se generaron estos datos de certificado}}
+    {name		{Nombre}		{Un registro (o matriz) de los nombres por los que se te conoce}}
+    {name.first		{Nombre de pila}	{Tu primer nombre de pila}}
+    {name.prefer	{Preferido}	{El nombre por el que prefieres que te llamen}}
+    {name.surname	{Apellido}	{Tu apellido}}
+    {type		{Tipo de Entidad}	{Tipo de entidad que eres (p:persona, o:organización)}}
+    {place		{Direcciones}	{Una matriz de direcciones físicas o postales}}
+    {place.type		{Tipo}		{El tipo de dirección}}
+    {place.address	{Calle}	{Información de calle o box para esta dirección}}
+    {place.city		{Ciudad}		{Ciudad en la que se encuentra esta dirección}}
+    {place.state	{Estado}		{Estado en el que se encuentra esta dirección}}
+    {place.post		{Postal}	{Código postal o zip para esta dirección}}
+    {place.country	{País}		{País en el que se encuentra esta dirección}}
+    {place.comment	{Comentario}	{Una nota que explica esta dirección}}
+    {public		{Clave Pública}		{La parte pública de la clave que utilizas para firmar transacciones}}
+    {connect		{Conexiones}	{Una matriz de teléfono, correo electrónico o puntos de contacto similares}}
+    {connect.media	{Medio}	{El tipo de punto de contacto}}
+    {connect.address	{Dirección}	{El número de teléfono, dirección de correo electrónico o similar}}
+    {connect.comment	{Comentario}	{Una nota sobre este punto de contacto}}
+    {file		{Adjuntos}	{Una matriz de otros documentos de archivo que proporcionas para establecer tu identidad}}
+    {file.media		{Tipo de Archivo}	{El tipo de documento (bio, id, foto, cert, otro)}}
+    {file.digest	{Resumen}	{Un hash único e identificativo del documento}}
+    {file.format	{Formato}	{El formato de archivo para el documento}}
+    {file.comment	{Comentario}	{Una nota explicativa sobre el documento}}
+    {identity		{Identidad}	{Una matriz de registros que te identifican de manera única}}
+    {identity.birth	{Nacimiento}		{Información única de tu nacimiento}}
+    {identity.birth.date	{Fecha de Nacimiento}	{La fecha en que naciste}}
+    {identity.birth.name	{Nombre de Nacimiento}	{Tu nombre original, si ha cambiado}}
+    {identity.birth.place	{Lugar de Nacimiento}	{Donde residías cuando naciste}}
+    {identity.birth.place.address	{Dirección de Nacimiento}	{La calle y número donde residías cuando naciste}}
+    {identity.birth.place.city		{Ciudad de Nacimiento}	{La ciudad donde residías cuando naciste}}
+    {identity.birth.place.state		{Estado de Nacimiento}	{El estado donde residías cuando naciste}}
+    {identity.birth.place.post		{Código Postal de Nacimiento}	{El código postal de donde residías cuando naciste}}
+    {identity.birth.place.country	{País de Nacimiento}	{El país donde residías cuando naciste}}
+    {identity.state		{Emitido por el Estado}	{Una identificación oficial emitida para ti por un país}}
+    {identity.state.id		{ID Estatal}	{Tu número de ID oficial estatal (como un Número de Seguro Social)}}
+    {identity.state.country	{Estado Emisor}	{El estado/país que emitió el número de identidad}}
+  }}
+} -messages {
+  {GCH	{Obteniendo Valor CHIP}	{Se produjo un error al intentar obtener el valor CHIP estimado actual}}
+  {INV		{Factura de Pago}	{Sigue el enlace para realizar un pago a la entidad}}
+  {graph 			{Gráfico de Recuento}		{Generar un gráfico visual de las relaciones y saldos de recuento del usuario}}
+    {graph.format 		{Formato de Gráfico}		{Cómo devolver los datos del informe de gráfico}}
+      {graph.format.html	{html}			{Devolver fragmento HTML que contiene el informe}}
+      {graph.format.url		{url}			{Devolver un enlace url a una página web que contiene el informe}}
+  {chip 			{Valor CHIP}		{Generar una estimación del valor CHIP actual en términos de una moneda estándar}}
+    {chip.format 		{Formato de Informe}		{Cómo devolver los datos del informe de valoración de chips}}
+      {chip.format.html		{html}			{Devolver fragmento HTML que contiene el informe}}
+      {chip.format.json		{json}			{Devolver un registro JSON que contiene la tasa de cambio CHIP}}
+    {chip.curr 			{Moneda}		{Código para una moneda a utilizar al expresar la estimación del valor CHIP}}
+  {invoice	{Solicitar Pago}	{Crear un código QR o enlace para solicitar el pago a alguien}}
+    {invoice.units	{Unidades}		{Ingrese la cantidad de pago solicitado en miliCHIPs}}
+    {invoice.memo	{Memo}	{Ingrese un mensaje al pagador con respecto a este pago}}
+    {invoice.ref	{Referencia}	{Ingrese datos que se le devolverán con el pago}}
+    {invoice.format	{Formato}	{Determina qué tipo de factura se genera}}
+      {invoice.format.qr		{qr}	{Devolver factura como código QR}}
+      {invoice.format.link	{enlace}	{Devolver factura como enlace profundo Localizador Uniforme de Recursos}}
+      {invoice.format.json	{json}	{Devolver factura como objeto JSON}}
+ {launch.title			{Usuario Actual}		{Registro de Cuenta de Usuario Actual}}
+  {launch.instruct		{Instrucciones Básicas}	{
+    <p>Esta vista muestra solo el registro perteneciente al usuario conectado
+  }}
+}
+
+tabtext mychips.users_v_tallies -lang spa {Resumen de Recuentos de Usuarios}	{Una vista agregada de recuentos que muestra un registro para cada relación de recuento}
+
+tabtext mychips.users_v_tallies_me -lang spa {Mis Resúmenes de Recuentos}	{Una vista agregada de recuentos que muestra un registro para cada una de mis relaciones de recuento}
+
+tabtext mychips.users_v_tallysum -lang spa {Suma de Recuentos de Usuarios}	{Una vista agregada de recuentos que muestra un registro para cada usuario de MyCHIPs}
