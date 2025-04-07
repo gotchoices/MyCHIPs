@@ -63,21 +63,61 @@ const DefaultCertificate = (props) => {
     try {
       switch (type) {
         case 'email':
-          fullUrl = `mailto:${url}`;
-          break;
+          // Use Intent on Android for better email client handling
+          if (Platform.OS === 'android') {
+            const emailUrl = `mailto:${url}`;
+            const intentUrl = `intent:${url}#Intent;action=android.intent.action.SENDTO;scheme=mailto;end`;
+            
+            // Try using Intent first
+            Linking.canOpenURL(intentUrl)
+              .then(supported => {
+                if (supported) {
+                  return Linking.openURL(intentUrl);
+                } else {
+                  // Fall back to standard mailto if intent isn't supported
+                  console.log('Intent not supported, trying mailto');
+                  return Linking.openURL(emailUrl);
+                }
+              })
+              .catch(err => {
+                console.error('Error with intent, trying mailto directly:', err);
+                // Last resort: try mailto directly
+                Linking.openURL(emailUrl).catch(err2 => {
+                  console.error('Failed to open email client:', err2);
+                  
+                  // Final fallback - try explicit intent format for Gmail
+                  Linking.openURL(
+                    `intent:#Intent;action=android.intent.action.SENDTO;scheme=mailto;package=com.google.android.gm;S.android.intent.extra.EMAIL=${url};end`
+                  ).catch(finalErr => {
+                    console.error('All email client attempts failed:', finalErr);
+                  });
+                });
+              });
+          } else {
+            // iOS handles mailto links well
+            fullUrl = `mailto:${url}`;
+            Linking.openURL(fullUrl).catch(err => {
+              console.error(`Error opening email client:`, err);
+            });
+          }
+          return; // Return early since we handled the link opening directly
+          
         case 'phone':
           // Clean the phone number to only include digits, +, and possibly some formatting
           fullUrl = `tel:${url.replace(/[^0-9+\-\(\) ]/g, '')}`;
           break;
+          
         case 'cell':
           // For cell phones, launch SMS instead of a call
           fullUrl = `sms:${url.replace(/[^0-9+\-\(\) ]/g, '')}`;
           break;
+          
         case 'web':
           if (!url.startsWith('http://') && !url.startsWith('https://')) {
             fullUrl = `https://${url}`;
           }
           break;
+          
         case 'address':
           // Create a maps URL based on the platform
           const query = encodeURIComponent(url);
@@ -91,6 +131,7 @@ const DefaultCertificate = (props) => {
       
       console.log(`Opening URL: ${fullUrl} (original: ${url}, type: ${type})`);
       
+      // For non-email links (since we already handled email above)
       Linking.canOpenURL(fullUrl)
         .then(supported => {
           if (supported) {

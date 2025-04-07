@@ -117,7 +117,8 @@ const TallyEditView = props => {
 
   const onViewCertificate = async args => {
     try {
-      await promptBiometrics('Use biometrics to view certificate');
+      // Certificate viewing doesn't need biometric validation
+      // await promptBiometrics('Use biometrics to view certificate');
 
       props.navigation.navigate('TallyCertificate', {
         title: args.title,

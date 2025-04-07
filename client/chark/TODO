@@ -27,6 +27,7 @@ X  - Add validation indicators for invalid tallies
 - Activity screen should show pending settings chits appropriately (suppress amount, show type)
 - Test all deep link modes (connect, pay, key import)
 - Clean up chit history screen
+- Move to iconicons or material icons (replace fontawsome?)
 - Language tags
   - Missing tag in key export, file
   - Review/refine issues/lang_text.md
