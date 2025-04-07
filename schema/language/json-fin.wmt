@@ -14,24 +14,7 @@ tabtext json.tally -lang fin {JSON-tilikirjat} {Standardoitu JSON-näkymä tilik
   {pterms {Kumppanin ehdot} {Luottoehdot, joihin toinen kumppani on sitoutunut}}
 }
 
-tabtext json.contract -lang fin {JSON-sopimukset} {Standardoitu JSON-näkymä tilikirjojen sopimuksista} {
-  {json {JSON} {Täydellinen JSON-edustus sopimuksesta}}
-  {sections {Osiot} {Sopimuksen osioiden taulukko}}
-  {recitals {Johdanto} {Sopimuksen johdanto-osio}}
-  {definition {Määritelmä} {Sopimuksen määritelmäosio}}
-  {terms {Ehdot} {Sopimuksen ehdot-osio}}
-  {covenants {Sitoumukset} {Sopimuksen sitoumukset-osio}}
-  {signing {Allekirjoitus} {Sopimuksen allekirjoitustiedot}}
-  {id {Sopimuksen ID} {Sopimuksen yksilöllinen tunniste}}
-  {version {Versio} {Sopimuksen versio}}
-  {tag {Tunnus} {Sopimuksen lyhyt tunniste}}
-  {title {Otsikko} {Sopimuksen otsikko}}
-  {text {Teksti} {Sopimuksen tekstisisältö}}
-  {language {Kieli} {Sopimuksen kieli}}
-  {published {Julkaistu} {Päivämäärä, jolloin sopimus julkaistiin}}
-  {digest {Tiiviste} {Kryptografinen tiiviste sopimuksen sisällöstä}}
-  {signed {Allekirjoitettu} {Päivämäärä, jolloin sopimus allekirjoitettiin}}
-}
+tabtext json.contract -lang fin {JSON-sopimukset} {Standardoitu JSON-näkymä tilikirjojen sopimuksista} {}
 
 tabtext json.cert -lang fin {JSON-varmenne} {JSON-näkymä käyttäjävarmenteista, jotka on tarkoitettu pääasiassa tuontiin/vientiin} {
   {identity {Identiteetti} {JSON MyCHIPs-identiteettitietue, jossa on valinnaisia osavaltio- ja syntymätietueita}}

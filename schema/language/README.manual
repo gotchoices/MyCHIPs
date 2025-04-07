@@ -1,5 +1,7 @@
 This folder is for the support of languages other than English
 
+This file documents the pre-AI method of language translation
+
 To generate a new language file:
 - Determine the 3-letter ISO code (xyz, for example) for the new language
 - Edit test/mocha/language.js to include the code in the languages array (line 14)
