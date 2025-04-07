@@ -31,6 +31,7 @@ AI Agents:
 - [Tally Validity and Verification](tally_valid.md) - Extending cryptographic verification to include chits and hash chain integrity
 
 ### Future (Priority Order)
+- [Avatar Image Fetching and Display](images.md) - Improving image loading for TallyGraphic and certificate details
 - [API Communication](api_comm.md) - Optimizing backend communication via Wyseman API
 - [Language Text Tags](lang_text.md) - Standardize language text implementation and fill missing tags
 - [Toast and Modal UI Improvements](toasting.md) - Standardize feedback mechanisms and user interactions
