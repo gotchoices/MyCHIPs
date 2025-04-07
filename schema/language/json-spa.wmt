@@ -83,4 +83,4 @@ tabtext json.tally -lang spa {Recuentos JSON} {Vista JSON estandarizada de recue
   {pterms	{Términos del Socio}	{Términos de crédito por los cuales está obligado el otro socio}}
 }
 
-tabtext json.contract -lang spa {Contratos JSON} {Vista JSON estandarizada de contratos de recuento}
+tabtext json.contract -lang spa {Contratos JSON} {Vista JSON estandarizada de contratos de recuento} {}
