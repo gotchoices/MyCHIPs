@@ -58,6 +58,11 @@ define(CONTENT,`
       </div>
 
       <div class="row">
+        NEWS_BLOCK(ri-youtube-line, `Apr 2025', `<a href="https://gotchoices.org">GotChoices</a> presents to <a href="https://www.thepeoplerestored.com/">The People Restored</a> Utah',
+          `Reimagining sound money; Designing the MyCHIPs system.',
+          `<a href="https://youtu.be/6Vdz80cO4_k" class="btn btn-primary">Watch</a>'
+        )
+        
         NEWS_BLOCK(ri-youtube-line, `Mar 2025', `<a href="https://gotchoices.org">GotChoices</a> founder appears on the <a href="https://www.thekajmasterclass.live/">KAJ Masterclass Live</a> podcast',
           `Discussion about the MyCHIPs system and its potential impact on the future of money.',
           `<a href="https://www.youtube.com/live/rkYgrf4Ohug" class="btn btn-primary">Watch</a>'
