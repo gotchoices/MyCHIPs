@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------------
 //Usage ./adminticket -H webHost -P webPort -u username -o outfile -d database -h databaseHost -p databasePort
 //TODO:
-//- 
+//- Modify this to be a wrapper to call wyclif/bin/adminticket
 
 const Fs = require('fs')
 const Os = require('os')
