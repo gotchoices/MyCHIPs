@@ -1,7 +1,7 @@
 # Byzantine Analysis of MyCHIPs/ChipNet
 
 ## Overview
-This folder contains a comprehensive analysis of Byzantine fault tolerance in distributed credit clearing systems, with a particular focus on MyCHIPs/ChipNet. The analysis was conducted using AI assistance (Claude 3.5 Sonnet) and should be considered a theoretical exploration rather than a formal security audit.
+This folder contains a comprehensive analysis of Byzantine fault tolerance in distributed credit clearing systems, with a particular focus on MyCHIPs/ChipNet. The analysis was conducted using AI assistance (Claude 3.5 5 and Claude 4) and should be considered a theoretical exploration rather than a formal security audit.
 
 ## Important Note
 The majority of this analysis was generated through AI-assisted exploration. While the analysis aims to be thorough and logically sound, it should be:

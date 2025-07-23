@@ -1,156 +1,167 @@
 # Circuit Starvation Attack
 
-## Overview
+## Attack Scenario Overview
 
-### Attack Objective
-Degrade network trading capacity by creating unresolvable promised lifts that lock resources on non-colluding nodes.
+### What is Circuit Starvation?
+Circuit Starvation is a coordinated Byzantine attack where a majority of nodes in a credit lift circuit complete the **Promise Phase** but then deliberately go offline during the **Commit Phase**, leaving minority honest nodes with locked resources that cannot be resolved. This creates a persistent "limbo" state where honest participants have promised credits but cannot complete or cancel the transaction.
 
-### Required Capabilities
-- Multiple colluding nodes (>50% of circuit)
-- Ability to participate in lift discovery
-- Coordination for synchronized withdrawal
-- **Critical Addition: Social Trust Requirements**
-  - Established real-world business/social relationships
-  - Legitimate trading history with honest nodes
-  - Multiple trust relationships per colluding node
-  - Demonstrated credit worthiness
-  - Regular value exchange patterns
+### The Core Problem
+In MyCHIPs' three-phase consensus protocol (Discover → Promise → Commit/Rollback), the Promise Phase locks resources across all participants before seeking final commitment. If enough participants disappear after promising but before committing, the honest minority is left holding unresolvable promises that tie up their trading capacity indefinitely.
 
-### Expected Impact
-- Locked credit capacity on honest nodes
-- Trading uncertainty due to unresolved promises
-- Resource consumption from stuck transactions
-- Reduced network efficiency
+## Concrete Attack Example
 
-### Business Motivation
-- Damage competitor trading capacity
-- Create uncertainty in credit system
-- Force manual intervention costs
-- Demonstrate system vulnerability
+### Scenario: The Coordinated Circuit Attack
 
-### Attack Cost Analysis
-- **Social Investment**:
-  - Time to build legitimate relationships
-  - Real business/social presence establishment
-  - Regular trading activity maintenance
-  - Credit history development
+Consider a seven-node trading circuit:
 
-- **Value Requirements**:
-  - Actual value locked in relationships
-  - Working capital for trading
-  - Business operation costs
-  - Relationship maintenance expenses
-
-- **Permanent Losses**:
-  - Burned trust relationships
-  - Damaged business reputation
-  - Lost trading partnerships
-  - Potential legal consequences
-
-## Component Attacks
-
-### Primary Attack Vectors
-1. [Delayed Vote Attack](../attacks/delayed-vote.md)
-   - Coordinated withholding of commit votes
-   - Exploits timeout mechanisms
-   - Prevents transaction resolution
-
-2. [Selective Communication](../attacks/selective-communication.md)
-   - Strategic offline behavior
-   - Information asymmetry creation
-   - Coordinated partition
-
-3. [Deadbeat Attack](../attacks/deadbeat.md)
-   - Multiple simultaneous node disappearance
-   - Promise phase participation only
-   - Resource locking through non-completion
-
-### Novel Combination Aspects
-- Uses majority control within circuit
-- Exploits promise-to-commit gap
-- Creates persistent unresolved state
-- Targets business impact over direct value theft
-
-## Detailed Flow
-
-### Social Trust Barriers
 ```mermaid
-graph TD
-    A[Attack Prerequisites] --> B[Establish Real Business/Social Presence]
-    B --> C[Build Multiple Trust Relationships]
-    C --> D[Develop Trading History]
-    D --> E[Lock Real Value]
-    E --> F[Coordinate Attack]
-    F --> G[Accept Permanent Losses]
+graph LR
+    A -->|"Owes 500"| B
+    B -->|"Owes 300"| C
+    C -->|"Owes 400"| D
+    D -->|"Owes 600"| E
+    E -->|"Owes 350"| F
+    F -->|"Owes 250"| G
+    G -->|"Owes 450"| A
     
-    style B fill:#ffd,stroke:#666
-    style C fill:#ffd,stroke:#666
-    style D fill:#ffd,stroke:#666
-    style E fill:#ffd,stroke:#666
+    style D fill:#f88,stroke:#666
+    style E fill:#f88,stroke:#666
+    style F fill:#f88,stroke:#666
+    style G fill:#f88,stroke:#666
 ```
 
-### Attack Progression
-```mermaid
-sequenceDiagram
-    participant H1 as Honest Node 1
-    participant C1 as Colluding Node 1
-    participant C2 as Colluding Node 2
-    participant H2 as Honest Node 2
-    participant C3 as Colluding Node 3
+**The Setup**:
+- **Honest Nodes**: A, B, C - 3 nodes (43%)
+- **Colluding Nodes**: D, E, F, G - 4 nodes (57% majority)
+- **Target Lift**: 250 unit credit clearing
 
-    Note over C1,C3: Colluding nodes coordinate
-    C1->>H1: Initiate lift discovery
-    H1->>C2: Route discovery
-    C2->>H2: Route discovery
-    H2->>C3: Route discovery
-    C3->>C1: Complete circuit
+### Phase 1: Discover Phase
+1. **Node A initiates** a circular lift to clear 250 units from the accumulated credits
+2. **Route Discovery**: ChipNet finds the A→B→C→D→E→F→G→A circuit with sufficient capacity
 
-    Note over C1,C3: Circuit formed with colluding majority
-    C1->>H1: Promise phase
-    H1->>C2: Promise phase
-    C2->>H2: Promise phase
-    H2->>C3: Promise phase
-    C3->>C1: Promises complete
+### Phase 2: Promise Phase
+3. **Promise Phase Begins**: All seven participants receive the lift proposal
+4. **Everyone Signs**: All nodes, including the colluding ones, sign conditional promises:
+   - A promises to reduce debt to G by 250
+   - B promises to reduce debt to A by 250
+   - C promises to reduce debt to B by 250
+   - D promises to reduce debt to C by 250
+   - E promises to reduce debt to D by 250
+   - F promises to reduce debt to E by 250
+   - G promises to reduce debt to F by 250
 
-    Note over C1,C3: Colluding nodes go offline
-    H1--xC1: Commit attempt fails
-    H2--xC2: Commit attempt fails
-    H2--xC3: Commit attempt fails
+### Phase 3: The Attack - Coordinated Disappearance
+5. **Critical Moment**: Just as the Commit Phase should begin, the four colluding nodes execute their attack:
+   - **Node D**: Goes offline
+   - **Node E**: Becomes unreachable
+   - **Node F**: Disconnects from network
+   - **Node G**: Stops responding
+6. **Honest Nodes Left Hanging**: A, B, and C have signed promises but cannot complete the lift because they need majority consensus (4 out of 7 nodes) to commit
 
-    Note over H1,H2: Honest nodes left with<br/>unresolvable promises
-```
+### Phase 4: Resource Starvation Impact
+7. **Locked Resources**: A, B, and C now have 250 units each in "promised" credits that they cannot:
+   - **Use** (because the lift isn't committed)
+   - **Cancel** (because they need majority to rollback)
+   - **Recover** (because promises are cryptographically binding)
+8. **Trading Capacity Reduced**: All three honest nodes have reduced capacity for future lifts
+9. **Ripple Effects**: Other potential lifts involving A, B, or C may fail due to reduced available capacity
 
-### Social Response Flow
-```mermaid
-sequenceDiagram
-    participant HN as Honest Node
-    participant TP as Trading Partner
-    participant ON as Other Networks
-    participant LE as Legal Entities
+### Phase 5: Recovery Attempts
+10. **Limited Options**: 
+    - Technical timeouts may take hours or days
+    - Social contact with colluding nodes fails
+    - Manual intervention requires complex state reconstruction
+11. **Network Impact**:
+    - Trading capacity degraded for honest participants
+    - Uncertainty about promise resolution affects network confidence
 
-    HN->>TP: Direct Contact (Phone/Email)
-    TP->>HN: Confirm Unresponsiveness
-    HN->>ON: Alert Trading Community
-    ON->>TP: Share Attack Information
-    HN->>LE: Consider Legal Action
-    LE->>ON: Document Bad Actors
-```
+## Why This Attack Is Devastating
 
-### State Transitions
-1. **Discovery Phase**
-   - Colluders participate normally
-   - Ensure circuit has colluding majority
-   - Position colluders strategically
+### 1. **Resource Lock-Up Without Value Transfer**
+Unlike traditional theft, this attack doesn't steal money - it makes money **unusable**. The honest participants still have their credits, but those credits are trapped in a limbo state.
 
-2. **Promise Phase**
-   - All nodes sign conditional commitments
-   - Honest nodes lock resources
-   - Promises recorded in tallies
+### 2. **Majority Consensus Exploitation**
+The attack exploits MyCHIPs' strength (majority consensus prevents single bad actors) by using it as a weakness (majority bad actors can prevent any resolution).
 
-3. **Attack Execution**
-   - Colluders withdraw simultaneously
-   - Prevent commit phase completion
-   - Leave promises in limbo
+### 3. **Promise Phase Vulnerability**
+The attack targets the gap between **promising** resources (which locks them) and **committing/rolling back** the transaction (which resolves them). This gap is necessary for atomic transactions but creates an attack window.
+
+### 4. **No Clear Recovery Path**
+Unlike network partitions or individual node failures, this attack creates a persistent state where:
+- Technical timeouts may take too long (hours or days)
+- Social resolution is hampered by coordinated unresponsiveness
+- Manual intervention requires complex state reconstruction
+
+### 5. **Scalable Impact**
+Attackers can participate in multiple circuits simultaneously, multiplying the impact across the network.
+
+## Attack Prerequisites and Costs
+
+### Social Trust Investment Required
+This isn't a simple technical attack - it requires significant real-world investment:
+
+1. **Relationship Building**: Attackers must establish legitimate business relationships with honest nodes
+2. **Trading History**: Need months or years of normal trading to build trust and credit limits
+3. **Business Presence**: Must maintain actual businesses or trading operations
+4. **Value Lock-Up**: Real money/credits must be committed to trading relationships
+5. **Reputation Risk**: Attacking burns all established relationships permanently
+
+### Coordination Requirements
+1. **Multiple Entities**: Need majority control (often 3-4+ separate entities)
+2. **Timing Synchronization**: Must coordinate simultaneous disappearance
+3. **Communication**: Secure channels for attack coordination
+4. **Persistence**: Must remain offline/unresponsive for extended periods
+
+### Financial Costs
+1. **Relationship Investment**: Time and resources to build trading partnerships
+2. **Operating Capital**: Working capital tied up in trading relationships
+3. **Opportunity Cost**: Lost legitimate trading profits
+4. **Burned Assets**: All invested relationship value becomes worthless
+5. **Legal Risk**: Potential fraud or breach of contract liability
+
+## Technical Attack Mechanics
+
+### Component Attack Vectors
+This coordinated attack combines several individual Byzantine attack patterns:
+
+1. **[Delayed Vote Attack](../attacks/delayed-vote.md)**:
+   - Colluding nodes withhold commit votes indefinitely
+   - Exploits timeout mechanisms by never responding
+   - Prevents transaction resolution through non-participation
+
+2. **[Selective Communication](../attacks/selective-communication.md)**:
+   - Strategic offline behavior coordinated across multiple nodes
+   - Creates information asymmetry between honest and colluding nodes
+   - Coordinated network partition at the application layer
+
+3. **[Deadbeat Attack](../attacks/deadbeat.md)**:
+   - Multiple simultaneous node disappearance after promise participation
+   - Participation in Promise Phase only, then abandonment
+   - Resource locking through intentional non-completion
+
+### What Makes This Attack Novel
+- **Majority Control**: Uses majority control within a specific circuit rather than network-wide
+- **Promise-Commit Gap Exploitation**: Targets the vulnerable window between resource locking and transaction completion
+- **Persistent Unresolved State**: Creates a limbo state that doesn't naturally resolve
+- **Business Impact Focus**: Aims to degrade network utility rather than steal value directly
+
+## Core Technical Impact
+
+### Projected Balance Problem
+The primary technical damage occurs because **promised chits alter projected tally balances** before the lift commits:
+
+- **Balance Uncertainty**: Tallies show pending promises that may or may not resolve
+- **Lift Decision Impairment**: Nodes cannot accurately assess capacity for new lifts
+- **Trading Hesitation**: Uncertainty about final balances makes risk assessment difficult
+- **Capacity Fragmentation**: Available trading capacity appears reduced due to unresolved promises
+
+### ChipNet Detection Mechanism
+ChipNet's **any-to-any communication** protocol provides strong attack detection:
+
+- **Distributed Validation**: Any node can attempt to reach any other node for signature validation
+- **Coordinated Failure Pattern**: Complete unreachability of all 4 colluding nodes is highly suspicious
+- **Network-Wide Verification**: Multiple honest nodes can independently verify the communication failure
+- **Attack Confirmation**: Simultaneous total unresponsiveness strongly indicates coordination rather than technical failure
 
 ## Impact Analysis
 
