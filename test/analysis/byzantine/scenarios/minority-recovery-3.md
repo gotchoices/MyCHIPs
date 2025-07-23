@@ -411,7 +411,7 @@ The minority recovery contract mechanism provides a viable, fair, and complete s
 
 ## Questions & Answers
 
-**Status**: Questions 1-2-4 answered. Questions 3-5-6 need clarification.
+**Status**: All questions answered! ✅
 
 ### 1. Insurance Chit Mechanics ✅ ANSWERED
 
@@ -468,9 +468,25 @@ The minority recovery contract mechanism provides a viable, fair, and complete s
 **Q: What happens if the majority comes back and VOIDS instead of commits the original lift?**
 **A:** No further action necessary - both the original promises and insurance chits void together, returning everyone to their original state.
 
-### 3. Race Condition Handling
-- **How does this approach avoid the same race condition problems as proposals 1 and 2?** The file doesn't address what happens if the majority returns and makes a different decision than expected.
-- **If A, B, C execute insurance chits, and then the majority returns and commits the original lift, don't we still have the double-execution problem?**
+### 3. Race Condition Handling ✅ ANSWERED
+
+**Q: How does this approach avoid the same race condition problems as proposals 1 and 2?**
+**A:** **No race condition exists** because insurance chits are **tied to the original lift's fate**:
+- Insurance chits stay in promised state with the original chits
+- They commit or void together with the original (same cryptographic criteria)
+- **Either outcome results in no net balance transfer** during the insurance phase
+
+**Q: If A, B, C execute insurance chits, and then the majority returns and commits the original lift, don't we still have the double-execution problem?**
+**A:** **No double-execution problem** because the system is designed for this scenario:
+
+#### When Majority Commits (The Normal Recovery Path):
+1. **Original promises commit**: A→B→C→D (A loses 250, C owes D 250)
+2. **Insurance chits commit**: B→A, C→B (net zero effect)
+3. **Imbalance created**: A is ahead (+250 from insurance), C is behind (-250 to D)
+4. **Resolution chits fix imbalance**: A→B, B→C (A passes gain to B, B helps C)
+5. **Final result**: Lift completes as intended with fair distribution
+
+This **imbalance is intentional** - it creates the economic incentive for resolution chits to flow in the correct direction.
 
 ### 4. Timeline and Triggers ✅ ANSWERED
 
@@ -503,10 +519,38 @@ The minority recovery contract mechanism provides a viable, fair, and complete s
 - **Economic Pressure**: Best interest is to act soon after becoming eligible
 - **No Time Pressure**: Nodes can take time for manual processing, but economic incentives encourage prompt action
 
-### 5. State Management Complexity
-- **How are the "promised state" insurance chits tracked alongside the original promised chits?** This seems like it could create very complex state management.
-- **What happens to the insurance chits if the original lift eventually gets resolved normally?**
+### 5. State Management Complexity ✅ ANSWERED
 
-### 6. The Core Mechanism
-- **Is the fundamental idea that insurance chits create a "backup lift" that can be executed independently of the original lift's fate?** 
-- **Or is it more like "insurance against losses" where the chits only execute if certain conditions are met?** 
+**Q: How are the "promised state" insurance chits tracked alongside the original promised chits?**
+**A:** Insurance chits are **distinct but associated** with original lift chits:
+- Each insurance chit references the original lift ID
+- Both remain in promised state until majority resolution
+- System tracks them as separate but linked transactions
+- **Complexity is manageable** because they're resolved together
+
+**Q: What happens to the insurance chits if the original lift eventually gets resolved normally?**
+**A:** They resolve together with the original lift:
+- **If majority commits**: Both original and insurance chits commit, creating the intentional imbalance that triggers resolution chits
+- **If majority voids**: Both original and insurance chits void, returning to original state
+- **If never resolved**: Both remain as promised chits (ledger annoyance but no functional impact due to net zero)
+
+### 6. The Core Mechanism ✅ ANSWERED
+
+**Q: Is the fundamental idea that insurance chits create a "backup lift" that can be executed independently of the original lift's fate?**
+**A:** **No** - insurance chits are **tied to the original lift's fate**. They don't create an independent backup but rather provide **insurance against resource starvation** while the original lift remains in limbo.
+
+**Q: Or is it more like "insurance against losses" where the chits only execute if certain conditions are met?**
+**A:** **Yes** - it's insurance against resource starvation that:
+1. **Enables continued trading** by creating net zero balance during the timeout period
+2. **Resolves fairly** regardless of majority decision (commit or void)
+3. **Creates economic incentives** for proper resolution when majority commits
+4. **Preserves all original claims** and relationships
+
+#### Alternative Terminology Suggestions:
+Instead of "insurance" and "resolution" chits, consider:
+- **"Interim" and "Completion" chits** - emphasizes the temporary nature and final completion
+- **"Neutral" and "Settlement" chits** - emphasizes zero effect and final settlement  
+- **"Holding" and "Transfer" chits** - emphasizes resource holding during timeout and final transfer
+- **"Bridge" and "Fulfillment" chits** - emphasizes bridging the gap and fulfilling the lift
+
+The current terminology works well, but "Interim/Completion" might be clearer about the temporary nature of the first phase. 
