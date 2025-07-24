@@ -1,0 +1,80 @@
+# TLA+ Tutorial Reference Status
+
+## Project Objectives
+
+**Mission**: Digest all content from [learntla.com](https://learntla.com) and create ultra-compact summaries optimized for AI context loading, enabling confident TLA+ assistance without guessing or hallucination.
+
+**Success Metrics**:
+- [ ] **Complete Coverage**: Every tutorial chapter summarized  
+- [ ] **Compact Format**: Each summary ~200-300 words maximum
+- [ ] **Actionable Knowledge**: Include minimal working examples
+- [ ] **Integration Ready**: Cross-reference with existing resources
+- [ ] **Verification**: AI can answer TLA+ questions with certainty
+
+## Tutorial Chapter Progress
+
+### Intro Section
+- [ ] **Conceptual Overview** - Understanding TLA+ purpose and structure
+- [ ] **FAQ** - Common questions and clarifications  
+- [ ] **What's New** - Recent updates and changes
+
+### TLA+ Core
+- [ ] **Setup** - Installation and tooling configuration
+- [ ] **An Example** - First complete specification walkthrough
+- [ ] **Operators** - Basic operators and expressions
+- [ ] **Simple Operators** - Arithmetic and logical operations
+- [ ] **Sets** - Set theory fundamentals and operations
+- [ ] **Logic** - Boolean logic and predicates
+- [ ] **Functions** - Function definition and manipulation
+- [ ] **Conditionals** - If-then-else and case statements
+- [ ] **Structs** - Records and structured data
+- [ ] **Sequences** - Ordered collections and operations
+- [ ] **Invariants** - Safety properties and type checking
+- [ ] **Temporal Logic** - Always and eventually operators
+- [ ] **Auxiliary Variables** - Helper variables for specifications
+
+### TLA+ Topics (Advanced)
+- [ ] **Concurrency** - Modeling concurrent and distributed systems
+- [ ] **Constants and Models** - Parameterization and model configuration
+- [ ] **Specification** - Complete specification structure
+- [ ] **Fairness** - Liveness properties and fair execution
+- [ ] **Refinement** - Relating abstract and concrete specifications
+- [ ] **State Machines** - State-based modeling patterns
+
+### Examples Section
+- [ ] **Example Operators** - Common operator patterns and usage
+- [ ] **PlusCal Specs** - Algorithm-style specifications
+- [ ] **Real-World Examples** - Industrial specification patterns
+
+### Reference Materials
+- [ ] **Standard Modules** - Built-in TLA+ modules and their usage
+- [ ] **Glossary** - Definitions of key terms
+- [ ] **Other Resources** - External learning materials
+
+## Integration Tasks
+
+- [ ] **Cross-Reference** with `../summary-standalone.pdf` cheat sheet
+- [ ] **Validate Examples** against working DieHard and TCommit models
+- [ ] **Extract Patterns** relevant to MyCHIPs Byzantine modeling
+- [ ] **Document Pitfalls** and common mistakes
+- [ ] **Create Quick Reference** for most-used concepts
+
+## Current Status
+
+**Active Work**: Setting up reference framework
+
+**Next Priority**: Begin with Conceptual Overview chapter
+
+**Completion Target**: Systematic progression through all chapters
+
+**Quality Check**: Each summary must enable confident AI assistance on TLA+ questions
+
+## MyCHIPs Integration
+
+This knowledge base directly supports:
+- **Phase 1-2**: Basic TLA+ syntax and simple models
+- **Phase 3-4**: Distributed consensus and Byzantine fault tolerance  
+- **Phase 5-6**: Complex attack scenarios and recovery protocols
+- **ChipNetBasic**: Debugging and completing the comprehensive specification
+
+**Bottom Line**: Transform from "guessing about TLA+" to "confidently teaching TLA+" through systematic knowledge capture. 
