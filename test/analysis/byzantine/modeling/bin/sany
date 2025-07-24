@@ -1,0 +1,4 @@
+#!/bin/bash
+# SANY wrapper script for TLA+ parsing
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec java -cp "$SCRIPT_DIR/tla2tools.jar" tla2sany.SANY "$@"

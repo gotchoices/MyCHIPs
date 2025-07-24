@@ -1,0 +1,4 @@
+#!/bin/bash
+# TLC wrapper script for MyCHIPs TLA+ analysis
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec java -cp "$SCRIPT_DIR/tla2tools.jar" tlc2.TLC "$@"
