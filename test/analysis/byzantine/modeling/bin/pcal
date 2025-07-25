@@ -1,0 +1,4 @@
+#!/bin/bash
+# PlusCal translator wrapper script for MyCHIPs TLA+ analysis
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec java -cp ~/bin/tla2tools.jar pcal.trans "$@" 

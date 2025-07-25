@@ -1,0 +1,28 @@
+#!/bin/bash
+# TLA+ to PDF wrapper script for MyCHIPs TLA+ analysis
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Get filename without extension
+BASENAME=$(basename "$1" .tla)
+
+# Generate LaTeX file
+java -cp ~/bin/tla2tools.jar tla2tex.TLA "$@"
+
+# Compile to PDF if LaTeX file was created and pdflatex is available
+if [ -f "${BASENAME}.tex" ] && command -v pdflatex >/dev/null 2>&1; then
+    echo "Compiling ${BASENAME}.tex to PDF..."
+    pdflatex "${BASENAME}.tex" >/dev/null 2>&1
+    
+    if [ -f "${BASENAME}.pdf" ]; then
+        echo "Created ${BASENAME}.pdf"
+        
+        # Clean up intermediate files
+        echo "Cleaning up intermediate files..."
+        rm -f "${BASENAME}.tex" "${BASENAME}.aux" "${BASENAME}.log" "${BASENAME}.dvi"
+    else
+        echo "PDF generation failed"
+    fi
+else
+    echo "LaTeX file created: ${BASENAME}.tex"
+    echo "Run 'pdflatex ${BASENAME}.tex' to create PDF"
+fi 
