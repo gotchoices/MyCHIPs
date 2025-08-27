@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ui="http://mychips.io/ui" width="375" height="812"><rect width="375" height="812" fill="#F2F2F7"/>
+    
+    <g data-component="app-header"><rect width="375" height="44" fill="#F8F8F8"/><text x="20" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="600" fill="#000000">9:41</text><text x="340" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="400" text-anchor="end" fill="#000000">100%</text><rect y="44" width="375" height="56" fill="white" stroke="#E5E5EA" stroke-width="1"/><text x="187.5" y="80" font-family="SF Pro, Arial" font-size="17" font-weight="600" text-anchor="middle" fill="#000000">Tally Templates</text><path d="M25 72 L20 77 L25 82" fill="none" stroke="#007AFF" stroke-width="2"/><text x="35" y="81" font-family="SF Pro, Arial" font-size="17" fill="#007AFF">Back</text></g>
+    
+    
+    <g data-component="info-banner" transform="translate(20, 120)"><rect width="335" height="44" fill="#F0F9FF" stroke="#B3D8FF" stroke-width="1" rx="8"/><text x="15" y="27" font-family="SF Pro, Arial" font-size="16" fill="#007AFF">ℹ️</text><text x="40" y="27" font-family="SF Pro, Arial" font-size="14" fill="#000000">Templates save time by reusing your common tally settings</text></g>
+    
+    
+    
+        
+        
+    
+    
+    
+    
+        
+        <text font-family="SF Pro, Arial" font-size="22" font-weight="700" fill="#000000" x="80" y="35">Create New Template</text>
+        Start with blank tally settings
+    
+    
+    
+    <text font-family="SF Pro, Arial" font-size="22" font-weight="700" fill="#000000" x="20" y="520">Recently Used</text>
+    
+    
+        
+        
+    
+    
+</svg>

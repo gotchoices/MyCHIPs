@@ -16,13 +16,13 @@ This document tracks the completion status of user stories, screen designs, and 
   - [x] Story Overview
   - [x] Sequence (comprehensive)
   - [x] Acceptance Criteria
-  - [ ] AI Scenarios (pending screen designs)
+  - [x] AI Scenarios (completed with screen references)
 
 - [x] **[Email Tally Response](stories/onboarding-email-tally.md)**
   - [x] Story Overview
   - [x] Sequence (detailed)
   - [x] Acceptance Criteria
-  - [x] AI Scenarios (completed)
+  - [x] AI Scenarios (enhanced with screen references)
 
 ### 🚧 Template Stories (Need human completion)
 
@@ -62,11 +62,11 @@ This document tracks the completion status of user stories, screen designs, and 
 - [ ] **Tally Invitation Start** (tally-invite-start.xml)
 
 #### Tally Management Screens  
-- [ ] **Tally Review/Setup** (tally-review.xml)
-- [ ] **Credit Limit Negotiation** (tally-negotiate.xml)
-- [ ] **QR Code Sharing** (qr-share.xml)
+- [x] **Tally Review/Setup** (tally-review.xml)
+- [x] **QR Code Sharing** (qr-share.xml)
+- [x] **Tally Template Selection** (tally-templates.xml)
 - [ ] **Notification Panel** (notifications.xml)
-- [ ] **Tally Template Selection** (tally-templates.xml)
+- [ ] **Payment/Transaction Screens** (payment-send.xml, etc.)
 
 #### Email Response Screens
 - [ ] **Deep Link Landing** (deep-link-landing.xml)
@@ -110,14 +110,23 @@ This document tracks the completion status of user stories, screen designs, and 
 ## 🎪 Scenario Development Status
 
 ### Ready for AI Scenario Generation
-- [x] **Email Tally Response** (scenarios already written)
+- [x] **Email Tally Response** (scenarios enhanced with screen references)
 - [x] **Discovery-Driven Onboarding** (scenarios completed with screen references)
-- [ ] **First Friend Tally** (needs 5+ key screens)
+- [x] **First Friend Tally** (scenarios completed with screen references)
 
 ### Pending Story Completion
 - [ ] **Payment Urgency Onboarding** (needs human sequence)
 - [ ] **Merchant Setup Onboarding** (needs human sequence)  
 - [ ] **Email Invoice Payment** (needs human sequence)
+
+### Future Story Ideas (from original index.md)
+- [ ] **Daily Usage Patterns** - Common payment operations and wallet management
+- [ ] **Peer Payment Flows** - Direct money sending/receiving between established tally partners
+- [ ] **Merchant Payment Flows** - Business and retail transactions using CHIPs
+- [ ] **Account Management** - Settings, security, transaction history management
+- [ ] **Advanced Tally Management** - Complex tally relationships, business partnerships
+- [ ] **Offline/Network Issues** - Error handling, connectivity problems, recovery flows
+- [ ] **Security Scenarios** - Key management, backup/recovery, fraud protection
 
 ## 🚀 Next Steps
 

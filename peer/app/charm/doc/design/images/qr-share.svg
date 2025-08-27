@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ui="http://mychips.io/ui" width="375" height="812"><rect width="375" height="812" fill="#F2F2F7"/>
+    
+    <g data-component="app-header"><rect width="375" height="44" fill="#F8F8F8"/><text x="20" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="600" fill="#000000">9:41</text><text x="340" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="400" text-anchor="end" fill="#000000">100%</text><rect y="44" width="375" height="56" fill="white" stroke="#E5E5EA" stroke-width="1"/><text x="187.5" y="80" font-family="SF Pro, Arial" font-size="17" font-weight="600" text-anchor="middle" fill="#000000">Share Tally Invitation</text><path d="M25 72 L20 77 L25 82" fill="none" stroke="#007AFF" stroke-width="2"/><text x="35" y="81" font-family="SF Pro, Arial" font-size="17" fill="#007AFF">Back</text></g>
+    
+    
+    <g data-component="qr-code-display" transform="translate(20, 150)"><rect x="67.5" y="20" width="200" height="200" fill="white" stroke="#E5E5EA" stroke-width="1" rx="12"/><rect x="87.5" y="40" width="160" height="160" fill="#000000"/><rect x="97.5" y="50" width="140" height="140" fill="white"/><text x="167.5" y="130" font-family="SF Pro, Arial" font-size="24" text-anchor="middle" fill="#000000">QR</text><text x="167.5" y="250" font-family="SF Pro, Arial" font-size="18" font-weight="600" text-anchor="middle" fill="#000000">Tally Invitation</text><text x="167.5" y="270" font-family="SF Pro, Arial" font-size="14" text-anchor="middle" fill="#8E8E93">Scan or share this code</text><text x="167.5" y="295" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="#FF9500">Expires in 23h 45m</text></g>
+    
+    
+    
+        
+        
+        
+        
+        
+    
+    
+    
+    <g data-component="share-actions" transform="translate(20, 580)">
+        <g data-component="share-button" transform="translate(0, 0)"><rect width="90" height="70" fill="white" stroke="#E5E5EA" stroke-width="1" rx="12"/><text x="45" y="30" font-family="SF Pro, Arial" font-size="24" text-anchor="middle">✉️</text><text x="45" y="55" font-family="SF Pro, Arial" font-size="13" font-weight="500" text-anchor="middle" fill="#000000">Email</text></g>
+        <g data-component="share-button" transform="translate(110, 0)"><rect width="90" height="70" fill="white" stroke="#E5E5EA" stroke-width="1" rx="12"/><text x="45" y="30" font-family="SF Pro, Arial" font-size="24" text-anchor="middle">💬</text><text x="45" y="55" font-family="SF Pro, Arial" font-size="13" font-weight="500" text-anchor="middle" fill="#000000">Message</text></g>
+        <g data-component="share-button" transform="translate(220, 0)"><rect width="90" height="70" fill="white" stroke="#E5E5EA" stroke-width="1" rx="12"/><text x="45" y="30" font-family="SF Pro, Arial" font-size="24" text-anchor="middle">📋</text><text x="45" y="55" font-family="SF Pro, Arial" font-size="13" font-weight="500" text-anchor="middle" fill="#000000">Copy Link</text></g>
+    </g>
+    
+    
+    <g data-component="button-secondary" transform="translate(20, 660)"><rect width="335" height="44" fill="none" stroke="#007AFF" stroke-width="2" rx="22"/><text x="167.5" y="28" font-family="SF Pro, Arial" font-size="15" font-weight="500" text-anchor="middle" fill="#007AFF">Save as Template</text></g>
+    
+    <g data-component="button-text" transform="translate(20, 720)"><text x="167.5" y="26" font-family="SF Pro, Arial" font-size="17" font-weight="500" text-anchor="middle" fill="#007AFF">Cancel Invitation</text></g>
+        
+</svg>

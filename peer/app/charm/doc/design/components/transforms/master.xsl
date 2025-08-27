@@ -676,4 +676,174 @@
         </g>
     </xsl:template>
     
+    <!-- Credit Limit Input Component -->
+    <xsl:template match="ui:credit-limit-input">
+        <g data-component="credit-limit-input">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            
+            <!-- Label -->
+            <text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">
+                <xsl:value-of select="@data-label"/>
+            </text>
+            
+            <!-- CHIP Amount Input -->
+            <rect y="25" width="160" height="44" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/>
+            <text x="12" y="52" font-family="SF Pro, Arial" font-size="18" font-weight="600" fill="#000000">
+                <xsl:value-of select="@data-chip-amount"/>
+            </text>
+            
+            <!-- USD Equivalent -->
+            <text x="175" y="47" font-family="SF Pro, Arial" font-size="16" fill="#8E8E93">
+                <xsl:value-of select="@data-usd-amount"/>
+            </text>
+        </g>
+    </xsl:template>
+    
+    <!-- Credit Limit Pair Component -->
+    <xsl:template match="ui:credit-limit-pair">
+        <g data-component="credit-limit-pair">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            <xsl:apply-templates/>
+        </g>
+    </xsl:template>
+    
+    <!-- Identity Display Component -->
+    <xsl:template match="ui:identity-display">
+        <g data-component="identity-display">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            <xsl:apply-templates/>
+        </g>
+    </xsl:template>
+    
+    <!-- Identity Field Component -->
+    <xsl:template match="ui:identity-field">
+        <g data-component="identity-field">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            
+            <!-- Label -->
+            <text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">
+                <xsl:value-of select="@data-label"/>
+                <xsl:if test="@data-optional = 'true'">
+                    <tspan fill="#8E8E93"> (optional)</tspan>
+                </xsl:if>
+            </text>
+            
+            <!-- Value or Empty State -->
+            <xsl:choose>
+                <xsl:when test="@data-value != ''">
+                    <text x="0" y="35" font-family="SF Pro, Arial" font-size="16" fill="#000000">
+                        <xsl:value-of select="@data-value"/>
+                    </text>
+                    <xsl:if test="@data-verified = 'true'">
+                        <text x="200" y="35" font-family="SF Pro, Arial" font-size="14" fill="#34C759">✓ Verified</text>
+                    </xsl:if>
+                </xsl:when>
+                <xsl:otherwise>
+                    <text x="0" y="35" font-family="SF Pro, Arial" font-size="16" fill="#C7C7CC">Not provided</text>
+                </xsl:otherwise>
+            </xsl:choose>
+        </g>
+    </xsl:template>
+    
+    <!-- QR Code Display Component -->
+    <xsl:template match="ui:qr-code-display">
+        <g data-component="qr-code-display">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            
+            <!-- QR Code Background -->
+            <rect x="67.5" y="20" width="200" height="200" fill="white" stroke="#E5E5EA" stroke-width="1" rx="12"/>
+            
+            <!-- QR Code Placeholder -->
+            <rect x="87.5" y="40" width="160" height="160" fill="#000000"/>
+            <rect x="97.5" y="50" width="140" height="140" fill="white"/>
+            <text x="167.5" y="130" font-family="SF Pro, Arial" font-size="24" text-anchor="middle" fill="#000000">QR</text>
+            
+            <!-- Title and Subtitle -->
+            <text x="167.5" y="250" font-family="SF Pro, Arial" font-size="18" font-weight="600" text-anchor="middle" fill="#000000">
+                <xsl:value-of select="@data-title"/>
+            </text>
+            <text x="167.5" y="270" font-family="SF Pro, Arial" font-size="14" text-anchor="middle" fill="#8E8E93">
+                <xsl:value-of select="@data-subtitle"/>
+            </text>
+            
+            <!-- Expiration -->
+            <text x="167.5" y="295" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="#FF9500">
+                <xsl:value-of select="@data-expiration"/>
+            </text>
+        </g>
+    </xsl:template>
+    
+    <!-- Share Actions Component -->
+    <xsl:template match="ui:share-actions">
+        <g data-component="share-actions">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            <xsl:apply-templates/>
+        </g>
+    </xsl:template>
+    
+    <!-- Share Button Component -->
+    <xsl:template match="ui:share-button">
+        <g data-component="share-button">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            
+            <!-- Background -->
+            <rect width="90" height="70" fill="white" stroke="#E5E5EA" stroke-width="1" rx="12"/>
+            
+            <!-- Icon -->
+            <text x="45" y="30" font-family="SF Pro, Arial" font-size="24" text-anchor="middle">
+                <xsl:value-of select="@data-icon"/>
+            </text>
+            
+            <!-- Label -->
+            <text x="45" y="55" font-family="SF Pro, Arial" font-size="13" font-weight="500" text-anchor="middle" fill="#000000">
+                <xsl:value-of select="@data-label"/>
+            </text>
+        </g>
+    </xsl:template>
+    
+    <!-- Text Area Component -->
+    <xsl:template match="ui:text-area">
+        <g data-component="text-area">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            
+            <!-- Label -->
+            <text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">
+                <xsl:value-of select="@data-label"/>
+            </text>
+            
+            <!-- Text area -->
+            <rect y="25" width="{@width}" height="{@height}" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/>
+            
+            <!-- Content or placeholder -->
+            <xsl:choose>
+                <xsl:when test="@data-value != ''">
+                    <text x="12" y="45" font-family="SF Pro, Arial" font-size="16" fill="#000000">
+                        <xsl:value-of select="@data-value"/>
+                    </text>
+                </xsl:when>
+                <xsl:otherwise>
+                    <text x="12" y="45" font-family="SF Pro, Arial" font-size="16" fill="#C7C7CC">
+                        <xsl:value-of select="@data-placeholder"/>
+                    </text>
+                </xsl:otherwise>
+            </xsl:choose>
+        </g>
+    </xsl:template>
+    
 </xsl:stylesheet>

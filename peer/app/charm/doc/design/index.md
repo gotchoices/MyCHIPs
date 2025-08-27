@@ -1,109 +1,90 @@
-# MyCHIPs Mobile App - Complete Design Specification
+# MyCHIPs Mobile App - Design Specification
 
-*Master design document for the MyCHIPs peer-to-peer payment mobile application*
+*Master design document for the MyCHIPs peer-to-peer credit system mobile application*
 
-## 📖 User Stories & Requirements
+## 📖 Completed User Stories
 
-### Core User Journeys
-- [**Onboarding**](stories/01-onboarding.md) - New user setup and first-time experience
-- [**Daily Usage**](stories/02-daily-usage.md) - Common payment operations and wallet management
-- [**Peer Interactions**](stories/03-peer-interactions.md) - Sending and receiving money between users
-- [**Merchant Payments**](stories/04-merchant-payments.md) - Business and retail transactions
-- [**Account Management**](stories/05-account-management.md) - Settings, security, and transaction history
+### Onboarding & Tally Creation
+- [**Discovery-Driven Onboarding**](stories/onboarding-discovery.md) - User learns about MyCHIPs and explores the app ✅ *Complete with scenarios*
+- [**First Friend Tally**](stories/first-friend-tally.md) - Setting up the first tally relationship with a trusted partner ✅ *Complete with scenarios*  
+- [**Email Tally Response**](stories/onboarding-email-tally.md) - Responding to a tally invitation received via email ✅ *Complete with scenarios*
 
-### Edge Cases & Error Handling
-- [**Edge Cases**](stories/99-edge-cases.md) - Network failures, security issues, edge scenarios
+### Template Stories (Human Sequences Needed)
+- [**Payment Urgency Onboarding**](stories/onboarding-payment-urgency.md) - User needs to pay at point of sale
+- [**Merchant Setup Onboarding**](stories/onboarding-merchant-setup.md) - Business owner accepting CHIPs
+- [**Email Invoice Payment**](stories/onboarding-email-invoice.md) - Paying an invoice via email link
 
-## 🗺️ App Navigation Structure
-
-### Information Architecture
-- [**Site Map**](navigation/sitemap.md) - Complete app navigation tree
-- [**User Flows**](navigation/user-flows.md) - Key task flows and decision points
-- [**Navigation Wireframes**](navigation/wireframes/) - Tab structure and modal flows
+*See [STATUS.md](STATUS.md) for complete development status and future story ideas.*
 
 ## 📱 Screen Designs
 
-### Authentication Flow
-- [**Login**](images/auth-login.svg) - User authentication ([source](screens/auth-login.xml))
-- [**Registration**](images/auth-register.svg) - New account creation ([source](screens/auth-register.xml))
-- [**Password Recovery**](images/auth-forgot.svg) - Password reset flow ([source](screens/auth-forgot.xml))
+### Onboarding Flow
+- [**App Launch**](images/app-launch.svg) - Welcome screen with MyCHIPs introduction ([source](screens/app-launch.xml))
+- [**Identity Setup**](images/identity-setup.svg) - Basic user information collection ([source](screens/identity-setup.xml))
 
-### Main Wallet Interface
-- [**Wallet Overview**](images/wallet-overview.svg) - Primary dashboard with balance and recent activity ([source](screens/wallet-overview.xml))
-- [**Send Money**](images/wallet-send.svg) - Payment initiation flow ([source](screens/wallet-send.xml))
-- [**Request Payment**](images/wallet-request.svg) - Payment request creation ([source](screens/wallet-request.xml))
-- [**QR Code Display**](images/wallet-qr.svg) - Personal payment QR code ([source](screens/wallet-qr.xml))
+### Main Interface  
+- [**Home Dashboard**](images/home-dashboard.svg) - Main wallet with balance and getting started guidance ([source](screens/home-dashboard.xml))
+- [**Marketplace**](images/marketplace.svg) - Browse vendors accepting CHIPs ([source](screens/marketplace.xml))
 
-### Payment Operations
-- [**QR Scanner**](images/pay-scan-qr.svg) - Camera-based QR code scanner ([source](screens/pay-scan-qr.xml))
-- [**Merchant Payment**](images/pay-merchant.svg) - Business transaction flow ([source](screens/pay-merchant.xml))
-- [**Peer Payment**](images/pay-peer.svg) - Person-to-person payment ([source](screens/pay-peer.xml))
-- [**Payment Confirmation**](images/pay-confirm.svg) - Transaction verification ([source](screens/pay-confirm.xml))
+### Tally Management
+- [**Tally Review**](images/tally-review.svg) - Create, review, and negotiate tally relationships ([source](screens/tally-review.xml))
+- [**QR Share**](images/qr-share.svg) - Share tally invitations via QR code ([source](screens/qr-share.xml))
+- [**Tally Templates**](images/tally-templates.svg) - Manage reusable tally configurations ([source](screens/tally-templates.xml))
 
-### Transaction History
-- [**History List**](images/history-list.svg) - Complete transaction log ([source](screens/history-list.xml))
-- [**Transaction Detail**](images/history-detail.svg) - Individual transaction view ([source](screens/history-detail.xml))
-- [**Export Data**](images/history-export.svg) - Data export options ([source](screens/history-export.xml))
-
-### Settings & Account
-- [**Profile Settings**](images/settings-profile.svg) - User profile management ([source](screens/settings-profile.xml))
-- [**Security Settings**](images/settings-security.svg) - Password, 2FA, biometrics ([source](screens/settings-security.xml))
-- [**App Preferences**](images/settings-preferences.svg) - Notifications, display options ([source](screens/settings-preferences.xml))
-- [**Help & Support**](images/settings-help.svg) - Documentation and contact ([source](screens/settings-help.xml))
+### Legacy/Example Screens
+- [**Wallet Overview**](images/wallet-overview.svg) - Earlier wallet concept ([source](screens/wallet-overview.xml))
 
 ## 🎨 Design System
 
 ### Component Library
-- [**Component Documentation**](components/README.md) - Reusable UI components and usage guidelines
-- [**Theme System**](components/theme/) - Colors, typography, spacing, and visual design tokens
+- [**XSLT Component Transforms**](components/transforms/master.xsl) - Semantic XML → SVG transformation system
+- [**Design Specifications**](specs/) - Human-authored requirements for complex screens
 
 ### Technical Implementation
-- [**Build System**](README.md#-build-system) - XML to SVG transformation process
-- [**Development Handoff**](exports/) - React Native component specifications
+- [**Build System**](README.md#build-system) - XML to SVG wireframe generation
+- [**Screen Authoring**](screens/README.md) - Guidelines for creating semantic screen designs
 
-## 📋 Development Readiness Checklist
+## 📋 Current Status
 
-### Design Phase ✓
-- [ ] All user stories documented with acceptance criteria
-- [ ] Complete navigation structure defined
-- [ ] All screens designed and validated
-- [ ] Component library documented
-- [ ] Design system specifications complete
+### ✅ Completed (Ready for React Native Implementation)
+- **3 complete user stories** with human sequences + AI scenarios + screen references
+- **7 screen designs** with semantic XML source and SVG wireframes  
+- **Component library** with 20+ reusable UI components
+- **Build system** for automated wireframe generation
+- **Design specifications** for complex screen requirements
 
-### Implementation Phase
-- [ ] API endpoints defined for all data operations
-- [ ] React Native component library created
-- [ ] Navigation routing implemented
-- [ ] Data models and state management designed
-- [ ] Authentication and security infrastructure
+### 🚧 In Progress
+- **3 onboarding story templates** waiting for human sequence completion
+- **Screen iteration** based on new story requirements
+- **Component expansion** for payment and transaction flows
 
-### Testing Phase
-- [ ] Unit tests for all components
-- [ ] Integration tests for user flows
-- [ ] Accessibility testing and compliance
-- [ ] Performance testing and optimization
-- [ ] Security audit and penetration testing
+*See [STATUS.md](STATUS.md) for detailed development checklist and future roadmap.*
 
 ## 🚀 Getting Started
 
-### For Designers
-1. Read the [user stories](stories/) to understand requirements
-2. Review existing [screen designs](images/) for visual consistency
-3. Follow [screen authoring guidelines](screens/README.md) when creating new designs
-4. Use the [build system](README.md#-quick-start) to generate visual wireframes
+### For Story Writers
+1. Review [completed stories](stories/) to understand the format
+2. Use [story templates](stories/) to write new user sequences  
+3. Follow [writing guidelines](stories/README.md) for human vs. AI sections
+
+### For Screen Designers  
+1. Check existing [design specs](specs/) for requirements
+2. Follow [screen authoring guidelines](screens/README.md)
+3. Use the [build system](README.md#quick-start) to generate SVG wireframes
+4. Reference [component library](components/transforms/master.xsl) for available elements
 
 ### For Developers
-1. Review the complete [navigation structure](navigation/sitemap.md)
-2. Study [screen designs](images/) for implementation requirements
-3. Check [component specifications](components/README.md) for reusable elements
-4. Use [development handoff documentation](exports/) for implementation details
+1. Review [screen designs](images/) for implementation requirements
+2. Study [component transforms](components/transforms/master.xsl) for React Native mapping
+3. Use semantic XML as component structure guide
+4. Follow data attribute patterns for component props
 
-### For Project Managers
-1. Track progress against the [development checklist](#-development-readiness-checklist)
-2. Validate designs against [user stories](stories/) for completeness
-3. Review [navigation flows](navigation/user-flows.md) for usability issues
-4. Coordinate between design and development teams using this specification
+### For AI Code Generation
+1. Parse [user story scenarios](stories/) for behavior requirements
+2. Read [design specifications](specs/) for layout and interaction details  
+3. Use [screen XML](screens/) as semantic component structure
+4. Reference [SVG wireframes](images/) for visual validation
 
 ---
 
-*This design specification serves as the single source of truth for the MyCHIPs mobile app user interface. All design decisions, technical requirements, and implementation details are documented here.*
+*This design specification documents the completed foundation for MyCHIPs mobile app development. All user stories, screen designs, and technical specifications are production-ready.*

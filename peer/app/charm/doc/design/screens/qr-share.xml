@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../components/transforms/master.xsl"?>
+<app-screen width="375" height="812" xmlns="http://mychips.io/ui">
+    
+    <app-header data-title="Share Tally Invitation"/>
+    
+    <!-- QR Code Display -->
+    <qr-code-display 
+        data-title="Tally Invitation"
+        data-subtitle="Scan or share this code"
+        data-expiration="Expires in 23h 45m"
+        x="20" y="150"/>
+    
+    <!-- Invitation Details -->
+    <invitation-summary x="20" y="400">
+        <summary-item data-label="Partner" data-value="Friend Name" x="0" y="0"/>
+        <summary-item data-label="I trust for" data-value="₡75.00 ($75.00)" x="0" y="30"/>
+        <summary-item data-label="They trust for" data-value="₡75.00 ($75.00)" x="0" y="60"/>
+        <summary-item data-label="Contract" data-value="MyCHIPs.org Standard 1.0" x="0" y="90"/>
+        <summary-item data-label="Message" data-value="Friend, let's tally!" x="0" y="120"/>
+    </invitation-summary>
+    
+    <!-- Share Actions -->
+    <share-actions x="20" y="580">
+        <share-button data-type="email" data-label="Email" data-icon="✉️" x="0" y="0"/>
+        <share-button data-type="message" data-label="Message" data-icon="💬" x="110" y="0"/>
+        <share-button data-type="copy" data-label="Copy Link" data-icon="📋" x="220" y="0"/>
+    </share-actions>
+    
+    <!-- Alternative Actions -->
+    <button-secondary 
+        data-label="Save as Template" 
+        x="20" y="660" 
+        width="335" 
+        height="44"/>
+    
+    <button-text 
+        data-label="Cancel Invitation" 
+        x="20" y="720" 
+        width="335" 
+        height="40"/>
+        
+</app-screen>

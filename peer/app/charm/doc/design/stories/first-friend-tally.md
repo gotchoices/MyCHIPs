@@ -63,16 +63,74 @@
 ## Scenarios
 
 ### Scenario 1: Both Users Set Up Successfully
-*[AI will fill in narrative with screen references]*
+*[AI narrative with screen references]*
+
+**David** completed his [discovery journey](onboarding-discovery.md) and is ready to invite his lunch buddy Mike to form a tally.
+
+**Starting from Home**: David opens the app and sees his familiar home dashboard. He taps "Find Tally Partners" from the getting started section.
+
+[<img src="../images/home-dashboard.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/home-dashboard.svg)
+
+**Template Selection**: Since David experimented before, he sees his saved template "Friend, let's tally!" in the template list. He could create a new one, but this template has good settings for friends.
+
+[<img src="../images/tally-templates.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/tally-templates.svg)
+
+**Tally Review & Setup**: David is back in the tally review screen with his template loaded. He adjusts the credit limits to ₡75 mutual trust, adds his personal message, and explores the contract section. He shares the contract with his attorney via email for later review but proceeds with the standard MyCHIPs contract.
+
+[<img src="../images/tally-review.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/tally-review.svg)
+
+**QR Code Sharing**: After saving his settings, David sees the QR code screen. He taps the email icon to send the invitation to Mike. The email includes both a QR code attachment and a deep link. The invitation expires in 24 hours.
+
+[<img src="../images/qr-share.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/qr-share.svg)
+
+**Negotiation Success**: Mike responds with a counter-offer (both limits at ₡100), David counters back to ₡75 each, and Mike accepts. The tally is formed successfully and both users can now transact with each other.
 
 ### Scenario 2: Friend Needs Help Installing/Setting Up
-*[AI will fill in narrative with screen references]*
+*[AI narrative with screen references]*
+
+**Sarah** sends a tally invitation to her neighbor **Tom**, who has never used MyCHIPs.
+
+**Email Response**: Tom receives Sarah's email invitation. When he clicks the deep link, it takes him to mychips.org where he learns he needs to install the mobile app. The deep link preserves the tally invitation context through the app store download.
+
+**Friend's Onboarding**: After installing, Tom goes through the basic identity setup (reusing our existing identity-setup screen) with his name, email, and phone. The app explains this information helps tally partners recognize him.
+
+[<img src="../images/identity-setup.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/identity-setup.svg)
+
+**Tally Response**: Tom is brought directly to the tally review screen, but now in "response mode" showing Sarah's invitation. He sees she wants to trust him for ₡200 but only wants ₡50 credit back. He reads the context help extensively to understand what credit limits mean.
+
+[<img src="../images/tally-review.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/tally-review.svg)
+
+**Guided Learning**: Tom spends time with the contract viewer and context helps. He realizes this is about managing informal credit between neighbors, not a loan or investment. After understanding the concept, he adjusts the limits to ₡100 mutual and sends his counter-offer.
 
 ### Scenario 3: Users Struggle with Tally Terms (Credit Limits, etc.)
-*[AI will fill in narrative with screen references]*
+*[AI narrative with screen references]*
+
+**Maria** and her business partner **Alex** try to set up a tally but get confused about the credit terms.
+
+**Complex Negotiation**: Maria starts with ₡500 trust for Alex, but ₡2000 credit for herself (reflecting their business relationship where Alex often pays expenses). Alex counters with ₡1000 mutual. Maria counter-offers ₡750/₡1500. The negotiation goes back and forth multiple times.
+
+[<img src="../images/tally-review.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/tally-review.svg)
+
+**Template Confusion**: Maria tries to save different templates but gets confused about which template has which settings. The template list shows her various saved configurations but she can't remember which one was for business vs. personal relationships.
+
+[<img src="../images/tally-templates.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/tally-templates.svg)
+
+**Resolution Through Education**: After reading more context help and discussing offline, they realize they need asymmetric credit limits that reflect their actual business relationship. They settle on ₡500/₡1500 and add detailed comments explaining the business context.
 
 ### Scenario 4: Technical Issues During Tally Creation
-*[AI will fill in narrative with screen references]*
+*[AI narrative with screen references]*
+
+**Jake** tries to invite his roommate **Chris** but encounters several technical problems.
+
+**Invitation Expires**: Jake creates the tally invitation and shares it via QR code, but Chris doesn't respond within 24 hours. When Chris finally tries to use the link, he gets an error that the invitation has expired.
+
+[<img src="../images/qr-share.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/qr-share.svg)
+
+**Network Issues**: Jake creates a new invitation, but when Chris tries to respond, he has poor network connectivity. His counter-offer fails to send properly, leaving both users confused about the current state.
+
+**Recovery Process**: Jake has to cancel the broken invitation and start over. This time he uses SMS instead of email, and sets a longer expiration time. They also coordinate in person to ensure both have good network connectivity during the negotiation process.
+
+**Success on Third Try**: With better coordination and technical awareness, Jake and Chris successfully complete their tally setup. They learn to communicate outside the app during technical difficulties and use the longer expiration times for complex negotiations.
 
 ## Related Journeys
 

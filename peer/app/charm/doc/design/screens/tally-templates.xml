@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../components/transforms/master.xsl"?>
+<app-screen width="375" height="812" xmlns="http://mychips.io/ui">
+    
+    <app-header data-title="Tally Templates"/>
+    
+    <!-- Info Banner -->
+    <info-banner 
+        data-message="Templates save time by reusing your common tally settings"
+        data-type="info"
+        x="20" y="120"/>
+    
+    <!-- Template List -->
+    <template-list x="20" y="180">
+        <template-item 
+            data-name="Friend, let's tally!"
+            data-description="₡75 mutual trust • Standard contract"
+            data-created="Created today"
+            data-uses="Used 1 time"
+            x="0" y="0"/>
+        <template-item 
+            data-name="Business Partner"
+            data-description="₡500/₡1000 • Standard contract"
+            data-created="Created last week"
+            data-uses="Used 3 times"
+            x="0" y="100"/>
+    </template-list>
+    
+    <!-- Create New Template -->
+    <create-template-card x="20" y="400">
+        <plus-icon x="50" y="30"/>
+        <section-header data-title="Create New Template" x="80" y="35"/>
+        <text x="80" y="55" font-family="SF Pro, Arial" font-size="14" fill="#8E8E93">Start with blank tally settings</text>
+    </create-template-card>
+    
+    <!-- Recent Templates -->
+    <section-header data-title="Recently Used" x="20" y="520"/>
+    
+    <recent-template-list x="20" y="550">
+        <recent-template-item 
+            data-partner="Alice Smith"
+            data-settings="₡200/₡200 mutual"
+            data-used="3 days ago"
+            x="0" y="0"/>
+        <recent-template-item 
+            data-partner="Coffee Corner"
+            data-settings="₡0/₡50 customer credit"
+            data-used="1 week ago"
+            x="0" y="70"/>
+    </recent-template-list>
+    
+</app-screen>

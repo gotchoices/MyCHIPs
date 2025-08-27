@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ui="http://mychips.io/ui" width="375" height="812"><rect width="375" height="812" fill="#F2F2F7"/>
+    
+    <g data-component="app-header"><rect width="375" height="44" fill="#F8F8F8"/><text x="20" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="600" fill="#000000">9:41</text><text x="340" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="400" text-anchor="end" fill="#000000">100%</text><rect y="44" width="375" height="56" fill="white" stroke="#E5E5EA" stroke-width="1"/><text x="187.5" y="80" font-family="SF Pro, Arial" font-size="17" font-weight="600" text-anchor="middle" fill="#000000">Tally Review</text><path d="M25 72 L20 77 L25 82" fill="none" stroke="#007AFF" stroke-width="2"/><text x="35" y="81" font-family="SF Pro, Arial" font-size="17" fill="#007AFF">Back</text></g>
+    
+    
+    <text font-family="SF Pro, Arial" font-size="22" font-weight="700" fill="#000000" x="20" y="120">Credit Limits</text>
+    
+    <g data-component="credit-limit-pair" transform="translate(20, 150)">
+        <g data-component="credit-limit-input" transform="translate(0, 0)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">I trust Partner for</text><rect y="25" width="160" height="44" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/><text x="12" y="52" font-family="SF Pro, Arial" font-size="18" font-weight="600" fill="#000000">₡75.00</text><text x="175" y="47" font-family="SF Pro, Arial" font-size="16" fill="#8E8E93">$75.00</text></g>
+        <g data-component="credit-limit-input" transform="translate(0, 80)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Partner trusts me for</text><rect y="25" width="160" height="44" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/><text x="12" y="52" font-family="SF Pro, Arial" font-size="18" font-weight="600" fill="#000000">₡75.00</text><text x="175" y="47" font-family="SF Pro, Arial" font-size="16" fill="#8E8E93">$75.00</text></g>
+    </g>
+    
+    <g data-component="context-help" transform="translate(320, 135)"><circle cx="12" cy="12" r="12" fill="#007AFF"/><text x="12" y="17" font-family="SF Pro, Arial" font-size="14" font-weight="600" text-anchor="middle" fill="white">?</text></g>
+    
+    
+    <text font-family="SF Pro, Arial" font-size="22" font-weight="700" fill="#000000" x="20" y="320">Identity Information</text>
+    
+    <g data-component="identity-display" transform="translate(20, 350)">
+        <g data-component="identity-field" transform="translate(0, 0)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Name</text><text x="0" y="35" font-family="SF Pro, Arial" font-size="16" fill="#000000">John Smith</text><text x="200" y="35" font-family="SF Pro, Arial" font-size="14" fill="#34C759">✓ Verified</text></g>
+        <g data-component="identity-field" transform="translate(0, 40)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Email</text><text x="0" y="35" font-family="SF Pro, Arial" font-size="16" fill="#000000">john@example.com</text><text x="200" y="35" font-family="SF Pro, Arial" font-size="14" fill="#34C759">✓ Verified</text></g>
+        <g data-component="identity-field" transform="translate(0, 80)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Phone</text><text x="0" y="35" font-family="SF Pro, Arial" font-size="16" fill="#000000">+1 (555) 123-4567</text><text x="200" y="35" font-family="SF Pro, Arial" font-size="14" fill="#34C759">✓ Verified</text></g>
+        <g data-component="identity-field" transform="translate(0, 120)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Address<tspan fill="#8E8E93"> (optional)</tspan></text><text x="0" y="35" font-family="SF Pro, Arial" font-size="16" fill="#C7C7CC">Not provided</text></g>
+    </g>
+    
+    
+    <text font-family="SF Pro, Arial" font-size="22" font-weight="700" fill="#000000" x="20" y="520">Tally Contract</text>
+    
+    
+        
+        <g data-component="button-text" transform="translate(200, 5)"><text x="NaN" y="NaN" font-family="SF Pro, Arial" font-size="17" font-weight="500" text-anchor="middle" fill="#007AFF">View Contract</text></g>
+        <g data-component="button-text" transform="translate(200, 35)"><text x="NaN" y="NaN" font-family="SF Pro, Arial" font-size="17" font-weight="500" text-anchor="middle" fill="#007AFF">Share for Review</text></g>
+    
+    
+    
+    <g data-component="text-area" transform="translate(20, 620)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Personal Message</text><rect y="25" width="335" height="60" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/><text x="12" y="45" font-family="SF Pro, Arial" font-size="16" fill="#000000">Friend, let's tally!</text></g>
+    
+    
+    
+        
+            
+            
+        
+    
+    
+    
+    <g data-component="button-primary" transform="translate(20, 740)"><rect width="100" height="44" fill="#007AFF" rx="25"/><text x="50" y="28" font-family="SF Pro, Arial" font-size="17" font-weight="600" text-anchor="middle" fill="white">Accept</text></g>
+    
+    <g data-component="button-secondary" transform="translate(137, 740)"><rect width="100" height="44" fill="none" stroke="#007AFF" stroke-width="2" rx="22"/><text x="50" y="28" font-family="SF Pro, Arial" font-size="15" font-weight="500" text-anchor="middle" fill="#007AFF">Counter</text></g>
+    
+    <g data-component="button-text" transform="translate(255, 740)"><text x="50" y="28" font-family="SF Pro, Arial" font-size="17" font-weight="500" text-anchor="middle" fill="#007AFF">Reject</text></g>
+        
+</svg>

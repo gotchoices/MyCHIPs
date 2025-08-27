@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../components/transforms/master.xsl"?>
+<!-- Design Requirements: ../specs/tally-review.md -->
+<app-screen width="375" height="812" xmlns="http://mychips.io/ui">
+    
+    <app-header data-title="Tally Review"/>
+    
+    <!-- Credit Limits Section -->
+    <section-header data-title="Credit Limits" x="20" y="120"/>
+    
+    <credit-limit-pair x="20" y="150">
+        <credit-limit-input
+            data-label="I trust Partner for"
+            data-chip-amount="₡75.00"
+            data-usd-amount="$75.00"
+            data-type="outgoing"
+            x="0" y="0"/>
+        <credit-limit-input
+            data-label="Partner trusts me for"
+            data-chip-amount="₡75.00"
+            data-usd-amount="$75.00"
+            data-type="incoming"
+            x="0" y="80"/>
+    </credit-limit-pair>
+    
+    <context-help 
+        data-target="credit-limits"
+        data-help-text="Learn about credit limits and trust"
+        x="320" y="135"/>
+    
+    <!-- Identity Section -->
+    <section-header data-title="Identity Information" x="20" y="320"/>
+    
+    <identity-display x="20" y="350">
+        <identity-field data-label="Name" data-value="John Smith" data-verified="true" x="0" y="0"/>
+        <identity-field data-label="Email" data-value="john@example.com" data-verified="true" x="0" y="40"/>
+        <identity-field data-label="Phone" data-value="+1 (555) 123-4567" data-verified="true" x="0" y="80"/>
+        <identity-field data-label="Address" data-value="" data-optional="true" x="0" y="120"/>
+    </identity-display>
+    
+    <!-- Contract Section -->
+    <section-header data-title="Tally Contract" x="20" y="520"/>
+    
+    <contract-selector x="20" y="550">
+        <dropdown-select 
+            data-label="Contract Type"
+            data-value="MyCHIPs.org Standard 1.0"
+            data-options="MyCHIPs.org Standard 1.0,Custom Contract"
+            x="0" y="0"/>
+        <button-text data-label="View Contract" x="200" y="5"/>
+        <button-text data-label="Share for Review" x="200" y="35"/>
+    </contract-selector>
+    
+    <!-- Comment Section -->
+    <text-area 
+        data-label="Personal Message"
+        data-placeholder="Add a message for your partner..."
+        data-value="Friend, let's tally!"
+        x="20" y="620"
+        width="335" height="60"/>
+    
+    <!-- Advanced Options -->
+    <toggle-section data-title="Advanced Options" data-expanded="false" x="20" y="700">
+        <trading-variables x="0" y="40">
+            <number-input data-label="Trading Fee %" data-value="0.0" x="0" y="0"/>
+            <number-input data-label="Settlement Days" data-value="0" x="170" y="0"/>
+        </trading-variables>
+    </toggle-section>
+    
+    <!-- Action Buttons -->
+    <button-primary 
+        data-label="Accept" 
+        x="20" y="740" 
+        width="100" 
+        height="44"/>
+    
+    <button-secondary 
+        data-label="Counter" 
+        x="137" y="740" 
+        width="100" 
+        height="44"/>
+    
+    <button-text 
+        data-label="Reject" 
+        x="255" y="740" 
+        width="100" 
+        height="44"/>
+        
+</app-screen>
