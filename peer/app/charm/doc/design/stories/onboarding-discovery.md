@@ -48,13 +48,73 @@
 ## Scenarios
 
 ### Scenario 1: Successful Discovery and Setup
-*[AI will fill in narrative with screen references]*
+*[AI narrative with screen references]*
+
+**Alex** hears about MyCHIPs on a podcast and decides to explore. He visits mychips.org and downloads the app.
+
+**Launch & Welcome**: Alex opens the app and sees an attractive welcome screen explaining MyCHIPs as a "peer-to-peer credit system." The feature highlights (Credit Network, Secure Keys, Mobile First) give him confidence this is legitimate. He taps "Get Started."
+
+[<img src="../images/app-launch.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/app-launch.svg)
+
+**Identity Setup**: Alex sees a clean setup form asking for his name, email, and phone number. The progress bar shows "Step 1 of 3" and the info card explains why this information is needed. He fills in his details quickly and taps "Continue."
+
+[<img src="../images/identity-setup.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/identity-setup.svg)
+
+**Home Dashboard**: Alex arrives at his main wallet screen showing $0.00 balance in both CHIPs and USD. The "Getting Started" section clearly outlines his next steps: Find Tally Partners (marked as pending), Create Signing Key (optional), and Explore Marketplace (ready). He notices the context help icon next to "CHIP Balance" and taps it to learn more.
+
+[<img src="../images/home-dashboard.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/home-dashboard.svg)
+
+**Marketplace Exploration**: Curious about where he might spend CHIPs, Alex navigates to the Marketplace tab. He sees local vendors like "Coffee Corner" and "Green Market" with clear indicators showing which accept CHIPs (₡) vs. tallies (T). The info banner explains these vendors can form tallies with customers. This helps him understand the ecosystem.
+
+[<img src="../images/marketplace.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/marketplace.svg)
+
+**Return to Setup**: Back on the home screen, Alex taps "Find Tally Partners." He sees the trust warning and explores the context help to understand the importance of only tallying with people he trusts. Realizing he should talk to his friend first, he decides to circle back later. Mission accomplished - he understands the system and knows his next steps.
 
 ### Scenario 2: User Gets Confused and Needs Help
-*[AI will fill in narrative with screen references]*
+*[AI narrative with screen references]*
+
+**Maria** downloads MyCHIPs but struggles with the concepts.
+
+**Launch Hesitation**: Maria sees the welcome screen but doesn't quite understand what "peer-to-peer credit system" means. She taps "Learn More" to read additional resources before proceeding.
+
+[<img src="../images/app-launch.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/app-launch.svg)
+
+**Identity Setup Concerns**: When she reaches the identity setup, Maria is nervous about providing personal information. She reads the info card multiple times and almost taps "Skip for Now" but decides to proceed with minimal information.
+
+[<img src="../images/identity-setup.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/identity-setup.svg)
+
+**Dashboard Confusion**: On the main dashboard, Maria is confused by the zero balance display. She taps the context help for "CHIP Balance" and reads about CHIPs, but still doesn't fully grasp how she would get them. The "You need tally partners to begin" message helps clarify the dependency.
+
+[<img src="../images/home-dashboard.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/home-dashboard.svg)
+
+**Overwhelming Options**: When Maria explores the "Find Tally Partners" option, the trust warnings and technical details about signing keys feel overwhelming. She reads through multiple context helps but still feels uncertain about who to trust and for how much.
+
+**Gradual Understanding**: After spending time in the marketplace section seeing real vendors, Maria begins to understand how the system might work. She decides to start very small with a family member and plans to learn more before expanding her tally network.
 
 ### Scenario 3: User Abandons During Setup
-*[AI will fill in narrative with screen references]*
+*[AI narrative with screen references]*
+
+**Tom** tries MyCHIPs but doesn't complete the setup.
+
+**Promising Start**: Tom likes the welcome screen and the promise of decentralized payments. The features sound appealing and he eagerly taps "Get Started."
+
+[<img src="../images/app-launch.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/app-launch.svg)
+
+**Setup Friction**: The identity setup feels like "just another signup form" to Tom. He's tired of giving out personal information and considers tapping "Skip for Now" but wants to see the app first.
+
+[<img src="../images/identity-setup.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/identity-setup.svg)
+
+**Empty State Disappointment**: When Tom sees the zero balance and "You need tally partners to begin" message, he feels frustrated. He was expecting to be able to try the system immediately, similar to other payment apps where you can link a bank account.
+
+[<img src="../images/home-dashboard.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/home-dashboard.svg)
+
+**Complexity Overload**: Exploring the "Find Tally Partners" flow, Tom encounters concepts like signing keys, credit limits, and trust relationships. This feels more complex than Venmo or Cash App. He doesn't understand why he can't just add money from his bank account.
+
+**Marketplace Disconnect**: Even the marketplace doesn't help - Tom doesn't recognize any of the local vendors and realizes he'd need to establish tally relationships before being able to use the system with these businesses.
+
+[<img src="../images/marketplace.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/marketplace.svg)
+
+**Abandonment**: Tom closes the app, planning to "maybe try it later when more people are using it." The learning curve and network effect requirements create too much friction for immediate adoption.
 
 ## Related Journeys
 

@@ -47,16 +47,86 @@ Generate SVG wireframes from XML source:
 
 The generated SVG files are placed in `../images/` and referenced by documentation files.
 
+## Design Specifications Integration
+
+Each screen XML file should be accompanied by a corresponding design specification in `../specs/`:
+
+### **Workflow for Screen Creation**
+
+1. **Check for existing spec**: Look in `../specs/[screen-name].md` 
+2. **Read design requirements**: Follow layout, interaction, and data specs
+3. **Implement in XML**: Create semantic markup that fulfills spec requirements
+4. **Reference spec in XML**: Add comment `<!-- Design Requirements: ../specs/[screen-name].md -->`
+5. **Build and validate**: Ensure generated SVG matches spec requirements
+
+### **Example Integration**
+
+**Spec file** (`../specs/home-dashboard.md`):
+```markdown
+## Layout Requirements
+- Grand total prominently displayed at top
+- Scrollable tally list below total  
+- Each tally shows: partner name, CHIP balance, USD equivalent
+```
+
+**Screen XML** (`home-dashboard.xml`):
+```xml
+<!-- Design Requirements: ../specs/home-dashboard.md -->
+<app-screen width="375" height="812">
+    <balance-summary data-chip-balance="₡1,247.50" data-local-balance="$1,247.50"/>
+    <tally-list>
+        <tally-item data-partner="Alice" data-balance="₡500.00" data-usd="$500.00"/>
+    </tally-list>
+</app-screen>
+```
+
+### **When to Create Design Specs**
+
+Create a spec file when:
+- ✅ **Specific layout requirements** exist beyond user story implications
+- ✅ **Complex data presentation** needs detailed formatting rules  
+- ✅ **Visual hierarchy** must follow specific product requirements
+- ✅ **Interaction behaviors** are more complex than basic navigation
+
+Skip spec file when:
+- ❌ **Simple screens** with obvious layouts (basic forms, simple lists)
+- ❌ **Standard patterns** that follow common UI conventions
+- ❌ **One-off screens** that won't be reused or modified
+
+### **Spec File Benefits**
+
+- **AI reads both** user stories AND design specs when creating screens
+- **Human control** over specific layout and interaction requirements
+- **Consistency** across multiple stories that use the same screen
+- **Clear requirements** that supplement behavioral user stories
+
 ## Component Reference
 
 Available semantic components are defined in `../components/transforms/master.xsl`:
 
+### Layout Components
 - `<app-header>` - Screen header with title and navigation
-- `<balance-card>` - Primary balance display
-- `<transaction-item>` - Individual transaction list items
-- `<quick-action-card>` - Action buttons
-- `<section-header>` - Section titles
-- `<action-button-secondary>` - Secondary action buttons
+- `<app-screen>` - Screen container with dimensions
 - `<bottom-tab-bar>` with `<tab-item>` - Bottom navigation
 
-See component transform files for full parameter documentation.
+### Content Components  
+- `<balance-card>`, `<balance-summary>` - Balance displays
+- `<transaction-item>`, `<transaction-list>` - Transaction displays
+- `<vendor-item>`, `<vendor-list>` - Marketplace vendor displays
+- `<getting-started-item>`, `<getting-started-list>` - Onboarding guidance
+
+### Form Components
+- `<input-field>` - Text inputs with labels
+- `<button-primary>`, `<button-secondary>` - Action buttons
+- `<progress-bar>` - Step indicators
+- `<form-section>` - Form grouping
+
+### UI Elements
+- `<section-header>` - Section titles
+- `<info-card>`, `<info-banner>` - Informational content
+- `<context-help>` - Help icons and tooltips
+- `<search-bar>` - Search inputs
+- `<filter-chip>`, `<filter-chips>` - Filter selections
+- `<empty-state>` - Empty/zero state displays
+
+See component transform files for full parameter documentation and examples.

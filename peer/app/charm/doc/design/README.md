@@ -13,12 +13,16 @@ design/
 │
 ├── stories/                     # User stories and usage patterns
 │   ├── README.md               # Story writing guidelines
-│   ├── 01-onboarding.md        # New user registration and setup
-│   ├── 02-daily-usage.md       # Common daily operations
-│   ├── 03-peer-interactions.md # Sending/receiving payments
-│   ├── 04-merchant-payments.md # Business transactions
-│   ├── 05-account-management.md# Settings, security, history
-│   └── 99-edge-cases.md        # Error handling, offline scenarios
+│   ├── onboarding-discovery.md # Discovery-driven onboarding
+│   ├── first-friend-tally.md   # First tally relationship setup
+│   ├── onboarding-email-tally.md # Email tally invitation response
+│   └── ... (other story files)
+│
+├── specs/                      # Design specifications (human-authored)
+│   ├── README.md               # Spec file guidelines and templates
+│   ├── home-dashboard.md       # Home screen layout requirements
+│   ├── tally-review.md         # Tally setup screen requirements
+│   └── ... (one spec per complex screen)
 │
 ├── navigation/                  # App navigation structure
 │   ├── sitemap.md              # Complete navigation tree
@@ -111,36 +115,65 @@ python3 -m http.server 3000
 ## 📝 Workflow
 
 ### 1. **User Stories** (`stories/`)
-Write comprehensive user stories covering all usage patterns:
-- What users want to accomplish
-- Steps they take to get there
-- Error conditions and edge cases
-- Success criteria and validation
+Write comprehensive user stories with human-authored sequences and AI-generated scenarios:
+- **Human section**: Story overview, step sequence, acceptance criteria
+- **AI section**: Detailed scenarios with screen references and thumbnails
+- Stories drive screen design requirements
 
-### 2. **Navigation Design** (`navigation/`)
-Design the overall app structure:
-- Tab bar organization
-- Modal flows and deep linking
-- Back button behavior
-- Navigation state management
+### 2. **Screen Design** (`screens/`)
+Create individual screen layouts iteratively:
+- Author in semantic XML with data-driven components
+- Build generates SVG wireframes for visual review
+- **Screen Reuse**: New stories often reuse existing screens
+- **Screen Evolution**: Existing screens may need updates for new requirements
 
-### 3. **Screen Design** (`screens/source/`)
-Create individual screen layouts:
-- Author in clean XML with semantic components
-- Build generates SVG for visual review
-- Link screens together in user flows
+### 3. **Iterative Design Process** ⚠️ **CRITICAL**
+When stories are processed iteratively, screen designs evolve:
 
-### 4. **Component System** (`components/`)
+**Screen Modification Impact:**
+- ✅ **Screen updated** (e.g., add new component to home-dashboard.xml)
+- ❌ **Scenarios outdated** (existing stories referencing that screen)
+- 🔄 **Required action**: Re-review ALL existing scenarios that reference the modified screen
+
+**Process for Screen Changes:**
+1. **Identify impact**: `grep -r "screen-name.svg" stories/` to find referencing scenarios
+2. **Review scenarios**: Check if narrative still matches updated screen
+3. **Update scenarios**: Revise AI-generated text to reflect screen changes
+4. **Rebuild wireframes**: `./build.sh` to generate updated SVGs
+5. **Validate stories**: Ensure screen thumbnails and descriptions align
+
+**Example Workflow:**
+```bash
+# You modify home-dashboard.xml to add a new "Notifications" section
+./build.sh  # Regenerate home-dashboard.svg
+
+# Find all stories that reference this screen
+grep -r "home-dashboard.svg" stories/
+# Result: onboarding-discovery.md, first-friend-tally.md
+
+# Review and update scenarios in both files to mention new notifications feature
+# Scenarios must accurately describe what users see in the updated screen
+```
+
+### 4. **Screen Design Guidelines** (`screens/README.md`)
+For detailed screen creation guidance, see `screens/README.md`:
+- Component usage patterns
+- Layout principles  
+- Data attribute conventions
+- When to create new vs. modify existing screens
+
+### 5. **Component System** (`components/`)
 Maintain the reusable design system:
 - Update transforms when adding new component types
 - Keep theme definitions centralized
-- Document component usage patterns
+- Document component usage patterns in master.xsl comments
 
-### 5. **Documentation** (`index.md`, story files)
-Link everything together:
-- Master index shows complete app structure
-- Stories reference relevant screens
-- Screens reference supporting components
+### 6. **Cross-Story Validation**
+Before marking design phase complete:
+- ✅ All scenarios reference current screen versions
+- ✅ Screen thumbnails match scenario descriptions
+- ✅ No outdated narrative references to removed UI elements
+- ✅ New screen features mentioned in relevant scenarios
 
 ## 🔧 Build System
 

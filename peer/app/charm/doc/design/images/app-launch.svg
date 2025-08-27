@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ui="http://mychips.io/ui" width="375" height="812"><rect width="375" height="812" fill="#F2F2F7"/>
+    
+    
+    <g data-component="welcome-hero" transform="translate(20, 100)"><rect width="335" height="180" fill="#007AFF" rx="20"/><rect width="335" height="180" fill="url(#heroGradient)" rx="20"/><defs><linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#40A9FF;stop-opacity:0.3"/><stop offset="100%" style="stop-color:#1890FF;stop-opacity:0.1"/></linearGradient></defs><text x="167.5" y="40" font-family="SF Pro, Arial" font-size="28" font-weight="700" text-anchor="middle" fill="white">Welcome to MyCHIPs</text><text x="167.5" y="70" font-family="SF Pro, Arial" font-size="16" font-weight="500" text-anchor="middle" fill="white" opacity="0.9">Peer-to-peer credit system</text><text x="167.5" y="120" font-family="SF Pro, Arial" font-size="14" font-weight="400" text-anchor="middle" fill="white" opacity="0.8">Connect with trusted partners to exchange value without traditional banking</text></g>
+    
+    
+    <g data-component="feature-list" transform="translate(20, 300)">
+        <g data-component="feature-item" transform="translate(0, 0)"><circle cx="30" cy="30" r="20" fill="#F0F9FF" stroke="#007AFF" stroke-width="2"/><text x="30" y="36" font-family="SF Pro, Arial" font-size="16" text-anchor="middle" fill="#007AFF">₡</text><text x="70" y="25" font-family="SF Pro, Arial" font-size="17" font-weight="600" fill="#000000">Credit Network</text><text x="70" y="45" font-family="SF Pro, Arial" font-size="14" fill="#8E8E93">Trade directly with people you trust</text></g>
+        <g data-component="feature-item" transform="translate(0, 80)"><circle cx="30" cy="30" r="20" fill="#F0F9FF" stroke="#007AFF" stroke-width="2"/><text x="30" y="36" font-family="SF Pro, Arial" font-size="16" text-anchor="middle" fill="#007AFF">🔐</text><text x="70" y="25" font-family="SF Pro, Arial" font-size="17" font-weight="600" fill="#000000">Secure Keys</text><text x="70" y="45" font-family="SF Pro, Arial" font-size="14" fill="#8E8E93">Your identity, controlled by you</text></g>
+        <g data-component="feature-item" transform="translate(0, 160)"><circle cx="30" cy="30" r="20" fill="#F0F9FF" stroke="#007AFF" stroke-width="2"/><text x="30" y="36" font-family="SF Pro, Arial" font-size="16" text-anchor="middle" fill="#007AFF">📱</text><text x="70" y="25" font-family="SF Pro, Arial" font-size="17" font-weight="600" fill="#000000">Mobile First</text><text x="70" y="45" font-family="SF Pro, Arial" font-size="14" fill="#8E8E93">Pay and receive anywhere, anytime</text></g>
+    </g>
+    
+    
+    <g data-component="button-primary" transform="translate(20, 600)"><rect width="335" height="50" fill="#007AFF" rx="25"/><text x="167.5" y="31" font-family="SF Pro, Arial" font-size="17" font-weight="600" text-anchor="middle" fill="white">Get Started</text></g>
+    
+    
+    <g data-component="button-text" transform="translate(20, 670)"><text x="167.5" y="26" font-family="SF Pro, Arial" font-size="17" font-weight="500" text-anchor="middle" fill="#007AFF">Learn More</text></g>
+    
+    
+    <g data-component="app-footer" transform="translate(0, 750)"><text x="187.5" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="#8E8E93">v1.0.0</text></g>
+        
+</svg>

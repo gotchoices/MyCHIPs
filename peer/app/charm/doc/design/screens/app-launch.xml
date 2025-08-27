@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../components/transforms/master.xsl"?>
+<app-screen width="375" height="812" xmlns="http://mychips.io/ui">
+    
+    <!-- Welcome hero section -->
+    <welcome-hero 
+        data-title="Welcome to MyCHIPs" 
+        data-subtitle="Peer-to-peer credit system"
+        data-description="Connect with trusted partners to exchange value without traditional banking"
+        x="20" y="100"/>
+    
+    <!-- Feature highlights -->
+    <feature-list x="20" y="300">
+        <feature-item 
+            data-icon="₡" 
+            data-title="Credit Network" 
+            data-description="Trade directly with people you trust"
+            x="0" y="0"/>
+        <feature-item 
+            data-icon="🔐" 
+            data-title="Secure Keys" 
+            data-description="Your identity, controlled by you"
+            x="0" y="80"/>
+        <feature-item 
+            data-icon="📱" 
+            data-title="Mobile First" 
+            data-description="Pay and receive anywhere, anytime"
+            x="0" y="160"/>
+    </feature-list>
+    
+    <!-- Call to action -->
+    <button-primary 
+        data-label="Get Started" 
+        x="20" y="600" 
+        width="335" 
+        height="50"/>
+    
+    <!-- Secondary action -->
+    <button-text 
+        data-label="Learn More" 
+        x="20" y="670" 
+        width="335" 
+        height="40"/>
+    
+    <!-- Footer -->
+    <app-footer 
+        data-version="v1.0.0" 
+        x="0" y="750"/>
+        
+</app-screen>

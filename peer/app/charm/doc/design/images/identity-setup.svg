@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ui="http://mychips.io/ui" width="375" height="812"><rect width="375" height="812" fill="#F2F2F7"/>
+    
+    <g data-component="app-header"><rect width="375" height="44" fill="#F8F8F8"/><text x="20" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="600" fill="#000000">9:41</text><text x="340" y="30" font-family="SF Pro, Arial" font-size="14" font-weight="400" text-anchor="end" fill="#000000">100%</text><rect y="44" width="375" height="56" fill="white" stroke="#E5E5EA" stroke-width="1"/><text x="187.5" y="80" font-family="SF Pro, Arial" font-size="17" font-weight="600" text-anchor="middle" fill="#000000">Setup Your Identity</text><path d="M25 72 L20 77 L25 82" fill="none" stroke="#007AFF" stroke-width="2"/><text x="35" y="81" font-family="SF Pro, Arial" font-size="17" fill="#007AFF">Back</text></g>
+    
+    
+    <g data-component="progress-bar" transform="translate(20, 120)"><rect width="335" height="6" fill="#E5E5EA" rx="3"/><rect width="111.666666666667" height="6" fill="#007AFF" rx="3"/><text x="167.5" y="25" font-family="SF Pro, Arial" font-size="13" text-anchor="middle" fill="#8E8E93">Step 1 of 3</text></g>
+    
+    
+    <g data-component="form-section" transform="translate(20, 180)">
+        <text font-family="SF Pro, Arial" font-size="22" font-weight="700" fill="#000000" x="0" y="0">Basic Information</text>
+        
+        <g data-component="input-field" transform="translate(0, 40)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Full Name<tspan fill="#FF3B30"> *</tspan></text><rect y="25" width="335" height="44" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/><text x="12" y="52" font-family="SF Pro, Arial" font-size="16" fill="#C7C7CC">Enter your full name</text></g>
+            
+        <g data-component="input-field" transform="translate(0, 120)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Email Address<tspan fill="#FF3B30"> *</tspan></text><rect y="25" width="335" height="44" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/><text x="12" y="52" font-family="SF Pro, Arial" font-size="16" fill="#C7C7CC">your.email@example.com</text></g>
+            
+        <g data-component="input-field" transform="translate(0, 200)"><text x="0" y="15" font-family="SF Pro, Arial" font-size="14" font-weight="500" fill="#000000">Phone Number<tspan fill="#FF3B30"> *</tspan></text><rect y="25" width="335" height="44" fill="white" stroke="#D1D1D6" stroke-width="1" rx="8"/><text x="12" y="52" font-family="SF Pro, Arial" font-size="16" fill="#C7C7CC">+1 (555) 123-4567</text></g>
+    </g>
+    
+    
+    <g data-component="info-card" transform="translate(20, 420)"><rect width="335" height="80" fill="#F0F9FF" stroke="#B3D8FF" stroke-width="1" rx="12"/><text x="20" y="35" font-family="SF Pro, Arial" font-size="18" fill="#007AFF">ℹ️</text><text x="50" y="25" font-family="SF Pro, Arial" font-size="15" font-weight="600" fill="#000000">Why do we need this?</text><text x="50" y="45" font-family="SF Pro, Arial" font-size="13" fill="#666666">Your identity helps tally partners recognize and trust you. You can add more details later if needed.</text></g>
+    
+    
+    <g data-component="button-primary" transform="translate(20, 520)"><rect width="335" height="50" fill="#007AFF" rx="25"/><text x="167.5" y="31" font-family="SF Pro, Arial" font-size="17" font-weight="600" text-anchor="middle" fill="white">Continue</text></g>
+    
+    <g data-component="button-text" transform="translate(20, 590)"><text x="167.5" y="26" font-family="SF Pro, Arial" font-size="17" font-weight="500" text-anchor="middle" fill="#007AFF">Skip for Now</text></g>
+        
+</svg>

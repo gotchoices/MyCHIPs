@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../components/transforms/master.xsl"?>
+<!-- Design Requirements: ../specs/home-dashboard.md -->
+<app-screen width="375" height="812" xmlns="http://mychips.io/ui">
+    
+    <app-header data-title="My Wallet"/>
+    
+    <!-- Balance display with context help -->
+    <balance-summary 
+        data-chip-balance="₡0.00"
+        data-local-balance="$0.00"
+        data-description="You need tally partners to begin"
+        x="20" y="120"/>
+    
+    <context-help 
+        data-target="chip-balance"
+        data-help-text="Learn what CHIPs are"
+        x="310" y="140"/>
+    
+    <!-- Getting started section -->
+    <section-header data-title="Get Started" x="20" y="280"/>
+    
+    <getting-started-list x="20" y="310">
+        <getting-started-item 
+            data-icon="👥" 
+            data-title="Find Tally Partners"
+            data-description="Connect with people you trust"
+            data-action="invite-partners"
+            data-status="pending"
+            x="0" y="0"/>
+            
+        <getting-started-item 
+            data-icon="🔑" 
+            data-title="Create Signing Key"
+            data-description="Secure your transactions"
+            data-action="setup-key"
+            data-status="optional"
+            x="0" y="80"/>
+            
+        <getting-started-item 
+            data-icon="🏪" 
+            data-title="Explore Marketplace"
+            data-description="Find businesses that accept CHIPs"
+            data-action="browse-marketplace"
+            data-status="ready"
+            x="0" y="160"/>
+    </getting-started-list>
+    
+    <!-- Empty state -->
+    <empty-state 
+        data-title="No Tallies Yet"
+        data-description="Start by inviting trusted friends, family, or business partners"
+        data-icon="💭"
+        x="20" y="540"/>
+    
+    <!-- Bottom navigation -->
+    <bottom-tab-bar x="0" y="729">
+        <tab-item data-label="Home" data-icon="🏠" data-active="true" data-icon-color="#007AFF" data-text-color="#007AFF" data-font-weight="600" x="15" y="10"/>
+        <tab-item data-label="Scan" data-icon="📷" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="93.75" y="10"/>
+        <tab-item data-label="Marketplace" data-icon="🏪" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="172.5" y="10"/>
+        <tab-item data-label="Settings" data-icon="⚙️" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="251.25" y="10"/>
+    </bottom-tab-bar>
+    
+</app-screen>

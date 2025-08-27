@@ -10,7 +10,7 @@ This document tracks the completion status of user stories, screen designs, and 
   - [x] Story Overview
   - [x] Sequence (detailed)
   - [x] Acceptance Criteria
-  - [ ] AI Scenarios (pending screen designs)
+  - [x] AI Scenarios (completed with screen references)
 
 - [x] **[First Friend Tally](stories/first-friend-tally.md)**
   - [x] Story Overview
@@ -55,10 +55,10 @@ This document tracks the completion status of user stories, screen designs, and 
 ### Priority Screens Needed
 
 #### Discovery Flow Screens
-- [ ] **Welcome/Onboarding Screen** (app-launch.xml)
-- [ ] **Identity Setup Screen** (identity-setup.xml)
-- [ ] **Home Dashboard** (home-dashboard.xml)
-- [ ] **Marketplace Browse** (marketplace.xml)
+- [x] **Welcome/Onboarding Screen** (app-launch.xml)
+- [x] **Identity Setup Screen** (identity-setup.xml)
+- [x] **Home Dashboard** (home-dashboard.xml)
+- [x] **Marketplace Browse** (marketplace.xml)
 - [ ] **Tally Invitation Start** (tally-invite-start.xml)
 
 #### Tally Management Screens  
@@ -111,7 +111,7 @@ This document tracks the completion status of user stories, screen designs, and 
 
 ### Ready for AI Scenario Generation
 - [x] **Email Tally Response** (scenarios already written)
-- [ ] **Discovery-Driven Onboarding** (needs 3+ key screens)
+- [x] **Discovery-Driven Onboarding** (scenarios completed with screen references)
 - [ ] **First Friend Tally** (needs 5+ key screens)
 
 ### Pending Story Completion

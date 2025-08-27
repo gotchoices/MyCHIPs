@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../components/transforms/master.xsl"?>
+<app-screen width="375" height="812" xmlns="http://mychips.io/ui">
+    
+    <app-header data-title="Setup Your Identity"/>
+    
+    <!-- Progress indicator -->
+    <progress-bar 
+        data-current="1" 
+        data-total="3" 
+        data-label="Step 1 of 3"
+        x="20" y="120"/>
+    
+    <!-- Form section -->
+    <form-section x="20" y="180">
+        <section-header data-title="Basic Information" x="0" y="0"/>
+        
+        <input-field 
+            data-label="Full Name" 
+            data-placeholder="Enter your full name"
+            data-required="true"
+            x="0" y="40"/>
+            
+        <input-field 
+            data-label="Email Address" 
+            data-placeholder="your.email@example.com"
+            data-type="email"
+            data-required="true"
+            x="0" y="120"/>
+            
+        <input-field 
+            data-label="Phone Number" 
+            data-placeholder="+1 (555) 123-4567"
+            data-type="tel"
+            data-required="true"
+            x="0" y="200"/>
+    </form-section>
+    
+    <!-- Info card -->
+    <info-card 
+        data-title="Why do we need this?"
+        data-description="Your identity helps tally partners recognize and trust you. You can add more details later if needed."
+        data-icon="ℹ️"
+        x="20" y="420"/>
+    
+    <!-- Action buttons -->
+    <button-primary 
+        data-label="Continue" 
+        x="20" y="520" 
+        width="335" 
+        height="50"/>
+    
+    <button-text 
+        data-label="Skip for Now" 
+        x="20" y="590" 
+        width="335" 
+        height="40"/>
+        
+</app-screen>
