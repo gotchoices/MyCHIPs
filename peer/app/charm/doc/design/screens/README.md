@@ -9,6 +9,13 @@ Use kebab-case names that match the intended route structure:
 - `wallet-overview.xml` → `/wallet/overview` route
 - `pay-scan-qr.xml` → `/pay/scan-qr` route
 
+## Navigation Requirements
+
+**BEFORE creating any screen:**
+1. Check [`../navigation/sitemap.md`](../navigation/sitemap.md) for proper navigation placement
+2. Follow [`../navigation/global-specs.md`](../navigation/global-specs.md) for tab bar requirements
+3. Update navigation documentation if adding new sections
+
 ## XML Structure
 
 Each screen file uses semantic markup with data attributes:

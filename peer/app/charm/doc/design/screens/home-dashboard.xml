@@ -55,10 +55,11 @@
     
     <!-- Bottom navigation -->
     <bottom-tab-bar x="0" y="729">
-        <tab-item data-label="Home" data-icon="🏠" data-active="true" data-icon-color="#007AFF" data-text-color="#007AFF" data-font-weight="600" x="15" y="10"/>
-        <tab-item data-label="Scan" data-icon="📷" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="93.75" y="10"/>
-        <tab-item data-label="Marketplace" data-icon="🏪" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="172.5" y="10"/>
-        <tab-item data-label="Settings" data-icon="⚙️" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="251.25" y="10"/>
+        <tab-item data-label="Home" data-icon="🏠" data-active="true" data-icon-color="#007AFF" data-text-color="#007AFF" data-font-weight="600" x="37.5" y="10"/>
+        <tab-item data-label="Invoice" data-icon="📄" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="112.5" y="10"/>
+        <tab-item data-label="Scan" data-icon="📷" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="187.5" y="10"/>
+        <tab-item data-label="Tally" data-icon="🤝" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="262.5" y="10"/>
+        <tab-item data-label="Settings" data-icon="⚙️" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="337.5" y="10"/>
     </bottom-tab-bar>
     
 </app-screen>

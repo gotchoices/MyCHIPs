@@ -168,6 +168,54 @@
         </g>
     </xsl:template>
     
+    <!-- Breadcrumb Bar Component -->
+    <xsl:template match="ui:breadcrumb-bar">
+        <g data-component="breadcrumb-bar">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            
+            <!-- Background (optional) -->
+            <rect width="335" height="44" fill="transparent"/>
+            
+            <!-- Process breadcrumb items -->
+            <xsl:apply-templates/>
+        </g>
+    </xsl:template>
+    
+    <!-- Breadcrumb Item -->
+    <xsl:template match="ui:breadcrumb-item">
+        <g data-component="breadcrumb-item">
+            <xsl:if test="@x and @y">
+                <xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>, <xsl:value-of select="@y"/>)</xsl:attribute>
+            </xsl:if>
+            
+            <xsl:variable name="is-current" select="@data-current = 'true'"/>
+            <xsl:variable name="text-color">
+                <xsl:choose>
+                    <xsl:when test="$is-current">#000000</xsl:when>
+                    <xsl:otherwise>#007AFF</xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:variable name="font-weight">
+                <xsl:choose>
+                    <xsl:when test="$is-current">600</xsl:when>
+                    <xsl:otherwise>400</xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            
+            <!-- Breadcrumb text -->
+            <text x="0" y="28" font-family="SF Pro, Arial" font-size="14" font-weight="{$font-weight}" fill="{$text-color}">
+                <xsl:value-of select="@data-label"/>
+            </text>
+            
+            <!-- Separator (if not current/last item) -->
+            <xsl:if test="not($is-current)">
+                <text x="{string-length(@data-label) * 8 + 8}" y="28" font-family="SF Pro, Arial" font-size="14" fill="#8E8E93"> > </text>
+            </xsl:if>
+        </g>
+    </xsl:template>
+    
     <!-- Bottom Tab Bar -->
     <xsl:template match="ui:bottom-tab-bar">
         <g data-component="bottom-tab-bar">
@@ -186,38 +234,49 @@
     <!-- Tab Item -->
     <xsl:template match="ui:tab-item">
         <g data-component="tab-item">
-            <xsl:variable name="slot" select="@slot"/>
+            <!-- Calculate position based on x attribute (5-tab layout: 75px each, centers at 37.5, 112.5, 187.5, 262.5, 337.5) -->
             <xsl:variable name="x-pos">
                 <xsl:choose>
-                    <xsl:when test="$slot = '1'">52.5</xsl:when>
-                    <xsl:when test="$slot = '2'">131.25</xsl:when>
-                    <xsl:when test="$slot = '3'">210</xsl:when>
-                    <xsl:when test="$slot = '4'">288.75</xsl:when>
-                    <xsl:when test="$slot = '5'">337.5</xsl:when>
+                    <xsl:when test="@x"><xsl:value-of select="@x"/></xsl:when>
+                    <xsl:otherwise>37.5</xsl:otherwise> <!-- Default to first tab position -->
                 </xsl:choose>
             </xsl:variable>
             
-            <xsl:variable name="color">
+            <!-- Icon background color (use data attribute or default based on active state) -->
+            <xsl:variable name="icon-color">
                 <xsl:choose>
+                    <xsl:when test="@data-icon-color"><xsl:value-of select="@data-icon-color"/></xsl:when>
                     <xsl:when test="@data-active = 'true'">#007AFF</xsl:when>
                     <xsl:otherwise>#8E8E93</xsl:otherwise>
                 </xsl:choose>
             </xsl:variable>
             
+            <!-- Text color (use data attribute or default based on active state) -->
+            <xsl:variable name="text-color">
+                <xsl:choose>
+                    <xsl:when test="@data-text-color"><xsl:value-of select="@data-text-color"/></xsl:when>
+                    <xsl:when test="@data-active = 'true'">#007AFF</xsl:when>
+                    <xsl:otherwise>#8E8E93</xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            
+            <!-- Font weight (use data attribute or default based on active state) -->
+            <xsl:variable name="font-weight">
+                <xsl:choose>
+                    <xsl:when test="@data-font-weight"><xsl:value-of select="@data-font-weight"/></xsl:when>
+                    <xsl:when test="@data-active = 'true'">600</xsl:when>
+                    <xsl:otherwise>500</xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            
             <!-- Icon -->
-            <circle cx="{$x-pos}" cy="25" r="12" fill="{$color}"/>
+            <circle cx="{$x-pos}" cy="25" r="12" fill="{$icon-color}"/>
             <text x="{$x-pos}" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">
                 <xsl:value-of select="@data-icon"/>
             </text>
             
             <!-- Label -->
-            <text x="{$x-pos}" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="{$color}">
-                <xsl:attribute name="font-weight">
-                    <xsl:choose>
-                        <xsl:when test="@data-active = 'true'">600</xsl:when>
-                        <xsl:otherwise>500</xsl:otherwise>
-                    </xsl:choose>
-                </xsl:attribute>
+            <text x="{$x-pos}" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="{$text-color}" font-weight="{$font-weight}">
                 <xsl:value-of select="@data-label"/>
             </text>
         </g>

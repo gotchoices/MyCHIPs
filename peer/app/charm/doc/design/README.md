@@ -25,12 +25,10 @@ design/
 │   └── ... (one spec per complex screen)
 │
 ├── navigation/                  # App navigation structure
-│   ├── sitemap.md              # Complete navigation tree
-│   ├── user-flows.md           # Key user journey flows
-│   └── wireframes/             # Navigation wireframes
-│       ├── tab-structure.xml
-│       ├── modal-flows.xml
-│       └── deep-linking.xml
+│   ├── README.md               # Navigation documentation guidelines
+│   ├── sitemap.md              # Complete navigation tree (5-tab structure)
+│   ├── global-specs.md         # Global navigation specifications
+│   └── deep-links.md           # URL routing and deep link patterns
 │
 ├── screens/                     # Screen designs (XML source → SVG output)
 │   ├── README.md               # Screen authoring guidelines
@@ -162,13 +160,20 @@ For detailed screen creation guidance, see `screens/README.md`:
 - Data attribute conventions
 - When to create new vs. modify existing screens
 
-### 5. **Component System** (`components/`)
+### 5. **Navigation Structure** (`navigation/`)
+All screens must fit into the global navigation tree. Before creating screens:
+- Review [`navigation/sitemap.md`](navigation/sitemap.md) for screen placement
+- Follow [`navigation/global-specs.md`](navigation/global-specs.md) for tab bar and breadcrumb patterns
+- Update navigation documentation when adding new screens
+- Ensure consistent tab states and deep link patterns
+
+### 6. **Component System** (`components/`)
 Maintain the reusable design system:
 - Update transforms when adding new component types
 - Keep theme definitions centralized
 - Document component usage patterns in master.xsl comments
 
-### 6. **Cross-Story Validation**
+### 7. **Cross-Story Validation**
 Before marking design phase complete:
 - ✅ All scenarios reference current screen versions
 - ✅ Screen thumbnails match scenario descriptions

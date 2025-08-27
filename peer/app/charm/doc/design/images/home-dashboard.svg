@@ -24,10 +24,11 @@
     
     
     <g data-component="bottom-tab-bar" transform="translate(0, 729)"><rect width="375" height="83" fill="white" stroke="#E5E5EA" stroke-width="1"/>
-        <g data-component="tab-item"><circle cx="" cy="25" r="12" fill="#007AFF"/><text x="" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">🏠</text><text x="" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#007AFF" font-weight="600">Home</text></g>
-        <g data-component="tab-item"><circle cx="" cy="25" r="12" fill="#8E8E93"/><text x="" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">📷</text><text x="" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#8E8E93" font-weight="500">Scan</text></g>
-        <g data-component="tab-item"><circle cx="" cy="25" r="12" fill="#8E8E93"/><text x="" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">🏪</text><text x="" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#8E8E93" font-weight="500">Marketplace</text></g>
-        <g data-component="tab-item"><circle cx="" cy="25" r="12" fill="#8E8E93"/><text x="" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">⚙️</text><text x="" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#8E8E93" font-weight="500">Settings</text></g>
+        <g data-component="tab-item"><circle cx="37.5" cy="25" r="12" fill="#007AFF"/><text x="37.5" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">🏠</text><text x="37.5" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#007AFF" font-weight="600">Home</text></g>
+        <g data-component="tab-item"><circle cx="112.5" cy="25" r="12" fill="#8E8E93"/><text x="112.5" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">📄</text><text x="112.5" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#8E8E93" font-weight="500">Invoice</text></g>
+        <g data-component="tab-item"><circle cx="187.5" cy="25" r="12" fill="#8E8E93"/><text x="187.5" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">📷</text><text x="187.5" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#8E8E93" font-weight="500">Scan</text></g>
+        <g data-component="tab-item"><circle cx="262.5" cy="25" r="12" fill="#8E8E93"/><text x="262.5" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">🤝</text><text x="262.5" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#8E8E93" font-weight="500">Tally</text></g>
+        <g data-component="tab-item"><circle cx="337.5" cy="25" r="12" fill="#8E8E93"/><text x="337.5" y="30" font-family="SF Pro, Arial" font-size="12" text-anchor="middle" fill="white">⚙️</text><text x="337.5" y="50" font-family="SF Pro, Arial" font-size="10" text-anchor="middle" fill="#8E8E93" font-weight="500">Settings</text></g>
     </g>
     
 </svg>

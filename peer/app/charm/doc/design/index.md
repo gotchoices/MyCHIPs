@@ -36,6 +36,11 @@
 
 ## 🎨 Design System
 
+### Navigation System
+- [**Navigation Tree**](navigation/sitemap.md) - Complete 5-tab navigation structure
+- [**Global Specifications**](navigation/global-specs.md) - Tab bar, breadcrumbs, and universal patterns
+- [**Deep Link Routing**](navigation/deep-links.md) - URL patterns and routing specifications
+
 ### Component Library
 - [**XSLT Component Transforms**](components/transforms/master.xsl) - Semantic XML → SVG transformation system
 - [**Design Specifications**](specs/) - Human-authored requirements for complex screens
