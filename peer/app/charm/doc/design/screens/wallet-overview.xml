@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../components/transforms/master.xsl"?>
+<app-screen width="375" height="812" xmlns="http://mychips.io/ui">
+    
+    <!-- This is EXACTLY what you wanted - pure semantic markup! -->
+    
+    <app-header data-title="My Wallet"/>
+    
+    <balance-card 
+        data-label="CHIP Balance"
+        data-amount="¢1,247.50"
+        data-description="Available to spend"
+        x="17.5" y="120"/>
+    
+    <section-header 
+        data-title="Quick Actions" 
+        x="20" y="275"/>
+    
+    <quick-actions-row x="20" y="295">
+        <quick-action-card 
+            data-action="send"
+            data-label="Send" 
+            data-icon="↑"
+            data-icon-color="#007AFF"
+            x="0" y="0"/>
+            
+        <quick-action-card 
+            data-action="request"
+            data-label="Request" 
+            data-icon="↓"
+            data-icon-color="#34C759"
+            x="110" y="0"/>
+            
+        <quick-action-card 
+            data-action="qr-code"
+            data-label="QR Code" 
+            data-icon="⬜"
+            data-icon-color="#8E8E93"
+            x="220" y="0"/>
+    </quick-actions-row>
+    
+    <section-header 
+        data-title="Recent Activity" 
+        x="20" y="415"/>
+    
+    <transaction-list x="17.5" y="430">
+        <transaction-item
+            data-name="Coffee Shop"
+            data-description="Payment sent"
+            data-time="Today, 2:30 PM"
+            data-amount="-¢8.50"
+            data-amount-color="#FF3B30"
+            data-icon="☕"
+            data-avatar-color="#FF9500"
+            y="0"/>
+            
+        <transaction-item
+            data-name="Sarah Miller"
+            data-description="Payment received"
+            data-time="Yesterday, 4:15 PM"
+            data-amount="+¢25.00"
+            data-amount-color="#34C759"
+            data-icon="SM"
+            data-avatar-color="#34C759"
+            y="80"/>
+            
+        <transaction-item
+            data-name="Local Market"
+            data-description="Grocery purchase"
+            data-time="Yesterday, 10:00 AM"
+            data-amount="-¢42.75"
+            data-amount-color="#FF3B30"
+            data-icon="🛒"
+            data-avatar-color="#007AFF"
+            y="160"/>
+    </transaction-list>
+    
+    <action-button-secondary 
+        data-label="See All Transactions"
+        x="20" y="680" 
+        width="335" height="44"/>
+    
+    <bottom-tab-bar x="0" y="729">
+        <tab-item data-label="Wallet" data-icon="₡" data-active="true" slot="1"/>
+        <tab-item data-label="Pay" data-icon="💳" data-active="false" slot="2"/>
+        <tab-item data-label="History" data-icon="📋" data-active="false" slot="3"/>
+        <tab-item data-label="Settings" data-icon="⚙️" data-active="false" slot="4"/>
+        <tab-item data-label="More" data-icon="•••" data-active="false" slot="5"/>
+    </bottom-tab-bar>
+    
+</app-screen>
