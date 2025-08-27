@@ -1,0 +1,546 @@
+# Database Schema for MyCHIPs Distributed Architecture
+
+# SQL table definitions for local user database and per-tally databases
+# Architecture: quereus -> optimystic -> kademlia -> libp2p
+
+# =============================================================================
+# LOCAL USER DATABASE
+# Private data stored locally on user's device
+# =============================================================================
+
+LocalDatabase:
+  description: "User's private local database instance"
+  tables:
+    
+    user_profile:
+      description: "Core user identity and profile information"
+      columns:
+        id:
+          type: UUID
+          primary_key: true
+          description: "Unique user identifier"
+        name:
+          type: VARCHAR(50)
+          not_null: true
+          description: "User's display name"
+        email:
+          type: VARCHAR(255)
+          not_null: true
+          unique: true
+          description: "Email address"
+        avatar:
+          type: VARCHAR(255)
+          description: "Profile image URL or initials"
+        public_key:
+          type: TEXT
+          not_null: true
+          description: "Cryptographic public key"
+        private_key_ref:
+          type: VARCHAR(255)
+          not_null: true
+          description: "Reference to private key in secure storage"
+        verified:
+          type: BOOLEAN
+          default: false
+          description: "Email/identity verification status"
+        created_at:
+          type: TIMESTAMP
+          not_null: true
+          default: NOW()
+        last_seen:
+          type: TIMESTAMP
+          default: NOW()
+      indexes:
+        - columns: [email]
+        - columns: [public_key]
+    
+    onboarding_state:
+      description: "User's onboarding progress and tutorial status"
+      columns:
+        user_id:
+          type: UUID
+          primary_key: true
+          foreign_key: user_profile.id
+        is_complete:
+          type: BOOLEAN
+          default: false
+        current_step:
+          type: VARCHAR(20)
+          default: "identity"
+          description: "identity, first-tally, marketplace, complete"
+        progress:
+          type: DECIMAL(3,2)
+          default: 0.00
+          description: "Completion percentage (0.00 to 1.00)"
+        updated_at:
+          type: TIMESTAMP
+          default: NOW()
+    
+    onboarding_tasks:
+      description: "Individual onboarding tasks and completion status"
+      columns:
+        id:
+          type: VARCHAR(50)
+          primary_key: true
+          description: "Task identifier"
+        user_id:
+          type: UUID
+          not_null: true
+          foreign_key: user_profile.id
+        title:
+          type: VARCHAR(100)
+          not_null: true
+        description:
+          type: TEXT
+        completed:
+          type: BOOLEAN
+          default: false
+        required:
+          type: BOOLEAN
+          default: true
+        metadata:
+          type: JSONB
+          description: "Task-specific data"
+        completed_at:
+          type: TIMESTAMP
+        created_at:
+          type: TIMESTAMP
+          default: NOW()
+      indexes:
+        - columns: [user_id, completed]
+    
+    my_tallies:
+      description: "Registry of all user's tally relationships"
+      columns:
+        tally_id:
+          type: UUID
+          primary_key: true
+        user_id:
+          type: UUID
+          not_null: true
+          foreign_key: user_profile.id
+        partner_id:
+          type: UUID
+          not_null: true
+          description: "Partner's user ID"
+        partner_name:
+          type: VARCHAR(50)
+          description: "Cached partner name"
+        partner_avatar:
+          type: VARCHAR(255)
+          description: "Cached partner avatar"
+        status:
+          type: VARCHAR(20)
+          not_null: true
+          description: "pending, active, suspended, closed"
+        database_path:
+          type: VARCHAR(500)
+          not_null: true
+          description: "Path to tally's SQL database file"
+        template_id:
+          type: UUID
+          foreign_key: tally_templates.id
+        created_at:
+          type: TIMESTAMP
+          default: NOW()
+        last_activity:
+          type: TIMESTAMP
+          default: NOW()
+      indexes:
+        - columns: [user_id, status]
+        - columns: [partner_id]
+        - columns: [last_activity]
+    
+    tally_templates:
+      description: "Saved templates for creating tally relationships"
+      columns:
+        id:
+          type: UUID
+          primary_key: true
+        user_id:
+          type: UUID
+          not_null: true
+          foreign_key: user_profile.id
+        name:
+          type: VARCHAR(100)
+          not_null: true
+        description:
+          type: TEXT
+        category:
+          type: VARCHAR(20)
+          not_null: true
+          description: "personal, business, vendor"
+        default_credit_limit:
+          type: DECIMAL(15,2)
+          not_null: true
+        terms:
+          type: JSONB
+          not_null: true
+          description: "TallyTerms object"
+        usage_count:
+          type: INTEGER
+          default: 0
+        last_used:
+          type: TIMESTAMP
+        created_at:
+          type: TIMESTAMP
+          default: NOW()
+      indexes:
+        - columns: [user_id, category]
+    
+    balance_cache:
+      description: "Cached aggregated balance for performance"
+      columns:
+        user_id:
+          type: UUID
+          primary_key: true
+          foreign_key: user_profile.id
+        total_balance:
+          type: DECIMAL(15,2)
+          not_null: true
+        positive_balance:
+          type: DECIMAL(15,2)
+          not_null: true
+        negative_balance:
+          type: DECIMAL(15,2)
+          not_null: true
+        active_tallies:
+          type: INTEGER
+          not_null: true
+        total_tallies:
+          type: INTEGER
+          not_null: true
+        last_calculated:
+          type: TIMESTAMP
+          default: NOW()
+    
+    # Vendor tables removed - marketplace is external web content from mychips.org
+    
+    app_settings:
+      description: "User preferences and app configuration"
+      columns:
+        user_id:
+          type: UUID
+          primary_key: true
+          foreign_key: user_profile.id
+        notification_settings:
+          type: JSONB
+          default: '{}'
+        privacy_settings:
+          type: JSONB
+          default: '{}'
+        display_preferences:
+          type: JSONB
+          default: '{}'
+        security_settings:
+          type: JSONB
+          default: '{}'
+        updated_at:
+          type: TIMESTAMP
+          default: NOW()
+
+# =============================================================================
+# PER-TALLY DATABASES
+# Shared database instance for each tally relationship
+# Synchronized between partners via P2P protocols
+# =============================================================================
+
+TallyDatabase:
+  description: "Individual database for each tally relationship (shared between partners)"
+  database_name: "tally_{tally_id}"
+  tables:
+    
+    tally_config:
+      description: "Tally relationship configuration and terms"
+      columns:
+        tally_id:
+          type: UUID
+          primary_key: true
+        user_a_id:
+          type: UUID
+          not_null: true
+          description: "First partner's user ID"
+        user_b_id:
+          type: UUID
+          not_null: true
+          description: "Second partner's user ID"
+        status:
+          type: VARCHAR(20)
+          not_null: true
+          description: "pending, active, suspended, closed"
+        terms:
+          type: JSONB
+          not_null: true
+          description: "TallyTerms object"
+        created_at:
+          type: TIMESTAMP
+          not_null: true
+        activated_at:
+          type: TIMESTAMP
+        last_modified:
+          type: TIMESTAMP
+          default: NOW()
+        version:
+          type: INTEGER
+          default: 1
+          description: "Configuration version for conflict resolution"
+      indexes:
+        - columns: [user_a_id, user_b_id]
+        - columns: [status]
+    
+    credit_limits:
+      description: "Credit limits between partners"
+      columns:
+        id:
+          type: UUID
+          primary_key: true
+        tally_id:
+          type: UUID
+          not_null: true
+          foreign_key: tally_config.tally_id
+        user_id:
+          type: UUID
+          not_null: true
+          description: "User who set this limit"
+        partner_id:
+          type: UUID
+          not_null: true
+          description: "Partner who receives this credit"
+        credit_limit:
+          type: DECIMAL(15,2)
+          not_null: true
+          description: "Maximum credit extended"
+        used_credit:
+          type: DECIMAL(15,2)
+          default: 0
+          description: "Currently used credit"
+        effective_date:
+          type: TIMESTAMP
+          not_null: true
+        expires_at:
+          type: TIMESTAMP
+        created_at:
+          type: TIMESTAMP
+          default: NOW()
+        version:
+          type: INTEGER
+          default: 1
+      indexes:
+        - columns: [tally_id, user_id]
+        - columns: [effective_date]
+    
+    transactions:
+      description: "All transactions between tally partners"
+      columns:
+        id:
+          type: UUID
+          primary_key: true
+        tally_id:
+          type: UUID
+          not_null: true
+          foreign_key: tally_config.tally_id
+        from_user_id:
+          type: UUID
+          not_null: true
+        to_user_id:
+          type: UUID
+          not_null: true
+        type:
+          type: VARCHAR(20)
+          not_null: true
+          description: "payment, request, adjustment, fee, interest"
+        amount:
+          type: DECIMAL(15,2)
+          not_null: true
+        currency:
+          type: VARCHAR(10)
+          default: "CHIP"
+        memo:
+          type: VARCHAR(200)
+        status:
+          type: VARCHAR(20)
+          not_null: true
+          description: "pending, confirmed, disputed, cancelled, expired"
+        metadata:
+          type: JSONB
+          description: "Additional transaction data"
+        created_at:
+          type: TIMESTAMP
+          not_null: true
+          default: NOW()
+        confirmed_at:
+          type: TIMESTAMP
+        expires_at:
+          type: TIMESTAMP
+        sequence_number:
+          type: BIGINT
+          not_null: true
+          description: "Monotonic sequence for ordering"
+        hash:
+          type: VARCHAR(64)
+          description: "Transaction hash for integrity"
+        signature:
+          type: TEXT
+          description: "Digital signature"
+      indexes:
+        - columns: [tally_id, sequence_number]
+        - columns: [from_user_id, created_at]
+        - columns: [to_user_id, created_at]
+        - columns: [status, created_at]
+        - columns: [hash]
+    
+    balance_snapshots:
+      description: "Periodic balance snapshots for quick calculation"
+      columns:
+        id:
+          type: UUID
+          primary_key: true
+        tally_id:
+          type: UUID
+          not_null: true
+          foreign_key: tally_config.tally_id
+        user_a_balance:
+          type: DECIMAL(15,2)
+          not_null: true
+          description: "User A's balance (positive = owes B)"
+        user_b_balance:
+          type: DECIMAL(15,2)
+          not_null: true
+          description: "User B's balance (positive = owes A)"
+        last_transaction_id:
+          type: UUID
+          foreign_key: transactions.id
+        snapshot_at:
+          type: TIMESTAMP
+          not_null: true
+          default: NOW()
+        transaction_count:
+          type: INTEGER
+          not_null: true
+          description: "Number of transactions included"
+      indexes:
+        - columns: [tally_id, snapshot_at]
+        - columns: [last_transaction_id]
+    
+    invitations:
+      description: "Tally invitation history and responses"
+      columns:
+        id:
+          type: UUID
+          primary_key: true
+        tally_id:
+          type: UUID
+          not_null: true
+          foreign_key: tally_config.tally_id
+        from_user_id:
+          type: UUID
+          not_null: true
+        to_user_id:
+          type: UUID
+          not_null: true
+        invitation_type:
+          type: VARCHAR(20)
+          not_null: true
+          description: "create, modify, close"
+        proposed_terms:
+          type: JSONB
+          not_null: true
+        status:
+          type: VARCHAR(20)
+          not_null: true
+          description: "pending, accepted, rejected, expired"
+        message:
+          type: TEXT
+        response_message:
+          type: TEXT
+        sent_at:
+          type: TIMESTAMP
+          not_null: true
+          default: NOW()
+        responded_at:
+          type: TIMESTAMP
+        expires_at:
+          type: TIMESTAMP
+          not_null: true
+      indexes:
+        - columns: [tally_id, status]
+        - columns: [to_user_id, status]
+        - columns: [expires_at]
+    
+    sync_log:
+      description: "P2P synchronization log for conflict resolution"
+      columns:
+        id:
+          type: UUID
+          primary_key: true
+        tally_id:
+          type: UUID
+          not_null: true
+          foreign_key: tally_config.tally_id
+        operation_type:
+          type: VARCHAR(20)
+          not_null: true
+          description: "insert, update, delete"
+        table_name:
+          type: VARCHAR(50)
+          not_null: true
+        record_id:
+          type: UUID
+          not_null: true
+        user_id:
+          type: UUID
+          not_null: true
+          description: "User who made the change"
+        data_hash:
+          type: VARCHAR(64)
+          not_null: true
+        sync_status:
+          type: VARCHAR(20)
+          not_null: true
+          description: "pending, synced, conflict"
+        created_at:
+          type: TIMESTAMP
+          not_null: true
+          default: NOW()
+        synced_at:
+          type: TIMESTAMP
+      indexes:
+        - columns: [tally_id, sync_status]
+        - columns: [user_id, created_at]
+        - columns: [table_name, record_id]
+
+# =============================================================================
+# DISTRIBUTED NETWORK DATA
+# Data structures for P2P network protocols
+# Not stored in SQL - managed by kademlia/libp2p layers
+# =============================================================================
+
+NetworkDataStructures:
+  description: "Data structures distributed across P2P network (not SQL tables)"
+  
+  UserRegistry:
+    description: "Distributed user identity registry via Kademlia DHT"
+    key_format: "user:{user_id}"
+    value_format:
+      public_key: string
+      name: string
+      avatar: string
+      verified: boolean
+      last_seen: timestamp
+      discovery_settings:
+        searchable: boolean
+        show_email: boolean
+    replication_factor: 3
+    
+  # VendorRegistry removed - vendors accessed via external mychips.org web content
+    
+  InvitationMessages:
+    description: "P2P invitation delivery system"
+    key_format: "invitation:{invitation_id}"
+    value_format:
+      from_user_id: string
+      to_user_id: string
+      tally_terms: object
+      expires_at: timestamp
+      delivery_method: string
+    ttl: 7_days

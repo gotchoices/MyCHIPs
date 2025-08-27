@@ -8,18 +8,17 @@
 
 **Component**: `<bottom-tab-bar>` with `<tab-item>` elements
 
-**5-Tab Structure**:
-1. **Home** (🏠) - Dashboard, balance, recent activity
+**4-Tab Structure**:
+1. **Home** (🏠) - Dashboard, balance, recent activity, tally management
 2. **Invoice** (📄) - Send/receive payment requests, invoice management  
 3. **Scan** (📷) - QR code scanner for payments and tally invitations
-4. **Tally** (🤝) - Tally relationships, partner management
-5. **Settings** (⚙️) - Account, security, preferences
+4. **Settings** (⚙️) - Account, security, preferences
 
 **Specifications**:
 - **Height**: 83px (includes safe area)
 - **Background**: White (#FFFFFF)
 - **Border**: Top border 1px #E5E5EA
-- **Tab Width**: 75px each (375px / 5 tabs)
+- **Tab Width**: 93.75px each (375px / 4 tabs)
 - **Icon Size**: 24px circle background, 12px icon
 - **Active State**: Icon background #007AFF, text #007AFF, font-weight 600
 - **Inactive State**: Icon background #8E8E93, text #8E8E93, font-weight 500
@@ -28,11 +27,10 @@
 **Usage in Screens**:
 ```xml
 <bottom-tab-bar x="0" y="729">
-    <tab-item data-label="Home" data-icon="🏠" data-active="true" data-icon-color="#007AFF" data-text-color="#007AFF" data-font-weight="600" x="15" y="10"/>
-    <tab-item data-label="Invoice" data-icon="📄" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="90" y="10"/>
-    <tab-item data-label="Scan" data-icon="📷" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="165" y="10"/>
-    <tab-item data-label="Tally" data-icon="🤝" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="240" y="10"/>
-    <tab-item data-label="Settings" data-icon="⚙️" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="315" y="10"/>
+    <tab-item data-label="Home" data-icon="🏠" data-active="true" data-icon-color="#007AFF" data-text-color="#007AFF" data-font-weight="600" x="46.875" y="10"/>
+    <tab-item data-label="Invoice" data-icon="📄" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="140.625" y="10"/>
+    <tab-item data-label="Scan" data-icon="📷" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="234.375" y="10"/>
+    <tab-item data-label="Settings" data-icon="⚙️" data-active="false" data-icon-color="#8E8E93" data-text-color="#8E8E93" data-font-weight="500" x="328.125" y="10"/>
 </bottom-tab-bar>
 ```
 

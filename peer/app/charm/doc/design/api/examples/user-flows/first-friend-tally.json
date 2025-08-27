@@ -1,0 +1,328 @@
+{
+  "scenario": "first-friend-tally",
+  "description": "Complete API call sequence for creating first tally relationship with a friend",
+  "userStory": "stories/first-friend-tally.md",
+  "screens": ["home-dashboard.xml", "tally-review.xml", "qr-share.xml"],
+  
+  "apiCallSequence": [
+    {
+      "step": 1,
+      "description": "User opens home dashboard",
+      "procedure": "balance.getSummary()",
+      "parameters": {},
+      "response": {
+        "total": 0,
+        "currency": "CHIP",
+        "formatted": "¢0.00",
+        "description": "No active tallies",
+        "breakdown": {
+          "positive": 0,
+          "negative": 0,
+          "activeTallies": 0,
+          "totalTallies": 0
+        }
+      }
+    },
+    
+    {
+      "step": 2,
+      "description": "Get onboarding status for getting started section",
+      "procedure": "auth.getOnboardingState()",
+      "parameters": {},
+      "response": {
+        "isComplete": false,
+        "currentStep": "first-tally",
+        "tasks": [
+          {
+            "id": "setup-identity",
+            "title": "Set up your identity",
+            "completed": true,
+            "required": true
+          },
+          {
+            "id": "create-tally",
+            "title": "Find Tally Partners",
+            "completed": false,
+            "required": true
+          }
+        ],
+        "progress": 0.5
+      }
+    },
+    
+    {
+      "step": 3,
+      "description": "User taps 'Find Tally Partners' button",
+      "procedure": "tally.getTemplates()",
+      "parameters": {},
+      "response": {
+        "templates": [
+          {
+            "id": "friend-template",
+            "name": "Friend/Family",
+            "category": "personal",
+            "defaultCreditLimit": 100,
+            "terms": {
+              "autoAcceptLimit": 10,
+              "description": "Trusted friend or family member"
+            }
+          },
+          {
+            "id": "business-template", 
+            "name": "Business Partner",
+            "category": "business",
+            "defaultCreditLimit": 500,
+            "terms": {
+              "autoAcceptLimit": 50,
+              "description": "Professional business relationship"
+            }
+          }
+        ]
+      }
+    },
+    
+    {
+      "step": 4,
+      "description": "User searches for friend 'Sarah'",
+      "procedure": "tally.searchPartners(query)",
+      "parameters": {
+        "query": "sarah",
+        "filters": {
+          "excludeExisting": true,
+          "category": "personal"
+        },
+        "limit": 10
+      },
+      "response": {
+        "partners": [
+          {
+            "id": "user-sarah-123",
+            "name": "Sarah Miller",
+            "avatar": "SM",
+            "publicKey": "0x1a2b3c4d...",
+            "category": "individual",
+            "verified": true,
+            "reputation": {
+              "score": 4.8,
+              "tallyCount": 12,
+              "references": 8
+            },
+            "mutualConnections": 2
+          }
+        ],
+        "hasMore": false
+      }
+    },
+    
+    {
+      "step": 5,
+      "description": "User selects Sarah and sets up tally terms",
+      "procedure": "tally.create(options)",
+      "parameters": {
+        "partnerId": "user-sarah-123",
+        "myCreditLimit": 100,
+        "requestedCreditLimit": 200,
+        "templateId": "friend-template",
+        "terms": {
+          "description": "Lunch buddy and occasional expenses",
+          "category": "personal",
+          "autoAcceptLimit": 25
+        },
+        "invitationMethod": "qr"
+      },
+      "response": {
+        "success": true,
+        "tallyId": "tally-alex-sarah-001",
+        "invitationUrl": "mychips://tally-invite/inv-789xyz?template=friend",
+        "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+        "status": "pending",
+        "expiresAt": "2024-01-22T14:30:00Z"
+      }
+    },
+    
+    {
+      "step": 6,
+      "description": "Generate QR code for sharing",
+      "procedure": "tally.generateQRInvitation(tallyOptions)",
+      "parameters": {
+        "myCreditLimit": 100,
+        "requestedCreditLimit": 200,
+        "templateId": "friend-template",
+        "expiryHours": 168,
+        "message": "Hey Sarah! Want to set up a MyCHIPs tally for our lunch expenses?"
+      },
+      "response": {
+        "invitationId": "inv-789xyz",
+        "url": "mychips://tally-invite/inv-789xyz?template=friend&amount=100",
+        "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+        "expiresAt": "2024-01-22T14:30:00Z",
+        "sharingText": "Alex Chen is inviting you to create a MyCHIPs tally relationship. Tap to accept: mychips://tally-invite/inv-789xyz"
+      }
+    },
+    
+    {
+      "step": 7,
+      "description": "Update my tallies registry",
+      "procedure": "tally.getAll()",
+      "parameters": {
+        "status": "all"
+      },
+      "response": {
+        "tallies": [
+          {
+            "id": "tally-alex-sarah-001",
+            "partnerId": "user-sarah-123",
+            "partnerName": "Sarah Miller",
+            "partnerAvatar": "SM",
+            "status": "pending",
+            "balance": 0,
+            "creditLimits": {
+              "given": 100,
+              "received": 200
+            },
+            "lastActivity": "2024-01-15T14:30:00Z",
+            "created": "2024-01-15T14:30:00Z",
+            "templateId": "friend-template"
+          }
+        ],
+        "summary": {
+          "total": 1,
+          "active": 0,
+          "pending": 1
+        }
+      }
+    },
+    
+    {
+      "step": 8,
+      "description": "Mark onboarding task as complete",
+      "procedure": "auth.completeOnboardingTask(taskId)",
+      "parameters": {
+        "taskId": "create-tally",
+        "metadata": {
+          "tallyId": "tally-alex-sarah-001",
+          "partnerId": "user-sarah-123"
+        }
+      },
+      "response": {
+        "success": true,
+        "updatedState": {
+          "isComplete": true,
+          "currentStep": "complete",
+          "progress": 1.0
+        },
+        "nextTask": null
+      }
+    },
+    
+    {
+      "step": 9,
+      "description": "Refresh balance summary (should still be zero until tally accepted)",
+      "procedure": "balance.getSummary()",
+      "parameters": {},
+      "response": {
+        "total": 0,
+        "currency": "CHIP", 
+        "formatted": "¢0.00",
+        "description": "Tally invitation pending",
+        "breakdown": {
+          "positive": 0,
+          "negative": 0,
+          "activeTallies": 0,
+          "totalTallies": 1
+        }
+      }
+    }
+  ],
+  
+  "resultingState": {
+    "description": "After completing this flow",
+    "userProfile": {
+      "onboardingComplete": true,
+      "progress": 1.0
+    },
+    "tallies": 1,
+    "activeTallies": 0,
+    "pendingInvitations": 1,
+    "balance": 0,
+    "nextActions": [
+      "Share QR code with Sarah",
+      "Wait for Sarah to accept invitation",
+      "Begin making transactions once tally is active"
+    ]
+  },
+  
+  "scenarioVariations": {
+    "sarah_accepts_immediately": {
+      "description": "Sarah scans QR and accepts within same session",
+      "additionalSteps": [
+        {
+          "step": 10,
+          "description": "Sarah accepts invitation (simulated)",
+          "procedure": "tally.processInvitation(invitationData)",
+          "parameters": {
+            "invitationId": "inv-789xyz",
+            "action": "accept"
+          },
+          "response": {
+            "success": true,
+            "tallyId": "tally-alex-sarah-001",
+            "status": "accepted"
+          }
+        }
+      ]
+    },
+    
+    "sarah_negotiates": {
+      "description": "Sarah proposes different credit limits",
+      "additionalSteps": [
+        {
+          "step": 10,
+          "description": "Sarah negotiates terms",
+          "procedure": "tally.processInvitation(invitationData)",
+          "parameters": {
+            "invitationId": "inv-789xyz",
+            "action": "negotiate",
+            "counterOffer": {
+              "myCreditLimit": 150,
+              "requestedCreditLimit": 150
+            },
+            "message": "How about equal credit limits of $150 each?"
+          },
+          "response": {
+            "success": true,
+            "status": "negotiating",
+            "nextStep": "Review counter-offer and respond"
+          }
+        }
+      ]
+    },
+    
+    "invitation_expires": {
+      "description": "Sarah doesn't respond within 7 days",
+      "additionalSteps": [
+        {
+          "step": 10,
+          "description": "Check invitation status after expiry",
+          "procedure": "tally.getInvitations()",
+          "parameters": {
+            "type": "sent",
+            "status": "expired"
+          },
+          "response": {
+            "sent": [
+              {
+                "id": "inv-789xyz",
+                "partnerId": "user-sarah-123",
+                "partnerName": "Sarah Miller",
+                "status": "expired",
+                "sentAt": "2024-01-15T14:30:00Z",
+                "expiresAt": "2024-01-22T14:30:00Z"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

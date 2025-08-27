@@ -10,7 +10,7 @@
 
 ## Sequence
 
-*[Fill in the step-by-step sequence here]*
+*[Human-defines step-by-step sequence here]*
 
 - User hears about system on a podast, is directed to mychips.org, sees link to download the app.
 - User installs app on smartphone and launches it
@@ -21,7 +21,7 @@
 - User can see that he has a zero balance (in CHIPs and his local currency) and no existing tally partners.
 - He's not really sure what a CHIP is but there is a context help nearby it that takes him to an online resource where he can learn more.
 - He can see and explore a basic menu bar that includes at least a Home screen, a QR scanner, and Preferences.
-- The user has an option to visit a markeplace page on mychips.org where he can see vendors who are willing to form tallies with their customers (and/or accept CHIPs indirectly).  He won't really know the difference between tallying or lifting payments to these vendors yet.  But if he clicks on a vendor, he will be taken to a site with QR codes for payment and/or tallying with the vendor.  More will be explained as he explores this.
+- The user has an option to visit a markeplace web page on mychips.org where he can see vendors who are willing to form tallies with their customers (and/or accept CHIPs indirectly).  He won't really know the difference between tallying or lifting payments to these vendors yet.  But if he clicks on a vendor, he will be taken to a site with QR codes for payment and/or tallying with the vendor.  More will be explained as he explores this.
 - User also sees an option to invite others he knows/trusts to tally with him.  This might be friends, family, neighbors, clients, vendors, etc.  
 - He clicks it and is prompted with a brief warning about trust and who he should and should not tally with.  There is a context help to learn more detail about this.
 - Clicking through, he is told that he will require signing key.  There is a link to learn more about what this means as well.  He follows it to an external resource that gives him the information he needs.
@@ -60,13 +60,11 @@
 
 [<img src="../images/identity-setup.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/identity-setup.svg)
 
-**Home Dashboard**: Alex arrives at his main wallet screen showing $0.00 balance in both CHIPs and USD. The "Getting Started" section clearly outlines his next steps: Find Tally Partners (marked as pending), Create Signing Key (optional), and Explore Marketplace (ready). He notices the context help icon next to "CHIP Balance" and taps it to learn more.
+**Home Dashboard**: Alex arrives at his main wallet screen showing $0.00 balance in both CHIPs and USD. The "Getting Started" section clearly outlines his next steps: Find Tally Partners (marked as pending), Create Signing Key (optional), and Browse Vendors (ready). He notices the context help icon next to "CHIP Balance" and taps it to learn more.
 
 [<img src="../images/home-dashboard.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/home-dashboard.svg)
 
-**Marketplace Exploration**: Curious about where he might spend CHIPs, Alex navigates to the Marketplace tab. He sees local vendors like "Coffee Corner" and "Green Market" with clear indicators showing which accept CHIPs (₡) vs. tallies (T). The info banner explains these vendors can form tallies with customers. This helps him understand the ecosystem.
-
-[<img src="../images/marketplace.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/marketplace.svg)
+**Vendor Discovery**: Curious about where he might spend CHIPs, Alex taps "Browse Vendors" which opens the mychips.org marketplace in his mobile browser. He sees local vendors like "Coffee Corner" and "Green Market" with clear indicators showing which accept CHIPs. Some vendor profiles have "Create Tally" buttons that would deep-link back to the app. This helps him understand the ecosystem and see potential partners.
 
 **Return to Setup**: Back on the home screen, Alex taps "Find Tally Partners." He sees the trust warning and explores the context help to understand the importance of only tallying with people he trusts. Realizing he should talk to his friend first, he decides to circle back later. Mission accomplished - he understands the system and knows his next steps.
 
@@ -89,7 +87,7 @@
 
 **Overwhelming Options**: When Maria explores the "Find Tally Partners" option, the trust warnings and technical details about signing keys feel overwhelming. She reads through multiple context helps but still feels uncertain about who to trust and for how much.
 
-**Gradual Understanding**: After spending time in the marketplace section seeing real vendors, Maria begins to understand how the system might work. She decides to start very small with a family member and plans to learn more before expanding her tally network.
+**Gradual Understanding**: After browsing vendors on mychips.org and seeing real local businesses, Maria begins to understand how the system might work. She decides to start very small with a family member and plans to learn more before expanding her tally network.
 
 ### Scenario 3: User Abandons During Setup
 *[AI narrative with screen references]*
@@ -110,9 +108,7 @@
 
 **Complexity Overload**: Exploring the "Find Tally Partners" flow, Tom encounters concepts like signing keys, credit limits, and trust relationships. This feels more complex than Venmo or Cash App. He doesn't understand why he can't just add money from his bank account.
 
-**Marketplace Disconnect**: Even the marketplace doesn't help - Tom doesn't recognize any of the local vendors and realizes he'd need to establish tally relationships before being able to use the system with these businesses.
-
-[<img src="../images/marketplace.svg" width="200" style="border: 1px solid #ddd; border-radius: 8px;">](../images/marketplace.svg)
+**Vendor Discovery Disconnect**: Even browsing vendors on mychips.org doesn't help - Tom doesn't recognize any of the local businesses and realizes he'd need to establish tally relationships before being able to use the system with these vendors.
 
 **Abandonment**: Tom closes the app, planning to "maybe try it later when more people are using it." The learning curve and network effect requirements create too much friction for immediate adoption.
 

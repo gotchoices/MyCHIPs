@@ -1,0 +1,369 @@
+# Core Data Types for MyCHIPs API
+
+# Fundamental data structures used across the distributed MyCHIPs system
+# These types map to SQL table schemas and API response formats
+
+User:
+  type: object
+  description: Core user identity and profile information
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Unique user identifier
+    name:
+      type: string
+      minLength: 2
+      maxLength: 50
+      description: User's display name
+    email:
+      type: string
+      format: email
+      description: Email address for contact and verification
+    avatar:
+      type: string
+      description: Profile image URL or 2-letter initials
+    publicKey:
+      type: string
+      description: Public key for cryptographic operations
+    verified:
+      type: boolean
+      description: Whether user identity has been verified
+    created:
+      type: string
+      format: date-time
+      description: Account creation timestamp
+    lastSeen:
+      type: string
+      format: date-time
+      description: Last network activity
+  required: [id, name, publicKey, verified, created]
+
+Tally:
+  type: object
+  description: Tally relationship between two users
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Unique tally identifier
+    partnerId:
+      type: string
+      format: uuid
+      description: Partner's user ID
+    partnerName:
+      type: string
+      description: Partner's display name (cached)
+    partnerAvatar:
+      type: string
+      description: Partner's profile image (cached)
+    status:
+      type: string
+      enum: [pending, active, suspended, closed]
+      description: Current tally status
+    balance:
+      type: number
+      format: float
+      description: Current balance (positive = they owe you)
+    creditLimits:
+      $ref: '#/CreditLimits'
+    terms:
+      $ref: '#/TallyTerms'
+    created:
+      type: string
+      format: date-time
+    lastActivity:
+      type: string
+      format: date-time
+    templateId:
+      type: string
+      format: uuid
+      description: Template used to create this tally
+  required: [id, partnerId, status, balance, creditLimits, created]
+
+CreditLimits:
+  type: object
+  description: Credit limits for a tally relationship
+  properties:
+    given:
+      type: number
+      format: float
+      minimum: 0
+      description: Credit limit I've extended to partner
+    received:
+      type: number
+      format: float
+      minimum: 0
+      description: Credit limit partner has extended to me
+    givenUsed:
+      type: number
+      format: float
+      minimum: 0
+      description: Amount of my credit partner has used
+    receivedUsed:
+      type: number
+      format: float
+      minimum: 0
+      description: Amount of partner's credit I have used
+  required: [given, received, givenUsed, receivedUsed]
+
+TallyTerms:
+  type: object
+  description: Terms and conditions for a tally relationship
+  properties:
+    description:
+      type: string
+      maxLength: 500
+      description: Human-readable relationship description
+    category:
+      type: string
+      enum: [personal, business, vendor]
+      description: Type of relationship
+    autoAcceptLimit:
+      type: number
+      format: float
+      minimum: 0
+      description: Auto-accept transactions under this amount
+    expiryDate:
+      type: string
+      format: date-time
+      description: Optional relationship expiry date
+    interestRate:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 100
+      description: Annual interest rate percentage
+    paymentTerms:
+      type: string
+      description: Human-readable payment terms
+  required: [category]
+
+Transaction:
+  type: object
+  description: Transaction between tally partners
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Unique transaction identifier
+    tallyId:
+      type: string
+      format: uuid
+      description: Associated tally relationship
+    type:
+      type: string
+      enum: [payment, request, adjustment, fee, interest]
+      description: Transaction type
+    amount:
+      type: number
+      format: float
+      description: Transaction amount (positive for payments to partner)
+    currency:
+      type: string
+      default: "CHIP"
+      description: Currency code
+    memo:
+      type: string
+      maxLength: 200
+      description: Transaction description/memo
+    status:
+      type: string
+      enum: [pending, confirmed, disputed, cancelled, expired]
+      description: Transaction status
+    metadata:
+      type: object
+      description: Additional transaction data
+      properties:
+        merchantInfo:
+          type: object
+          description: Merchant transaction details
+        invoiceId:
+          type: string
+          description: Associated invoice ID
+        receiptUrl:
+          type: string
+          description: Digital receipt URL
+        tags:
+          type: array
+          items:
+            type: string
+          description: User-defined tags
+    created:
+      type: string
+      format: date-time
+    confirmed:
+      type: string
+      format: date-time
+      description: When transaction was confirmed
+    expiresAt:
+      type: string
+      format: date-time
+      description: When pending transaction expires
+  required: [id, tallyId, type, amount, status, created]
+
+BalanceSummary:
+  type: object
+  description: Aggregated balance across all tallies
+  properties:
+    total:
+      type: number
+      format: float
+      description: Total balance across all tallies
+    currency:
+      type: string
+      default: "CHIP"
+    formatted:
+      type: string
+      description: Formatted display string (e.g., "¢1,247.50")
+    description:
+      type: string
+      description: Status description
+    lastUpdated:
+      type: string
+      format: date-time
+    breakdown:
+      type: object
+      properties:
+        positive:
+          type: number
+          format: float
+          description: Total positive balances
+        negative:
+          type: number
+          format: float
+          description: Total negative balances
+        activeTallies:
+          type: integer
+          description: Number of tallies with non-zero balance
+        totalTallies:
+          type: integer
+          description: Total number of tally relationships
+      required: [positive, negative, activeTallies, totalTallies]
+  required: [total, currency, formatted, lastUpdated, breakdown]
+
+# Vendor/Marketplace data types removed - these are external web content from mychips.org
+# App focuses on direct tally relationships and personal data only
+
+OnboardingState:
+  type: object
+  description: User's onboarding progress
+  properties:
+    isComplete:
+      type: boolean
+    currentStep:
+      type: string
+      enum: [identity, first-tally, marketplace, complete]
+    tasks:
+      type: array
+      items:
+        $ref: '#/OnboardingTask'
+    progress:
+      type: number
+      format: float
+      minimum: 0.0
+      maximum: 1.0
+      description: Completion percentage
+  required: [isComplete, currentStep, tasks, progress]
+
+OnboardingTask:
+  type: object
+  properties:
+    id:
+      type: string
+      description: Task identifier
+    title:
+      type: string
+      description: Task display title
+    description:
+      type: string
+      description: Task description
+    completed:
+      type: boolean
+    required:
+      type: boolean
+      description: Whether task is required for completion
+    metadata:
+      type: object
+      description: Task-specific data
+  required: [id, title, completed, required]
+
+TallyTemplate:
+  type: object
+  description: Saved template for creating tally relationships
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+      description: Template name
+    description:
+      type: string
+      description: Template description
+    category:
+      type: string
+      enum: [personal, business, vendor]
+    defaultCreditLimit:
+      type: number
+      format: float
+      minimum: 0
+    terms:
+      $ref: '#/TallyTerms'
+    usageCount:
+      type: integer
+      minimum: 0
+      description: Number of times template has been used
+    lastUsed:
+      type: string
+      format: date-time
+    created:
+      type: string
+      format: date-time
+  required: [id, name, category, defaultCreditLimit, terms, created]
+
+ApiResponse:
+  type: object
+  description: Standard API response wrapper
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      description: Response data (varies by endpoint)
+    errors:
+      type: array
+      items:
+        type: string
+      description: Error messages if success is false
+    metadata:
+      type: object
+      description: Additional response metadata
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+        version:
+          type: string
+  required: [success]
+
+ErrorResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      enum: [false]
+    errors:
+      type: array
+      items:
+        type: string
+      minItems: 1
+    errorCode:
+      type: string
+      description: Machine-readable error code
+    details:
+      type: object
+      description: Additional error context
+  required: [success, errors, errorCode]

@@ -10,7 +10,7 @@
 
 ## Sequence
 
-*[Fill in the step-by-step sequence here]*
+*[Human-defines step-by-step sequence here]*
 
 - User is comfortable now trying his first tally with Friend.
 - He remembers the path for inviting others to tally and executes it.
