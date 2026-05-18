@@ -2972,7 +2972,7 @@ rid		serial		primary key
   , reward	float		not null default 0 constraint "!mychips.paths:LRW" check (reward >= -1 and reward <= 1)
 );
 create unique index "!mychips.tallies:TNU"
-  on mychips.tallies (tally_type, tally_uuid) where status in ('open','close')	-- Constraint only for active tallies;
+  on mychips.tallies (tally_type, tally_uuid) where status in ('open','close');	-- Constraint only for active tallies
 create trigger mychips_tallies_tr_change after insert or update or delete on mychips.tallies for each statement execute procedure mychips.tallies_tf_change();
 create index mychips_tallies_x_tally_date on mychips.tallies (tally_date);
 create function mychips.tally_json(te mychips.tallies) returns jsonb stable language sql as $$
